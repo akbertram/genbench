@@ -1,0 +1,185 @@
+# needs info about path and what size of data to run on
+args <- commandArgs(trailingOnly = TRUE)
+PATH <- args[1]
+NGENES <- args[2]
+NPATIENTS <- args[3]
+GEO <- paste(PATH, '/GEO-', NGENES, '-', NPATIENTS, '.rds', sep="")
+GO <- paste(PATH, '/GO-', NGENES, '-', NPATIENTS, '.rds', sep="")
+GENES <- paste(PATH, '/GeneMetaData-', NGENES, '-', NPATIENTS, '.rds', sep="")
+PATIENTS <- paste(PATH, '/PatientMetaData-', NGENES, '-', NPATIENTS, '.rds', sep="")
+
+
+# plain-R q&d replacement for acast(A, list(names(A)[1], names(A)[2]))
+df2mx <- function(df) {
+  d1 <- factor(df[,1])
+  d2 <- factor(df[,2])
+  m <- matrix(data=42, nrow=length(levels(d1)), 
+    ncol=length(levels(d2)))
+  dimnames(m) <- list(levels(d1), levels(d2))
+  m[cbind(d1, d2)] <- df[,3]
+  m
+}
+
+regression <- function()
+{
+  ptm = proc.time()
+
+  ### Data Management ops start ###
+  geo      <- readRDS(GEO)
+  genes    <- readRDS(GENES)
+  patients <- readRDS(PATIENTS)
+
+  # subset
+  sub_gmd = genes[genes$func < 250,]
+  colnames(sub_gmd)[1] = "geneid"
+
+  response = patients[,"drug.response"]
+
+  # join
+  A = merge(geo, sub_gmd)[,c("patientid", "geneid", "expression.value")]
+  
+  # matrix cast
+  A <- df2mx(A)
+
+  ### Data management ops end ###
+  cat(sprintf('Regression data management: %f\n', (proc.time() - ptm)['elapsed']))
+  ptm = proc.time()
+
+  # run regression
+  lm.fit(x=A, y=response)
+  cat(sprintf('Regression analytics: %f\n', (proc.time() - ptm)['elapsed']))
+}
+
+covariance <- function()
+{
+  ptm <- proc.time()
+
+  ### Data Management ops start ###
+
+  geo      <- readRDS(GEO)
+  genes    <- readRDS(GENES)
+  patients <- readRDS(PATIENTS)
+
+  sub_pmd <- patients[patients$disease==5,]
+
+  # convert to data tables
+  colnames(sub_pmd)[1] = "patientid"
+
+  # join
+  A <- merge(geo, sub_pmd)[,c("patientid", "geneid", "expression.value")]
+  
+  # convert to matrix
+  A <- df2mx(A)
+
+  midtm <- (proc.time() - ptm)['elapsed']
+  ptm <- proc.time()  
+
+  # calculate covariance
+  covar <- cov(A)
+  cat(sprintf('Covariance analytics: %f\n', (proc.time() - ptm)['elapsed']))
+  ptm <- proc.time()
+
+  covar <- which(covar>0.01*(max(covar)), arr.ind=T)
+  res <- merge(covar, genes, by.x='row', by.y='id')
+  res <- merge(res, genes, by.x='col', by.y='id')  
+ 
+  ### Data management ops end ###
+  cat(sprintf('Regression data management: %f\n', (proc.time() - ptm)['elapsed'] + midtm))
+}
+
+biclustering<-function()
+{
+  ptm = proc.time()
+
+  ### Data Management ops start ###
+  geo      <- readRDS(GEO)
+  patients <- readRDS(PATIENTS)
+
+  sub_pmd <- patients[patients$gender == 1 & patients$age <= 40, ]
+  colnames(sub_pmd)[1] <- "patientid"
+  A <- merge(geo, sub_pmd)[,c("patientid", "geneid", "expression.value")]
+  A <- df2mx(A)
+
+  ### Data management ops end ###
+
+  cat(sprintf('Regression data management: %f\n', (proc.time() - ptm)['elapsed']))
+  ptm <- proc.time()
+  
+  # run biclustering
+  library(biclust)
+  library(s4vd)
+  biclust(A, method=BCssvd, K=1)
+  cat(sprintf('Biclust analytics: %f\n', (proc.time() - ptm)['elapsed']))
+} 
+
+svd_irlba <- function()
+{
+  library(irlba)
+  ptm <- proc.time()
+
+  ### Data Management ops start ###
+  geo      <- readRDS(GEO)
+  genes    <- readRDS(GENES)
+
+  sub_gmd <- genes[genes$func < 250,]
+
+  # convert to data tables
+  colnames(sub_gmd)[1] = "geneid"
+  # join
+  A <- merge(geo, sub_gmd)[,c("patientid", "geneid", "expression.value")]
+
+  # store as matrix
+  A <- df2mx(A)
+
+  ### Data management ops end ###
+  cat(sprintf('SVD data management: %f\n', (proc.time() - ptm)['elapsed']))
+  ptm <- proc.time()
+
+  # run svd
+  irlba(A, nu=50, nv=50, sigma="ls")
+  cat(sprintf('SVD analytics: %f\n', (proc.time() - ptm)['elapsed']))
+}
+
+stats <- function()
+{
+  ptm <- proc.time()
+
+  ### Data Management ops start ###
+
+  geo      <- readRDS(GEO)
+  go       <- readRDS(GO)
+  # update code to start all ids at 1
+  geo[,1] <- geo[,1]+1
+  geo[,2] <- geo[,2]+1
+  geo = geo[geo$patientid < 0.0025*max(geo$patientid),]
+  go[,1] <- go[,1] + 1
+  go[,2] <- go[,2] + 1
+
+  # store as matrix
+  A = df2mx(geo)
+  
+  ### Data management ops end ###
+  cat(sprintf('Stats data management: %f\n', (proc.time() - ptm)['elapsed']))
+  ptm <- proc.time()
+
+  # TODO: get rid of foreach
+  return()
+
+  # run wilcox rank sum test
+  foreach (ii=1:dim(go)[2])
+  {
+    foreach(jj=1:dim(A)[1])
+    {
+      set1 <- A[jj,(go[,ii] == 1)]
+      set2 <- A[jj,(go[,ii] == 0)]
+      wilcox.test(set1, set2, alternative="less")
+    }
+  }
+  cat(sprintf('Stats analytics: %f\n', (proc.time() - ptm)['elapsed']))
+}
+
+print(paste('Regression: ', system.time(regression(), gcFirst=T)['elapsed'], sep=''));
+print(paste('SVD: ', system.time(svd_irlba(), gcFirst=T)['elapsed'], sep=''));
+print(paste('Covariance: ', system.time(covariance(), gcFirst=T)['elapsed'], sep=''));
+print(paste('Biclustering: ', system.time(biclustering(), gcFirst=T)['elapsed'], sep=''));
+print(paste('Stats: ', system.time(stats(), gcFirst=T)['elapsed'], sep='')); 
