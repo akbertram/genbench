@@ -21,6 +21,16 @@ df2mxc <- function(df) {
   m
 }
 
+df2mxs <- function(df) {
+  d1 <- df[,1]
+  d2 <- df[,2]
+  m <- matrix(data=NA, nrow=max(d1), 
+    ncol=max(d2))
+  m[cbind(d1, d2)] <- df[,3]
+  m
+}
+
+
 regression <- function() {
   ptm = proc.time()
 
@@ -154,10 +164,8 @@ stats <- function() {
 
   go[,1] <- go[,1] + 1
   go[,2] <- go[,2] + 1
-  # TODO:  get rid of Matrix dependency
-  library(Matrix)
-  go <- sparseMatrix(go[,1], go[,2], x=go[,3])
-
+  go <- df2mxs(go)
+  
   ### Data management ops end ###
   cat(sprintf('Stats data management: %f\n', (proc.time() - ptm)['elapsed']))
   ptm <- proc.time()
@@ -175,8 +183,8 @@ stats <- function() {
   cat(sprintf('Stats analytics: %f\n', (proc.time() - ptm)['elapsed']))
 }
 
-print(paste('Regression: ', system.time(regression(), gcFirst=T)['elapsed'], sep=''));
-print(paste('SVD: ', system.time(svd_irlba(), gcFirst=T)['elapsed'], sep=''));
-print(paste('Covariance: ', system.time(covariance(), gcFirst=T)['elapsed'], sep=''));
-print(paste('Biclustering: ', system.time(biclustering(), gcFirst=T)['elapsed'], sep=''));
+# print(paste('Regression: ', system.time(regression(), gcFirst=T)['elapsed'], sep=''));
+# print(paste('SVD: ', system.time(svd_irlba(), gcFirst=T)['elapsed'], sep=''));
+# print(paste('Covariance: ', system.time(covariance(), gcFirst=T)['elapsed'], sep=''));
+# print(paste('Biclustering: ', system.time(biclustering(), gcFirst=T)['elapsed'], sep=''));
 print(paste('Stats: ', system.time(stats(), gcFirst=T)['elapsed'], sep='')); 
