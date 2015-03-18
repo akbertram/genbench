@@ -21,6 +21,7 @@ df2mxc <- function(df) {
   m
 }
 
+# plain-R q&d replacement for sparseMatrix(go[,1], go[,2], x=go[,3])
 df2mxs <- function(df) {
   d1 <- df[,1]
   d2 <- df[,2]
@@ -157,34 +158,28 @@ stats <- function() {
   # update code to start all ids at 1
   geo[,1] <- geo[,1]+1
   geo[,2] <- geo[,2]+1
-  # not sure whtat this does, but hey
-  geo <- geo[geo$patientid < 0.0025 * max(geo$patientid),]
-  # store as matrix
+  # select subset of patients, only for larger datasets, breaks otherwise
+  if (NPATIENTS > 5000) geo <- geo[geo$patientid < 0.0025 * max(geo$patientid),]
   A <- df2mxc(geo)
 
   go[,1] <- go[,1] + 1
   go[,2] <- go[,2] + 1
   go <- df2mxs(go)
-  
+
   ### Data management ops end ###
   cat(sprintf('Stats data management: %f\n', (proc.time() - ptm)['elapsed']))
   ptm <- proc.time()
 
-  # TODO: get rid of foreach dependency
-  library(foreach)
-  # run wilcox rank sum test
-  foreach (ii=1:dim(go)[2]) %do% {
-    foreach(jj=1:dim(A)[1]) %do% {
-      set1 <- A[jj,(go[,ii] == 1)]
-      set2 <- A[jj,(go[,ii] == 0)]
-      wilcox.test(set1, set2, alternative="less")
+  for   (ii in 1:dim(go)[2]) {
+    for (jj in 1:dim(A) [1]) {
+      wilcox.test(A[jj, go[,ii] == 1], A[jj, go[,ii] == 0], alternative="less")
     }
   }
   cat(sprintf('Stats analytics: %f\n', (proc.time() - ptm)['elapsed']))
 }
 
-# print(paste('Regression: ', system.time(regression(), gcFirst=T)['elapsed'], sep=''));
-# print(paste('SVD: ', system.time(svd_irlba(), gcFirst=T)['elapsed'], sep=''));
-# print(paste('Covariance: ', system.time(covariance(), gcFirst=T)['elapsed'], sep=''));
-# print(paste('Biclustering: ', system.time(biclustering(), gcFirst=T)['elapsed'], sep=''));
+print(paste('Regression: ', system.time(regression(), gcFirst=T)['elapsed'], sep=''));
+print(paste('SVD: ', system.time(svd_irlba(), gcFirst=T)['elapsed'], sep=''));
+print(paste('Covariance: ', system.time(covariance(), gcFirst=T)['elapsed'], sep=''));
+print(paste('Biclustering: ', system.time(biclustering(), gcFirst=T)['elapsed'], sep=''));
 print(paste('Stats: ', system.time(stats(), gcFirst=T)['elapsed'], sep='')); 
