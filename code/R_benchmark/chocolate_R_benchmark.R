@@ -1,10 +1,17 @@
 # this is a plain-R version of vanilla_R_benchmark.R, without extra data management packages
+# only works with NGENES and NPATIENTS >= 1000
 
 # needs info about path and what size of data to run on
 args <- commandArgs(trailingOnly = TRUE)
-PATH <- args[1]
-NGENES <- args[2]
-NPATIENTS <- args[3]
+if (length(args) > 0) {
+  PATH <- args[1]
+  NGENES <- args[2]
+  NPATIENTS <- args[3]
+} else {
+  PATH <- "."
+  NGENES <- "500"
+  NPATIENTS <- "500"
+}
 GEO <-      paste(PATH, '/GEO-', NGENES, '-', NPATIENTS, '.rds', sep="")
 GO <-       paste(PATH, '/GO-', NGENES, '-', NPATIENTS, '.rds', sep="")
 GENES <-    paste(PATH, '/GeneMetaData-', NGENES, '-', NPATIENTS, '.rds', sep="")
@@ -94,7 +101,7 @@ covariance <- function() {
   res <- merge(res, genes, by.x='col', by.y='id')  
  
   ### Data management ops end ###
-  cat(sprintf('Regression data management: %f\n', (proc.time() - ptm)['elapsed'] + midtm))
+  cat(sprintf('Covariance data management: %f\n', (proc.time() - ptm)['elapsed'] + midtm))
 }
 
 biclustering<-function() {
@@ -111,7 +118,7 @@ biclustering<-function() {
 
   ### Data management ops end ###
 
-  cat(sprintf('Regression data management: %f\n', (proc.time() - ptm)['elapsed']))
+  cat(sprintf('Biclust data management: %f\n', (proc.time() - ptm)['elapsed']))
   ptm <- proc.time()
   
   # run biclustering
@@ -158,8 +165,9 @@ stats <- function() {
   # update code to start all ids at 1
   geo[,1] <- geo[,1]+1
   geo[,2] <- geo[,2]+1
-  # select subset of patients, only for larger datasets, breaks otherwise
-  if (NPATIENTS > 5000) geo <- geo[geo$patientid < 0.0025 * max(geo$patientid),]
+
+  # select subset of patients, but breaks if we do. why??
+  #geo <- geo[geo$patientid < 0.0025 * max(geo$patientid),]
   A <- df2mxc(geo)
 
   go[,1] <- go[,1] + 1
