@@ -5,9 +5,9 @@ args <- commandArgs(trailingOnly = TRUE)
 PATH <- args[1]
 NGENES <- args[2]
 NPATIENTS <- args[3]
-GEO <- paste(PATH, '/GEO-', NGENES, '-', NPATIENTS, '.rds', sep="")
-GO <- paste(PATH, '/GO-', NGENES, '-', NPATIENTS, '.rds', sep="")
-GENES <- paste(PATH, '/GeneMetaData-', NGENES, '-', NPATIENTS, '.rds', sep="")
+GEO <-      paste(PATH, '/GEO-', NGENES, '-', NPATIENTS, '.rds', sep="")
+GO <-       paste(PATH, '/GO-', NGENES, '-', NPATIENTS, '.rds', sep="")
+GENES <-    paste(PATH, '/GeneMetaData-', NGENES, '-', NPATIENTS, '.rds', sep="")
 PATIENTS <- paste(PATH, '/PatientMetaData-', NGENES, '-', NPATIENTS, '.rds', sep="")
 
 
@@ -21,8 +21,7 @@ df2mxc <- function(df) {
   m
 }
 
-regression <- function()
-{
+regression <- function() {
   ptm = proc.time()
 
   ### Data Management ops start ###
@@ -51,8 +50,7 @@ regression <- function()
   cat(sprintf('Regression analytics: %f\n', (proc.time() - ptm)['elapsed']))
 }
 
-covariance <- function()
-{
+covariance <- function() {
   ptm <- proc.time()
 
   ### Data Management ops start ###
@@ -88,8 +86,7 @@ covariance <- function()
   cat(sprintf('Regression data management: %f\n', (proc.time() - ptm)['elapsed'] + midtm))
 }
 
-biclustering<-function()
-{
+biclustering<-function() {
   ptm = proc.time()
 
   ### Data Management ops start ###
@@ -113,8 +110,7 @@ biclustering<-function()
   cat(sprintf('Biclust analytics: %f\n', (proc.time() - ptm)['elapsed']))
 } 
 
-svd_irlba <- function()
-{
+svd_irlba <- function() {
   library(irlba)
   ptm <- proc.time()
 
@@ -141,12 +137,10 @@ svd_irlba <- function()
   cat(sprintf('SVD analytics: %f\n', (proc.time() - ptm)['elapsed']))
 }
 
-stats <- function()
-{
+stats <- function() {
   ptm <- proc.time()
 
   ### Data Management ops start ###
-
   geo      <- readRDS(GEO)
   go       <- readRDS(GO)
 
@@ -155,31 +149,24 @@ stats <- function()
   geo[,2] <- geo[,2]+1
   # not sure whtat this does, but hey
   geo <- geo[geo$patientid < 0.0025 * max(geo$patientid),]
-  go[,1] <- go[,1] + 1
-  go[,2] <- go[,2] + 1
-
   # store as matrix
   A <- df2mxc(geo)
-  
-  # TODO:  get rid of dependency
+
+  go[,1] <- go[,1] + 1
+  go[,2] <- go[,2] + 1
+  # TODO:  get rid of Matrix dependency
   library(Matrix)
   go <- sparseMatrix(go[,1], go[,2], x=go[,3])
-
 
   ### Data management ops end ###
   cat(sprintf('Stats data management: %f\n', (proc.time() - ptm)['elapsed']))
   ptm <- proc.time()
 
-  print(str(go))
-  print(str(A))
-
-    print(1:dim(go)[2])
-    print(1:dim(A)[1])
-
-    # FIXME this does not work yet
+  # TODO: get rid of foreach dependency
+  library(foreach)
   # run wilcox rank sum test
-  for (ii in 1:dim(go)[2]) {
-    for(jj in 1:dim(A)[1]) {
+  foreach (ii=1:dim(go)[2]) %do% {
+    foreach(jj=1:dim(A)[1]) %do% {
       set1 <- A[jj,(go[,ii] == 1)]
       set2 <- A[jj,(go[,ii] == 0)]
       wilcox.test(set1, set2, alternative="less")
@@ -192,4 +179,4 @@ print(paste('Regression: ', system.time(regression(), gcFirst=T)['elapsed'], sep
 print(paste('SVD: ', system.time(svd_irlba(), gcFirst=T)['elapsed'], sep=''));
 print(paste('Covariance: ', system.time(covariance(), gcFirst=T)['elapsed'], sep=''));
 print(paste('Biclustering: ', system.time(biclustering(), gcFirst=T)['elapsed'], sep=''));
-#print(paste('Stats: ', system.time(stats(), gcFirst=T)['elapsed'], sep='')); 
+print(paste('Stats: ', system.time(stats(), gcFirst=T)['elapsed'], sep='')); 
