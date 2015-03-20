@@ -1,5 +1,8 @@
 # this is a plain-R version of vanilla_R_benchmark.R, without extra data management packages
 # only works with NGENES and NPATIENTS >= 1000
+library(biclust)
+library(s4vd)
+library(irlba)
 
 # needs info about path and what size of data to run on
 args <- commandArgs(trailingOnly = TRUE)
@@ -122,14 +125,12 @@ biclustering<-function() {
   ptm <- proc.time()
   
   # run biclustering
-  library(biclust)
-  library(s4vd)
+
   biclust(A, method=BCssvd, K=1)
   cat(sprintf('Biclust analytics: %f\n', (proc.time() - ptm)['elapsed']))
 } 
 
 svd_irlba <- function() {
-  library(irlba)
   ptm <- proc.time()
 
   ### Data Management ops start ###
@@ -166,7 +167,7 @@ stats <- function() {
   geo[,1] <- geo[,1]+1
   geo[,2] <- geo[,2]+1
 
-  # select subset of patients, but breaks if we do. why??
+  # select subset of patients, but breaks if we do. why?? too few
   #geo <- geo[geo$patientid < 0.0025 * max(geo$patientid),]
   A <- df2mxc(geo)
 
@@ -180,14 +181,19 @@ stats <- function() {
 
   for   (ii in 1:dim(go)[2]) {
     for (jj in 1:dim(A) [1]) {
-      wilcox.test(A[jj, go[,ii] == 1], A[jj, go[,ii] == 0], alternative="less")
+      set1 <- A[jj, go[,ii] == 1]
+      set2 <- A[jj, go[,ii] == 0]
+      print(str(set1))
+      print(str(set2))
+
+      w < wilcox.test(set1, set2, alternative="less")
     }
   }
   cat(sprintf('Stats analytics: %f\n', (proc.time() - ptm)['elapsed']))
 }
 
-print(paste('Regression: ', system.time(regression(), gcFirst=T)['elapsed'], sep=''));
-print(paste('SVD: ', system.time(svd_irlba(), gcFirst=T)['elapsed'], sep=''));
-print(paste('Covariance: ', system.time(covariance(), gcFirst=T)['elapsed'], sep=''));
+print(paste('Regression: ',   system.time(regression(),   gcFirst=T)['elapsed'], sep=''));
+print(paste('SVD: ',          system.time(svd_irlba(),    gcFirst=T)['elapsed'], sep=''));
+print(paste('Covariance: ',   system.time(covariance(),   gcFirst=T)['elapsed'], sep=''));
 print(paste('Biclustering: ', system.time(biclustering(), gcFirst=T)['elapsed'], sep=''));
-print(paste('Stats: ', system.time(stats(), gcFirst=T)['elapsed'], sep='')); 
+#print(paste('Stats: ',        system.time(stats(),        gcFirst=T)['elapsed'], sep='')); 
