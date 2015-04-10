@@ -10,13 +10,14 @@ library(fpc) # clustering statistics
 ## global vars
 # https://tcga-data.nci.nih.gov/docs/publications/TCGApancan_2014/
 INPUT <- "https://tcga-data.nci.nih.gov/docs/publications/TCGApancan_2014/RPPA_input.csv"
+OUTPUT <- "https://tcga-data.nci.nih.gov/docs/publications/TCGApancan_2014/RPPA_output.csv"
 
 # holder for results
 RESULTS <- list()
 TIMES <- list()
 
 # reproducibility
-sed.seed(8008)
+set.seed(8008)
 
 ### functions
 do.load <- function(csv){
@@ -32,7 +33,8 @@ do.load <- function(csv){
   row.names(rppa) <- rows
   
   # check it
-  str(rppa)
+  # str(rppa)
+  # dim(rppa) # 3467  131
   
   TIMES$load <<- proc.time() - ptm
   
@@ -75,15 +77,14 @@ do.hc <- function(dist_mat){
   # determine optimal clustering using cluster.stats, for a range of 'cuts'
   cuts <- lapply(2:25, FUN = function(i){ # note: 1 cluster => 'Inf' error
     
-    cluster.stats(dist_mat, cutree(res, k=i))
-    
-    )
+      cluster.stats(dist_mat, cutree(res, k=i))
+    }  
+  )
   # determine optimal cut and return labels
-  # use within cluster SS to be consistent with kmeans?
-  # TODO: 
-  # best_cut <- 8 # according to paper
-  # res <- cutree(res, best_cut)
-  # res <- data.frame(id=row.names(dist_mat), cluster=res)
+  # TODO: use within cluster SS to be consistent with kmeans?
+  best_cut <- 8 # according to paper
+  res <- cutree(res, best_cut)
+  res <- data.frame(id=attr(dist_mat, which = "Labels"), cluster=res)
   
   TIMES$hc <<- proc.time() - ptm
 
@@ -97,20 +98,19 @@ do.km <- function(dist_mat){
   require(fpc)
   require(stats)
   
-  # kmeans clustering
-  res <- lapply(2:25, FUN = function(i){ 
-    
-    kmeans(d = dist_mat, method="Hartigan-Wong", centres=i)
-    
+  # kmeans clustering for a range of cluster numbers
+  res <- lapply(2:25, FUN = function(i){
+      kmeans(d = dist_mat, method="Hartigan-Wong", centres=i)
+    }
   )
   
   # determine optimal clustering using cluster.stats, for a range of 'cuts'
   cuts <- lapply(res, function(x){sum(x$withinss)})
-  # determine optimal cut and return labels for this
-  # TODO: 
-  # best_cut <- 8 # according to paper
-  # res <- res[best_cut]
-  # res <- data.frame(id=row.names(dist_mat), cluster=res$cluster)
+  
+  # TODO: determine optimal cut and return labels for this
+  best_cut <- 8 # according to paper
+  res <- res[best_cut]
+  res <- data.frame(id=attr(dist_mat, which = "Labels"), cluster=res$cluster)
   
   TIMES$hc <<- proc.time() - ptm
   
@@ -119,27 +119,39 @@ do.km <- function(dist_mat){
 
 # random forrest
 do.rf <- function(dist_mat){
-  
+  # TBD
 }
 
 # bayesian
 do.bayes <- function(dist_mat){
- 
-  
+ # TBD  
 }
 
 ### reporting
+## load data and compute matrix
 system.time(gcFirst = T,
   rppa <- do.load(csv=INPUT)
 )
 system.time(gcFirst = T,
   dist_mat <- do.dist(input_data=rppa)
 )
+## clustering
+# hierarchical
 system.time(gcFirst = T,
   RESULTS$hc <- do.hc(dist_mat=dist_mat)
 )
+# kmeans
 system.time(gcFirst = T,
-            RESULTS$hc <- do.km(dist_mat=dist_mat)
+  RESULTS$km <- do.km(dist_mat=dist_mat)
 )
 
+# random forrest
 
+# bayes
+
+### compare results to each other and to published
+# collect published results
+hoadley <- read.csv(OUTPUT)
+
+# compare stability of number of clusters or membership to expected results
+# TBD
