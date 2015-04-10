@@ -5,7 +5,6 @@
 ### set up session
 ## packages
 library(stats)
-library(fpc) # clustering statistics
 
 ## global vars
 # https://tcga-data.nci.nih.gov/docs/publications/TCGApancan_2014/
@@ -64,17 +63,37 @@ do.dist <- function(input_data){
 }
 
 ## unsupervised clustering
+do.within.ss <- function(d = NULL, clustering){
+  # cut from 'fpc' package function cluster.stats()
+  cluster.size <- within.dist <- numeric(0)
+  
+  dmat <- as.matrix(d)
+  within.cluster.ss <- 0
+  
+  di <- list()
+  for (i in 1:max(clustering)) {
+    cluster.size[i] <- sum(clustering == i)
+    di <- as.dist(dmat[clustering == i, clustering == i])
+    if (i <= max(clustering)) {
+      within.cluster.ss <- within.cluster.ss + sum(di^2)/cluster.size[i]
+      
+    }
+    
+  }
+  
+  return(within.cluster.ss)
+  
+}
 # hierarchical
 do.hc <- function(dist_mat){
   ptm <- proc.time()
   
-  require(fpc)
   require(stats)
   
   # hierarchical clustering, WARD as linkage
   res <- hclust(d = dist_mat, method="ward.D2")
   
-  # determine optimal clustering using cluster.stats, for a range of 'cuts'
+  # determine optimal clustering using within cluster SS, for a range of 'cuts'
   cuts <- lapply(2:25, FUN = function(i){ # note: 1 cluster => 'Inf' error
     
       cluster.stats(dist_mat, cutree(res, k=i))

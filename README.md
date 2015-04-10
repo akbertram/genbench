@@ -60,6 +60,8 @@ Focus on classification:
 
 - RPPA data from <a href="http://www.cell.com/cell/abstract/S0092-8674(14)00876-9">Hoadley et al</a>, <a href="https://tcga-data.nci.nih.gov/docs/publications/TCGApancan_2014/">here</a>
 
+unpsupervised clustering: hierarchical, kmeans, random forrest, bayesian
+
 (c) Genetics Data
 
 TBD
@@ -86,25 +88,5 @@ As part of this work, we have tested the benchmark queries on a variety of syste
 - GNU R
 - Renjin
 
-Code:
------
-
-We implemented the benchmark queries in all the systems above and code for all systems except SciDB is freely available in this repository. We've made efforts to optimize the code but there are certainly ways to do this better, so please feel free to optimize the code further and submit your results.
-
-Experimental Setup:
--------------------
-
-We ran out benchmark code for all combinations of data sizes and # of nodes (in our case, 1, 2 or 4 nodes). Each machine has the following configuration: Intel Xeon E5-2620 processors with 2-sockets of 6 cores each and 48 GB RAM, 6 2-TB disks configured as 3 virtual 4-TB disks (RAID 0).
-
-Paper:
-------
-
-The paper, presented at SIGMOD 2014, can be found <a href= "http://dl.acm.org/citation.cfm?id=2595633&CFID=593829267&CFTOKEN=38043504">here</a>.
-
-Contact:
---------
-
-alex@bedatadriven.com
-ieuan.clay@gmail.com
 
 <a href=""></a>

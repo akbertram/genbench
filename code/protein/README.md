@@ -1,6 +1,6 @@
 protein
 ==========
-Benchmark for protein data (RPPA)
+Benchmark for protein data (RPPA), and unsupervised clustering as found in the base stats package.
 
 
 Data
@@ -11,8 +11,10 @@ Data
 
 Code
 -----------
-TBD
-
+- data loading
+- compute distance matrix as described in paper
+- several methods of unsupervised clustering
+- comparison of results to published and/or expected results
 
 Aims
 -----------
