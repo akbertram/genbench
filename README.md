@@ -11,11 +11,9 @@ Genomics is quickly becoming a major source of big data due to advances in seque
 Why do we need a new benchmark:
 ===============================
 
-Existing database benchmarks focus on database operations and basic analytics (aggregates, rankings). However, genomics workloads are made of complex analytics not covered by traditional DBMS benchmarks. For instance, researchers often build regression models, use statistics to find enrichment in datasets etc. These workloads involve a mix of traditional database, statistics and linear algebra operations. As a result, we have a new benchmark based on complex analytics.
-
 NOTE: This benchmark does not cover all possible operations performed in genomics. In particular, we chose to not focus on processing of raw sequence data and instead focus on higher level processing.
 
-We Chose to use real-world data, to allow not just benchmarking of clock speeds upon completion of a given analysis, but also to allow for testing of "correctness" and to ensure ecological validity of tests.
+We also chose to use real-world data, to allow not just benchmarking of clock speeds upon completion of a given analysis, but also to allow for testing of "correctness" and to ensure ecological validity of tests.
 
 
 Benchmark:
@@ -31,9 +29,12 @@ This benchmark focuses on genomics data, and specifically on statistical analysi
 (a) Gene Expression Data
 - 3' Microarray
 - mRNAseq
+
 (b) Protein Expression Data
  - <a href=""></a>http://www.cell.com/cell/abstract/S0092-8674(14)00876-9
+
 (c) Genetics Data
+
 (d) Simulated matrices (to allow for testing scale, as in orginal <a href="https://github.com/mitdbg/genbase">GenBase</a> Project 
 
 The above will be sourced from:
@@ -43,8 +44,9 @@ The above will be sourced from:
 
 Ideally, studies are chosen for scale, and for having validated and replicable results.
 
-Queries:
+Benchmarks:
 --------
+
 (a) Gene Expression Data
 - 3' Microarray
 
@@ -61,6 +63,7 @@ Focus on classification:
 - RPPA data from <a href="http://www.cell.com/cell/abstract/S0092-8674(14)00876-9">Hoadley et al</a>, <a href="https://tcga-data.nci.nih.gov/docs/publications/TCGApancan_2014/">here</a>
 
 unpsupervised clustering: hierarchical, kmeans, random forrest, bayesian
+
 
 (c) Genetics Data
 
