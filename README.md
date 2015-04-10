@@ -1,7 +1,7 @@
-genbase
+genbench
 =======
 
-GenBase: a Complex Analytics benchmark for Genomics
+GenBench: Realworld Genomics Benchmarks for R, forked from and inspired by <a href= "https://github.com/hannesmuehleisen/genbase">GenBase</a>.
 
 Why genomics:
 =============
@@ -15,30 +15,38 @@ Existing database benchmarks focus on database operations and basic analytics (a
 
 NOTE: This benchmark does not cover all possible operations performed in genomics. In particular, we chose to not focus on processing of raw sequence data and instead focus on higher level processing.
 
+We Chose to use real-world data, to allow not just benchmarking of clock speeds upon completion of a given analysis, but also to allow for testing of "correctness" and to ensure ecological validity of tests.
+
+
 Benchmark:
 ==========
 
-This benchmark was developed in collaboration with Novartis and Broad Institute scientists. The code was developed by the MIT Database Group and the Intel Parallel Computing Lab.
+This benchmark was developed in collaboration with <a href= "https://www.bedatadriven.com">BeDataDriven</a>.
 
 Data:
 -----
 
-This benchmark focuses on microarray (i.e. gene expression) data augmented by gene and patient metadata and gene ontology. Our results were generated on 4 data sizes:
+This benchmark focuses on genomics data, and specifically on statistical analysis, as opposed to processing (e.g. alignment):
 
-- Small: 5K X 5K
-- Medium: 15K X 20K
-- Large: 30K X 40K
-- Extra Large: 60K X 70K (* none of the systems we tested on our experimental set up were able to run on the extra large dataset. Read more in experimental setup)
+(a) Gene Expression Data
+- 3' Microarray
+- mRNAseq
+(b) Protein Expression Data
+(c) Genetics Data
 
-Experimental microarray data is available at http://www.ncbi.nlm.nih.gov/geo/. We chose to write our own data generator based on experimental data so that we could generate variable size data and generate the associated metadata.
 
 Queries:
 --------
+(a) Gene Expression Data
+- 3' Microarray
 
-Based on the operations commonly performed by genomics researchers, we selected five representative queries that have a mix of DB ops, statistics and linear algebra. The general workflow looks as follows:
-(a) select a subset of the input datasets using traditional DB ops (selects, joins)
-(b) perform linear algebra or statistics operations (see below)
-(c) combine results of step (b) with initial dataset
+RMA, MAS150
+
+- mRNAseq
+
+Voom/LIMMA, DEseq
+
+(b) Protein Expression Data
 
 We focus on the linear algebra and stats operations below: 
 
@@ -52,17 +60,17 @@ We focus on the linear algebra and stats operations below:
 
 - Statistics: determine if certain sets of genes are highly expressed compared to the entire set of genes
 
+
+(c) Genetics Data
+
+TBD
+
 Systems:
 --------
 
 As part of this work, we have tested the benchmark queries on a variety of systems, specifically:
-- R
-- pbdR
-- Postgres+R
-- Postgres+MADlib
-- Column DBMS+R
-- SciDB
-- Hadoop+Mahout
+- GNU R
+- Renjin
 
 Code:
 -----
@@ -82,7 +90,8 @@ The paper, presented at SIGMOD 2014, can be found <a href= "http://dl.acm.org/ci
 Contact:
 --------
 
-genbase@mit.edu
+alex@bedatadriven.com
+ieuan.clay@gmail.com
 
 
 
