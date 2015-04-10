@@ -1,0 +1,17 @@
+{
+    "contents" : "protein\n==========\nBenchmark for protein data (RPPA), and unsupervised clustering as found in the base stats package.\n\n\nData\n-----------\n<a href=\"http://www.cell.com/cell/abstract/S0092-8674(14)00876-9\">Hoadley et al</a> were cool enough to not only publish their input data, they also deposit the output classifications for comparison.\n\n- <a href=\"https://tcga-data.nci.nih.gov/docs/publications/TCGApancan_2014/\">Data at TCGA</a>\n\nCode\n-----------\n- data loading\n- compute distance matrix as described in paper\n- several methods of unsupervised clustering\n- comparison of results to published and/or expected results\n\nAims\n-----------\n- \"Chocolate\" R code, using as little additional data containers as possible\n\n- clock timings for data loading, distance matrix calculation and various clustering methods\n\n- output comparisons to Hoadley et al\n",
+    "created" : 1428654369166.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "4026208162",
+    "id" : "CA2BC3BC",
+    "lastKnownWriteTime" : 1428671101,
+    "path" : "C:/Users/Ieuan and Katharina/ieuan_work/bdd/genbase/code/protein/README.md",
+    "project_path" : "README.md",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "source_on_save" : false,
+    "type" : "markdown"
+}

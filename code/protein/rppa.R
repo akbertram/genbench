@@ -21,7 +21,6 @@ set.seed(8008)
 ### functions
 do.load <- function(csv){
   ## load data
-  ptm <- proc.time()
   
   # samples x features matrix, including some sample metadata
   rppa <- read.csv(csv, header=T, stringsAsFactors=F)
@@ -34,8 +33,6 @@ do.load <- function(csv){
   # check it
   # str(rppa)
   # dim(rppa) # 3467  131
-  
-  TIMES$load <<- proc.time() - ptm
   
   return(rppa)
 }
@@ -51,13 +48,10 @@ do.load <- function(csv){
 
 do.dist <- function(input_data){
   ## compute distance matrix
-  ptm <- proc.time()
   
   # transpose input data to get distances between samples, not features
   # convert pearson correlation to distance (i.e. bound 0-1, 0 is close)
   dist_mat <- as.dist((1-cor(t(input_data), method="pearson"))/2)
-  
-  TIMES$dist <<- proc.time() - ptm
   
   return(dist_mat)
 }
@@ -65,12 +59,18 @@ do.dist <- function(input_data){
 ## unsupervised clustering
 do.within.ss <- function(d = NULL, clustering){
   # cut from 'fpc' package function cluster.stats()
-  cluster.size <- within.dist <- numeric(0)
+  #   a generalisation of the within clusters sum of squares 
+  #   (k-means objective function), which is obtained if d is a Euclidean 
+  #   distance matrix. For general distance measures, this is half the sum of the 
+  #   within cluster squared dissimilarities divided by the cluster size.
   
+  # variables
+  cluster.size <- numeric(0)
   dmat <- as.matrix(d)
   within.cluster.ss <- 0
-  
   di <- list()
+  
+  # iterate thought distance matrix
   for (i in 1:max(clustering)) {
     cluster.size[i] <- sum(clustering == i)
     di <- as.dist(dmat[clustering == i, clustering == i])
@@ -93,19 +93,22 @@ do.hc <- function(dist_mat){
   # hierarchical clustering, WARD as linkage
   res <- hclust(d = dist_mat, method="ward.D2")
   
+  TIMES$hc.clust <<- proc.time() - ptm
+  
   # determine optimal clustering using within cluster SS, for a range of 'cuts'
+  ptm <- proc.time() # reset clock
   cuts <- lapply(2:25, FUN = function(i){ # note: 1 cluster => 'Inf' error
     
       cluster.stats(dist_mat, cutree(res, k=i))
     }  
   )
+  
+  TIMES$hc.cut <<- proc.time() - ptm
   # determine optimal cut and return labels
   # TODO: use within cluster SS to be consistent with kmeans?
   best_cut <- 8 # according to paper
   res <- cutree(res, best_cut)
   res <- data.frame(id=attr(dist_mat, which = "Labels"), cluster=res)
-  
-  TIMES$hc <<- proc.time() - ptm
 
   return(res)
 }
@@ -114,24 +117,24 @@ do.hc <- function(dist_mat){
 do.km <- function(dist_mat){
   ptm <- proc.time()
   
-  require(fpc)
   require(stats)
   
   # kmeans clustering for a range of cluster numbers
   res <- lapply(2:25, FUN = function(i){
-      kmeans(d = dist_mat, method="Hartigan-Wong", centres=i)
+      kmeans(dist_mat, algorithm="Hartigan-Wong", centers=i)
     }
   )
+  TIMES$km.clust <<- proc.time() - ptm
   
   # determine optimal clustering using cluster.stats, for a range of 'cuts'
+  ptm <- proc.time() # reset
   cuts <- lapply(res, function(x){sum(x$withinss)})
+  TIMES$km.cut <<- proc.time() - ptm
   
   # TODO: determine optimal cut and return labels for this
   best_cut <- 8 # according to paper
   res <- res[best_cut]
   res <- data.frame(id=attr(dist_mat, which = "Labels"), cluster=res$cluster)
-  
-  TIMES$hc <<- proc.time() - ptm
   
   return(res)
 }
@@ -148,19 +151,19 @@ do.bayes <- function(dist_mat){
 
 ### reporting
 ## load data and compute matrix
-system.time(gcFirst = T,
+TIMES$load <- system.time(gcFirst = T,
   rppa <- do.load(csv=INPUT)
 )
-system.time(gcFirst = T,
+TIMES$dist <- system.time(gcFirst = T,
   dist_mat <- do.dist(input_data=rppa)
 )
 ## clustering
 # hierarchical
-system.time(gcFirst = T,
+TIMES$hc <- system.time(gcFirst = T,
   RESULTS$hc <- do.hc(dist_mat=dist_mat)
 )
 # kmeans
-system.time(gcFirst = T,
+TIMES$km <- system.time(gcFirst = T,
   RESULTS$km <- do.km(dist_mat=dist_mat)
 )
 
@@ -170,7 +173,33 @@ system.time(gcFirst = T,
 
 ### compare results to each other and to published
 # collect published results
-hoadley <- read.csv(OUTPUT)
+RESULTS$pub <- read.csv(OUTPUT, header = TRUE, stringsAsFactors=FALSE)
+names(RESULTS$pub) <- c("id", "cluster")
+# replace dots with dashes in names to make comparible to names given in input
+RESULTS$pub$id <-
+  unlist(lapply(strsplit(
+    # split on dots
+    RESULTS$pub$id, split = "\\.", perl=T), 
+    # rejoin with dashes
+    function(x) paste(x,collapse="-"))
+  )
 
 # compare stability of number of clusters or membership to expected results
 # TBD
+
+# output results for comparison
+# todo: redirect to given file or similar
+write.table(file="", quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE,
+  do.call("rbind", 
+          lapply(names(RESULTS), function(x){
+            cbind(RESULTS[[x]], data.frame(res=x))
+              }
+            )
+          )
+  )
+
+# timings
+# todo: redirect to file or other
+write.table(file="", quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
+  format(do.call("rbind", TIMES), digits=5)
+)
