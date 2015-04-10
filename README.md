@@ -34,6 +34,12 @@ This benchmark focuses on genomics data, and specifically on statistical analysi
 (b) Protein Expression Data
 (c) Genetics Data
 
+The above will be sourced from:
+- <a href="https://tcga-data.nci.nih.gov/docs/publications/">TCGA</a>
+- <a href="http://www.ncbi.nlm.nih.gov/gds">GEO</a>
+- "simulated" (this is retained from the original <a href="https://github.com/mitdbg/genbase">GenBase</a>)
+
+Ideally, studies are chosen for scale, and for having validated and replicable results.
 
 Queries:
 --------
