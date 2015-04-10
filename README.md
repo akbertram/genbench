@@ -32,7 +32,9 @@ This benchmark focuses on genomics data, and specifically on statistical analysi
 - 3' Microarray
 - mRNAseq
 (b) Protein Expression Data
+ - <a href=""></a>http://www.cell.com/cell/abstract/S0092-8674(14)00876-9
 (c) Genetics Data
+(d) Simulated matrices (to allow for testing scale, as in orginal <a href="https://github.com/mitdbg/genbase">GenBase</a> Project 
 
 The above will be sourced from:
 - <a href="https://tcga-data.nci.nih.gov/docs/publications/">TCGA</a>
@@ -54,7 +56,17 @@ Voom/LIMMA, DEseq
 
 (b) Protein Expression Data
 
-We focus on the linear algebra and stats operations below: 
+Focus on classification:
+
+- RPPA data from <a href="http://www.cell.com/cell/abstract/S0092-8674(14)00876-9">Hoadley et al</a>, <a href="https://tcga-data.nci.nih.gov/docs/publications/TCGApancan_2014/">here</a>
+
+(c) Genetics Data
+
+TBD
+
+(d) Simulated data
+
+Focus on the linear algebra and stats operations below: 
 
 - Linear Regression: build regression model to predict drug response from expression data
 
@@ -66,10 +78,6 @@ We focus on the linear algebra and stats operations below:
 
 - Statistics: determine if certain sets of genes are highly expressed compared to the entire set of genes
 
-
-(c) Genetics Data
-
-TBD
 
 Systems:
 --------
@@ -99,7 +107,4 @@ Contact:
 alex@bedatadriven.com
 ieuan.clay@gmail.com
 
-
-
-
-
+<a href=""></a>

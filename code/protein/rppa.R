@@ -1,0 +1,121 @@
+# RPPA classification
+# ieuan.clay@gmail.com
+# April 2015
+
+### set up session
+## packages
+library(stats)
+library(fpc) # clustering statistics
+
+## global vars
+# https://tcga-data.nci.nih.gov/docs/publications/TCGApancan_2014/
+INPUT <- "https://tcga-data.nci.nih.gov/docs/publications/TCGApancan_2014/RPPA_input.csv"
+
+# holder for results
+RESULTS <- list()
+TIMES <- list()
+
+# reproducibility
+sed.seed(8008)
+
+### functions
+do.load <- function(csv){
+  ## load data
+  ptm <- proc.time()
+  
+  # samples x features matrix, including some sample metadata
+  rppa <- read.csv(csv, header=T, stringsAsFactors=F)
+  
+  # drop non-numeric columns
+  rows <- rppa$TCGA_ID
+  rppa <- rppa[, sapply(rppa, is.numeric)]
+  row.names(rppa) <- rows
+  
+  # check it
+  str(rppa)
+  
+  TIMES$load <<- proc.time() - ptm
+  
+  return(rppa)
+}
+
+### classification
+## original description of method here: http://www.cell.com/cms/attachment/2019543870/2039643570/mmc1.pdf
+# Unsupervised Clustering: 
+#  - unsupervised clustering
+#  - Pearson correlation was used as the distance metric
+#  - Ward was used as the linkage algorithm
+#  - We identified eight robust clusters
+#  - The input data matrix for RPPA clustering is available in Synapse at syn1759392 and the subtype assignments are at syn1756922.
+
+do.dist <- function(input_data){
+  ## compute distance matrix
+  ptm <- proc.time()
+  
+  # transpose input data to get distances between samples, not features
+  # convert pearson correlation to distance (i.e. bound 0-1, 0 is close)
+  dist_mat <- as.dist((1-cor(t(input_data), method="pearson"))/2)
+  
+  TIMES$dist <<- proc.time() - ptm
+  
+  return(dist_mat)
+}
+
+## unsupervised clustering
+# hierarchical
+do.hc <- function(dist_mat){
+  ptm <- proc.time()
+  
+  require(fpc)
+  require(stats)
+  
+  # hierarchical clustering, WARD as linkage
+  res <- hclust(d = dist_mat, method="ward.D2")
+  
+  # determine optimal clustering using cluster.stats, for a range of 'cuts'
+  cuts <- lapply(2:25, FUN = function(i){ # note: 1 cluster => 'Inf' error
+    
+    cluster.stats(dist_mat, cutree(res, k=i))
+    
+    )
+  # determine optimal cut and return labels for this
+  # TODO: 
+  # best_cut <- 8 # according to paper
+  # res <- cutree(res, best_cut)
+  # res <- data.frame(id=row.names(dist_mat), cluster=res)
+  
+  TIMES$hc <<- proc.time() - ptm
+
+  return(res)
+}
+
+# kmeans
+do.km <- function(dist_mat){
+
+  
+  
+}
+
+# random forrest
+do.bayes <- function(dist_mat){
+  
+}
+
+# bayesian
+do.bayes <- function(dist_mat){
+ 
+  
+}
+
+### reporting
+system.time(gcFirst = T,
+  rppa <- do.load(csv=INPUT)
+)
+system.time(gcFirst = T,
+  dist_mat <- do.dist(input_data=rppa)
+)
+system.time(gcFirst = T,
+  RESULTS$hc <- do.hc(dist_mat=dist_mat)
+)
+
+
