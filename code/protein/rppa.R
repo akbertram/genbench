@@ -78,7 +78,8 @@ do.hc <- function(dist_mat){
     cluster.stats(dist_mat, cutree(res, k=i))
     
     )
-  # determine optimal cut and return labels for this
+  # determine optimal cut and return labels
+  # use within cluster SS to be consistent with kmeans?
   # TODO: 
   # best_cut <- 8 # according to paper
   # res <- cutree(res, best_cut)
@@ -91,13 +92,33 @@ do.hc <- function(dist_mat){
 
 # kmeans
 do.km <- function(dist_mat){
-
+  ptm <- proc.time()
   
+  require(fpc)
+  require(stats)
   
+  # kmeans clustering
+  res <- lapply(2:25, FUN = function(i){ 
+    
+    kmeans(d = dist_mat, method="Hartigan-Wong", centres=i)
+    
+  )
+  
+  # determine optimal clustering using cluster.stats, for a range of 'cuts'
+  cuts <- lapply(res, function(x){sum(x$withinss)})
+  # determine optimal cut and return labels for this
+  # TODO: 
+  # best_cut <- 8 # according to paper
+  # res <- res[best_cut]
+  # res <- data.frame(id=row.names(dist_mat), cluster=res$cluster)
+  
+  TIMES$hc <<- proc.time() - ptm
+  
+  return(res)
 }
 
 # random forrest
-do.bayes <- function(dist_mat){
+do.rf <- function(dist_mat){
   
 }
 
@@ -116,6 +137,9 @@ system.time(gcFirst = T,
 )
 system.time(gcFirst = T,
   RESULTS$hc <- do.hc(dist_mat=dist_mat)
+)
+system.time(gcFirst = T,
+            RESULTS$hc <- do.km(dist_mat=dist_mat)
 )
 
 
