@@ -88,8 +88,8 @@ Systems:
 --------
 
 As part of this work, we have tested the benchmark queries on a variety of systems, specifically:
-- GNU R
-- Renjin
+- GNU R (version R 2.14.2)
+- Renjin (forked from GNU R 2.14.2)
 
 
 <a href=""></a>

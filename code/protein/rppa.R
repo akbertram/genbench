@@ -91,7 +91,7 @@ do.hc <- function(dist_mat){
   require(stats)
   
   # hierarchical clustering, WARD as linkage
-  res <- hclust(d = dist_mat, method="ward.D2")
+  res <- hclust(d = dist_mat, method="ward")
   
   TIMES$hc.clust <<- proc.time() - ptm
   
@@ -99,7 +99,9 @@ do.hc <- function(dist_mat){
   ptm <- proc.time() # reset clock
   cuts <- lapply(2:25, FUN = function(i){ # note: 1 cluster => 'Inf' error
     
-      cluster.stats(dist_mat, cutree(res, k=i))
+        return(data.frame(
+            within_ss = do.within.ss(dist_mat, cutree(res, k=i))
+          ))
     }  
   )
   
