@@ -3,13 +3,15 @@
 # April 2015
 
 ### set up session
+rm(list=ls())
 ## packages
 library(stats)
 
 ## global vars
 # https://tcga-data.nci.nih.gov/docs/publications/TCGApancan_2014/
-INPUT <- "https://tcga-data.nci.nih.gov/docs/publications/TCGApancan_2014/RPPA_input.csv"
-OUTPUT <- "https://tcga-data.nci.nih.gov/docs/publications/TCGApancan_2014/RPPA_output.csv"
+INPUT <- "http://tcga-data.nci.nih.gov/docs/publications/TCGApancan_2014/RPPA_input.csv"
+OUTPUT <- "http://tcga-data.nci.nih.gov/docs/publications/TCGApancan_2014/RPPA_output.csv"
+VERBOSE <- TRUE # print progress?
 
 # holder for results
 RESULTS <- list()
@@ -21,9 +23,14 @@ set.seed(8008)
 ### functions
 do.load <- function(csv){
   ## load data
+  if (VERBOSE){print("Loading Data")}
   
   # samples x features matrix, including some sample metadata
-  rppa <- read.csv(csv, header=T, stringsAsFactors=F)
+  try(download.file(csv, destfile = "tmp.csv", method="internal"))
+  #try(rppa <- read.csv(csv, header=T, stringsAsFactors=F))
+  rppa <- read.csv("tmp.csv", 
+                   header=T, stringsAsFactors=F, 
+                   sep=",", row.names=NULL)
   
   # drop non-numeric columns
   rows <- rppa$TCGA_ID
@@ -34,6 +41,7 @@ do.load <- function(csv){
   # str(rppa)
   # dim(rppa) # 3467  131
   
+  if (VERBOSE){print("Loading Data: complete")}
   return(rppa)
 }
 
@@ -48,11 +56,12 @@ do.load <- function(csv){
 
 do.dist <- function(input_data){
   ## compute distance matrix
-  
+  if (VERBOSE){print("Calculating Distance Matrix")}
   # transpose input data to get distances between samples, not features
   # convert pearson correlation to distance (i.e. bound 0-1, 0 is close)
   dist_mat <- as.dist((1-cor(t(input_data), method="pearson"))/2)
   
+  if (VERBOSE){print("Calculating Distance Matrix: complete")}
   return(dist_mat)
 }
 
@@ -86,6 +95,7 @@ do.within.ss <- function(d = NULL, clustering){
 }
 # hierarchical
 do.hc <- function(dist_mat){
+  if (VERBOSE){print("Calculating Hierarchical clustering")}
   ptm <- proc.time()
   
   require(stats)
@@ -97,8 +107,9 @@ do.hc <- function(dist_mat){
   
   # determine optimal clustering using within cluster SS, for a range of 'cuts'
   ptm <- proc.time() # reset clock
+  if (VERBOSE){print("Calculating Hierarchical clustering: cutting tree")}
   cuts <- lapply(2:25, FUN = function(i){ # note: 1 cluster => 'Inf' error
-    
+        if (VERBOSE){print(paste("    >", i, "clusters"))}
         return(data.frame(
             within_ss = do.within.ss(dist_mat, cutree(res, k=i))
           ))
@@ -111,18 +122,19 @@ do.hc <- function(dist_mat){
   best_cut <- 8 # according to paper
   res <- cutree(res, best_cut)
   res <- data.frame(id=attr(dist_mat, which = "Labels"), cluster=res)
-
+  if (VERBOSE){print("Calculating Hierarchical clustering: complete")}
   return(res)
 }
 
 # kmeans
 do.km <- function(dist_mat){
   ptm <- proc.time()
-  
+  if (VERBOSE){print("Calculating K-means clustering")}
   require(stats)
   
   # kmeans clustering for a range of cluster numbers
   res <- lapply(2:25, FUN = function(i){
+      if (VERBOSE){print(paste("    >", i, "clusters"))}
       kmeans(dist_mat, algorithm="Hartigan-Wong", centers=i)
     }
   )
@@ -135,9 +147,9 @@ do.km <- function(dist_mat){
   
   # TODO: determine optimal cut and return labels for this
   best_cut <- 8 # according to paper
-  res <- res[best_cut]
+  res <- res[[best_cut]]
   res <- data.frame(id=attr(dist_mat, which = "Labels"), cluster=res$cluster)
-  
+  if (VERBOSE){print("Calculating K-means clustering: complete")}
   return(res)
 }
 

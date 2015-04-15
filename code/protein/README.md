@@ -20,6 +20,8 @@ Aims
 -----------
 - "Chocolate" R code, using as little additional data containers as possible
 
+- "Native" R code, written for clarity and function (a la Analyst) rather than optimization and performance
+
 - clock timings for data loading, distance matrix calculation and various clustering methods
 
 - output comparisons to Hoadley et al
