@@ -19,6 +19,7 @@ TIMES <- list()
 
 # reproducibility
 set.seed(8008)
+stopifnot(all(rev(strsplit(getwd(), "/")[[1]])[1:3] == c("protein","code","genbase"))) # must be run from directory containing rppa.R
 
 ### functions
 do.load <- function(csv){
@@ -26,9 +27,9 @@ do.load <- function(csv){
   if (VERBOSE){print("Loading Data")}
   
   # samples x features matrix, including some sample metadata
-  try(download.file(csv, destfile = "tmp.csv", method="internal"))
+  try(download.file(csv, destfile = "../../data/rppa.csv", method="internal"))
   #try(rppa <- read.csv(csv, header=T, stringsAsFactors=F))
-  rppa <- read.csv("tmp.csv", 
+  rppa <- read.csv("../../data/rppa.csv", 
                    header=T, stringsAsFactors=F, 
                    sep=",", row.names=NULL)
   
@@ -93,6 +94,35 @@ do.within.ss <- function(d = NULL, clustering){
   return(within.cluster.ss)
   
 }
+
+do.elbow <- function(df){
+  ## return optimal cluster size according to elbow method
+  # this is a simple method, not nessecarily recommended,
+  # which looks to find a compromise between the minimal number 
+  # of clusters and within group variance
+  # see: http://stackoverflow.com/questions/15376075/cluster-analysis-in-r-determine-the-optimal-number-of-clusters
+  # see: http://en.wikipedia.org/wiki/Determining_the_number_of_clusters_in_a_data_set
+  # EXPECTS: names(df) == c("cluster", "within_ss")
+  
+  # check ordering of cluster sizes, small to large
+  df <- df[ order(df$cluster, decreasing = FALSE) ,]
+  
+  # calculate delta to next cluster size
+  df$delta <- c(
+                df[1:(nrow(df) -1),"within_ss"] - df[2:nrow(df),"within_ss"],
+                0
+  )
+  
+  # fit curve, to remove small local variability and predict k=1 to k=2
+  df$k <- df$cluster-1
+  df$smooth <- predict(lm(delta ~ poly((cluster), 4, raw=TRUE), data=df), data.frame(cluster=df$k))
+  
+  # return first cluster number (k) where
+  # the difference between the change in within_ss for (k) and (k+1)
+  # is less than 10% of the starting (i.e. k=1 to k=2)
+  return(min(which(df$smooth < df[1,"smooth"]/10)))
+  
+}
 # hierarchical
 do.hc <- function(dist_mat){
   if (VERBOSE){print("Calculating Hierarchical clustering")}
@@ -105,12 +135,13 @@ do.hc <- function(dist_mat){
   
   TIMES$hc.clust <<- proc.time() - ptm
   
-  # determine optimal clustering using within cluster SS, for a range of 'cuts'
+  # determine clustering statistics (within cluster SS), for a range of 'cuts'
   ptm <- proc.time() # reset clock
   if (VERBOSE){print("Calculating Hierarchical clustering: cutting tree")}
   cuts <- lapply(2:25, FUN = function(i){ # note: 1 cluster => 'Inf' error
         if (VERBOSE){print(paste("    >", i, "clusters"))}
         return(data.frame(
+            cluster = i,
             within_ss = do.within.ss(dist_mat, cutree(res, k=i))
           ))
     }  
@@ -118,8 +149,8 @@ do.hc <- function(dist_mat){
   
   TIMES$hc.cut <<- proc.time() - ptm
   # determine optimal cut and return labels
-  # TODO: use within cluster SS to be consistent with kmeans?
-  best_cut <- 8 # according to paper
+  # use within cluster SS to be consistent with kmeans
+  best_cut <- do.elbow(do.call("rbind", cuts)) # 8 according to paper
   res <- cutree(res, best_cut)
   res <- data.frame(id=attr(dist_mat, which = "Labels"), cluster=res)
   if (VERBOSE){print("Calculating Hierarchical clustering: complete")}
@@ -140,13 +171,16 @@ do.km <- function(dist_mat){
   )
   TIMES$km.clust <<- proc.time() - ptm
   
-  # determine optimal clustering using cluster.stats, for a range of 'cuts'
+  # determine clustering statistics for a range of 'cuts'
   ptm <- proc.time() # reset
-  cuts <- lapply(res, function(x){sum(x$withinss)})
+  cuts <- lapply(res, function(x){data.frame(
+                                              cluster = max(x$cluster),
+                                              within_ss = sum(x$withinss)
+                                              )})
   TIMES$km.cut <<- proc.time() - ptm
   
-  # TODO: determine optimal cut and return labels for this
-  best_cut <- 8 # according to paper
+  # determine optimal cut and return labels for this
+  best_cut <- do.elbow(do.call("rbind", cuts)) # 8 according to paper
   res <- res[[best_cut]]
   res <- data.frame(id=attr(dist_mat, which = "Labels"), cluster=res$cluster)
   if (VERBOSE){print("Calculating K-means clustering: complete")}
@@ -155,12 +189,17 @@ do.km <- function(dist_mat){
 
 # random forrest
 do.rf <- function(dist_mat){
-  # TBD
+  # TODO: package randomForest not yet implemented in renjin
+}
+
+# SVM
+do.rf <- function(dist_mat){
+  # TODO: package e1071 not yet implemented in renjin
 }
 
 # bayesian
 do.bayes <- function(dist_mat){
- # TBD  
+ # TODO: package e1071 not yet implemented in renjin
 }
 
 ### reporting
@@ -187,16 +226,16 @@ TIMES$km <- system.time(gcFirst = T,
 
 ### compare results to each other and to published
 # collect published results
-RESULTS$pub <- read.csv(OUTPUT, header = TRUE, stringsAsFactors=FALSE)
-names(RESULTS$pub) <- c("id", "cluster")
-# replace dots with dashes in names to make comparible to names given in input
-RESULTS$pub$id <-
-  unlist(lapply(strsplit(
-    # split on dots
-    RESULTS$pub$id, split = "\\.", perl=T), 
-    # rejoin with dashes
-    function(x) paste(x,collapse="-"))
-  )
+# RESULTS$pub <- read.csv(OUTPUT, header = TRUE, stringsAsFactors=FALSE)
+# names(RESULTS$pub) <- c("id", "cluster")
+# # replace dots with dashes in names to make comparible to names given in input
+# RESULTS$pub$id <-
+#   unlist(lapply(strsplit(
+#     # split on dots
+#     RESULTS$pub$id, split = "\\.", perl=T), 
+#     # rejoin with dashes
+#     function(x) paste(x,collapse="-"))
+#   )
 
 # compare stability of number of clusters or membership to expected results
 # TBD
