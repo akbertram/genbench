@@ -31,7 +31,9 @@ do.load <- function(csv){
   #try(rppa <- read.csv(csv, header=T, stringsAsFactors=F))
   rppa <- read.csv("../../data/rppa.csv", 
                    header=T, stringsAsFactors=F, 
-                   sep=",", row.names=NULL)
+                   sep=",", row.names=NULL,
+                   blank.lines.skip = TRUE
+                   )
   
   # drop non-numeric columns
   rows <- rppa$TCGA_ID
