@@ -3,10 +3,6 @@ genbench
 
 GenBench: Realworld Genomics Benchmarks for R, forked from and inspired by <a href= "https://github.com/hannesmuehleisen/genbase">GenBase</a>.
 
-Why genomics:
-=============
-
-Genomics is quickly becoming a major source of big data due to advances in sequencing technology. It is now possible to sequence over 2000 people per day at a sequencing facility. At 3 GB/genome, such a facility produces 6TB of data per day. Furthermore, it has gotten exponentially cheaper to sequence full genomes. In spite of the large amount of data available, we are unable to analyze it at scale.
 
 Why do we need a new benchmark:
 ===============================
@@ -14,6 +10,9 @@ Why do we need a new benchmark:
 NOTE: This benchmark does not cover all possible operations performed in genomics. In particular, we chose to not focus on processing of raw sequence data and instead focus on higher level processing.
 
 We also chose to use real-world data, to allow not just benchmarking of clock speeds upon completion of a given analysis, but also to allow for testing of "correctness" and to ensure ecological validity of tests.
+
+The following boilerplate disclaimer applies to everything here :)
+__As for other benchmarks, we are deliberately avoiding *"(pre-)processing"* steps, instead focussing on statistic analyses typical for this datatype. We do not endorse any of the methods used as *"standards"* or *"recommended"*, in fact, because we aim to start simple and avoid as far as possible non-essential packages, methods may very much not recommended. Future updates will implement more advanced methods, i.e. code and datasets are simply intended to represent good, ecologically viable tests of performance. Suggestions for datasets or methods are welcome.__
 
 
 Benchmark:
@@ -26,21 +25,25 @@ Data:
 
 This benchmark focuses on genomics data, and specifically on statistical analysis, as opposed to processing (e.g. alignment):
 
+All data is publicly available, sourced from:
+- <a href="https://tcga-data.nci.nih.gov/docs/publications/">TCGA</a>
+- <a href="http://www.ncbi.nlm.nih.gov/gds">GEO</a>
+- "simulated" (this is retained from the original <a href="https://github.com/mitdbg/genbase">GenBase</a>)
+- [public datasets detailed here](https://github.com/caesar0301/awesome-public-datasets)
+
 (a) Gene Expression Data
 - 3' Microarray
 - mRNAseq
 
 (b) Protein Expression Data
- - <a href=""></a>http://www.cell.com/cell/abstract/S0092-8674(14)00876-9
+ - [RPPA platform data](http://www.cell.com/cell/abstract/S0092-8674(14)00876-9)
 
 (c) Genetics Data
+- [Population studies]()
+- [Pedigree studies]()
+
 
 (d) Simulated matrices (to allow for testing scale, as in orginal <a href="https://github.com/mitdbg/genbase">GenBase</a> Project 
-
-The above will be sourced from:
-- <a href="https://tcga-data.nci.nih.gov/docs/publications/">TCGA</a>
-- <a href="http://www.ncbi.nlm.nih.gov/gds">GEO</a>
-- "simulated" (this is retained from the original <a href="https://github.com/mitdbg/genbase">GenBase</a>)
 
 Ideally, studies are chosen for scale, and for having validated and replicable results.
 

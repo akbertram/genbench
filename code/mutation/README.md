@@ -9,17 +9,19 @@ Benchmarks for typical genetics data, focussing on the two main types of studies
 Using data from the [AML paper](http://www.nejm.org/doi/full/10.1056/NEJMoa1301689), authored by the TCGA consortium, we aim to reproduce part of the analyses, focussing on the genetics data (i.e. figure 1 in the paper).
 
 ### data source
-- [publication archive](http://tcga-data.nci.nih.gov/docs/publications/laml_2012/)
+- [publication data archive](http://tcga-data.nci.nih.gov/docs/publications/laml_2012/)
 
 - [maf (mutations and annotations)](http://tcga-data.nci.nih.gov/docs/publications/laml_2012/genome.wustl.edu_LAML.IlluminaGA_DNASeq.Level_2.2.12.0.tar.gz)
 
 - [patient meta data](http://tcga-data.nci.nih.gov/docs/publications/laml_2012/clinical_patient_laml.tsv)
 
-- [paper]
+- [paper](http://www.nejm.org/doi/full/10.1056/NEJMoa1301689#t=article)
 
 ### analysis
 1. import data
-2. mutation rate per gene, per disease stage
+2. mutation summaries (figure 1 in paper)
+--* mutation rate per disease stage
+--* most commonly mutated genes
 
 
 ## familial monogenic data
@@ -30,7 +32,7 @@ Data was obtained from the nice people at [Genomes Unzipped](http://genomesunzip
 
 The dataset we are using comes from the [23andme v2](https://www.23andme.com) sequencing service.
 
-though not related, this data can still be used to perform some typical tests carried out on pedigree studies, such as determining "relatedness" between individuals.
+Though the individuals are not related, this data can still be used to perform some typical tests carried out on pedigree studies, such as determining "relatedness" between individuals.
 
 member | dataset id | link
 --- | --- | ---
