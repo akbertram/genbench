@@ -77,6 +77,11 @@ fig_1b <- do.call("rbind",
 fig_1b <- fig_1b[ order(fig_1b$sample_count, decreasing = TRUE) ,]
 fig_1b <- head(subset(fig_1b, tier == "tier1"), n = 100) # top 100 tier 1 genes by count
 
+# clean up
+rm(fig_1b, fig_1a, maf, meta)
+gc()
+
+
 ## familial data
 # prepare for downloading
 if(!file.exists("../../data/mutation_fam")){
@@ -112,12 +117,12 @@ lapply(1:nrow(fam_files), function(x){
   try(file.remove(fam_files[x,"target"]))
   })
 
-# read in each file, and strip down to chromosome 1 and 10 only (again, could exapnd later if needed)
+# read in each file, and strip down to chromosome 1 (again, could exapnd later if needed)
 fam <- lapply(lapply(dir("../../data/mutation_fam/", full.names = TRUE), 
            function(x) read.delim(x, skip= 14, 
                                   blank.lines.skip=TRUE, stringsAsFactors=FALSE)
            ),
-           function(x) subset(x, chromosome==10 || chromosome==1)
+           function(x) subset(x, chromosome==1)
            )
 names(fam) <- dir("../../data/mutation_fam/", full.names = FALSE)
 ## scores for individual each SNP when compared between individuals
@@ -202,19 +207,21 @@ do.matching.alleles <- function(i,j){
   #                           take colsum if second match is homozygous   
   #                           colsum = 1
   
-  
-  
-  return(
+  if(nchar(i) == 2 && nchar(j) == 2){
     
-    sum(
-      apply(
-        sapply(strsplit(i, '')[[1]], # for each character in i
-               function(x) x == strsplit(j, '')[[1]]), # compare to each character in j
-        ( length(unique(strsplit(j, '')[[1]])) == 1 ) +1, #colsum if homozygous
-           function(x) sum(x) > 0) # sum of matches > 0 ?
-      )
+    return(
       
-    )
+      sum(
+        apply(
+          sapply(strsplit(i, '')[[1]], # for each character in i
+                 function(x) x == strsplit(j, '')[[1]]), # compare to each character in j
+          ( length(unique(strsplit(j, '')[[1]])) == 1 ) +1, #colsum if homozygous
+             function(x) sum(x) > 0) # sum of matches > 0 ?
+        )
+        
+      )
+  }
+  else { return(0)}
     
 }
 
@@ -303,7 +310,7 @@ wapply <- function(x, width, by = NULL, FUN = NULL, ...){
 # calculate sliding window over each comparison, 
 # calculating average score per SNP in that window
 
-lapply((1:5)*5, function(win){ # for a range of window sizes
+lapply(seq(5, 50, 5), function(win){ # for a range of window sizes
   # run sliding window
-  lapply(fam.scores, function(x) wapply(x$df$score, width=win, by=as.integer(win/2), FUN=sum))
+  lapply(fam.scores, function(x) wapply(x$df$score, width=win, by=as.integer(win/2), FUN=sum) / win)
 })
