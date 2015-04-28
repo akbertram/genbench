@@ -6,11 +6,13 @@ Benchmark for expression data (microarray), differential expression.
 
 Data
 -----------
+? https://tcga-data.nci.nih.gov/docs/publications/gbm_2013/
+
 
 Code
 -----------
 - data loading
-- 
+- processing as according to (limma manual)[http://www.bioconductor.org/packages/release/bioc/vignettes/limma/inst/doc/usersguide.pdf]
 
 Aims
 -----------

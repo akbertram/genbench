@@ -6,11 +6,12 @@ Benchmark for expression data (mRNAseq), differential expression.
 
 Data
 -----------
+? https://tcga-data.nci.nih.gov/docs/publications/TCGApancan_2014/
 
 Code
 -----------
-- data loading
-- 
+- data loading (edgeR)[http://www.bioconductor.org/packages/release/bioc/html/edgeR.html]
+- processing as described in (limma user guide)[http://www.bioconductor.org/packages/release/bioc/vignettes/limma/inst/doc/usersguide.pdf]
 
 Aims
 -----------
