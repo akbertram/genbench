@@ -7,6 +7,8 @@ Benchmark for expression data (mRNAseq), differential expression.
 Data
 -----------
 ? https://tcga-data.nci.nih.gov/docs/publications/TCGApancan_2014/
+? http://bowtie-bio.sourceforge.net/recount/
+smallest dataset at ReCount: gilad  (PMID: 20009012)[http://www.ncbi.nlm.nih.gov/pubmed?term=20009012],	human data with 6 samples and 41,356,738 aligned reads
 
 Code
 -----------
