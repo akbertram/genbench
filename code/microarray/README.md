@@ -6,13 +6,20 @@ Benchmark for expression data (microarray), differential expression.
 
 Data
 -----------
-? https://tcga-data.nci.nih.gov/docs/publications/gbm_2013/
+http://www.ncbi.nlm.nih.gov/sites/GDSbrowser?acc=GDS5070
+http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE45417
+(Ramsey and Fontes, 2013)[http://www.ncbi.nlm.nih.gov/pubmed/23954399]
+(full article)[http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3783546/]
 
 
 Code
 -----------
 - data loading
 - processing as according to (limma manual)[http://www.bioconductor.org/packages/release/bioc/vignettes/limma/inst/doc/usersguide.pdf]
+    - scale and normalise
+    - filter
+    - fitting linear model
+    - extraction of top differentially expressed genes
 
 Aims
 -----------

@@ -83,7 +83,52 @@ filterfun <- function(eset, threshold=150, fraction=0.25, test_only=FALSE){
 filterfun(cel.mas, threshold = 50, test_only = TRUE)
 cel.filtered <- cel.mas[ filterfun(cel.mas, threshold = 50)  ,]
 
-# differential expression
-# use factorial design matrix to extract comparisons
+### differential expression
+## use factorial design matrix to extract comparisons
+# create factors for:
+# group ("DOX" : depletion of ZXDC) 
+# treatment ("PMA" : induction of differentiation)
+# re-order factor such that it reflects the comparisons we want
+# i.e. the "control" always comes first!
+group <- factor(pData(pd)$Group, 
+                levels=unique(rev(sort(pData(pd)$Group)))
+                ) 
+treatment <- factor(pData(pd)$Treatment, 
+                    levels=unique(rev(sort(pData(pd)$Treatment)))
+                    )
 
-# output results
+## construct design matrix
+# key questions:
+# 1. which genes respond to stimulation in wild-type cells,
+# 2. which genes respond to stimulation in depleted cells, and
+# 3. which genes respond differently in depleted compared to wild-type cells.
+
+design <- model.matrix(~group*treatment)
+# This creates a design matrix which defines four coefficients with the following interpretations:
+# Coefficient Comparison Interpretation
+# Intercept               |   VEH.VEH                             |   Baseline level of unstimulated WT
+# groupDOX                |   DOX.VEH-VEH.VEH                     |   Difference between unstimulated 
+# treatmentPMA            |   VEH.PMA-VEH.VEH                     |   Stimulation effect for non-depleted cells
+# groupDOX:treatmentPMA   |   (DOX.PMA-DOX.VEH)-(VEH.PMA-VEH.VEH) |   Interaction
+
+# fit model: note that question (2) is not present in the above design, 
+# so we need to construct a specific contrast matrix
+fit <- lmFit(cel.filtered, design)
+cont.matrix <- cbind(treatment_on_WT=c(0,0,1,0),treatment_on_depleted=c(0,0,1,1),Diff=c(0,0,0,1))
+fit2 <- contrasts.fit(fit, cont.matrix)
+fit2 <- eBayes(fit2)
+
+## output results of linear model, BH correction
+topTable(fit2, adjust="BH")
+
+# output results (top 10 differentially expressed genes, 
+# use number = Inf to return all) for each comparison
+do.call("rbind", 
+        lapply( 
+          dimnames(cont.matrix)[[2]],
+          function(x){
+            tt <-topTable(fit2, adjust="BH", coef=x, number = 10) 
+            tt$contrast <- x
+            return(tt)
+          } 
+          ))
