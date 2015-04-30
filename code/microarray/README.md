@@ -1,15 +1,15 @@
 # microarray benchmarks
 #### boilerplate disclaimer :)
-__As for other benchmarks, we are deliberately avoiding *"(pre-)processing"* steps, instead focussing on statistic analyses typical for this datatype. We do not endorse any of the methods used as *"standards"* or *"recommended"*, in fact, because we aim to start simple and avoid as far as possible non-essential packages, methods may very much not recommended. Future updates will implement more advanced methods, i.e. code and datasets are simply intended to represent good, ecologically viable tests of performance. Suggestions for datasets or methods are welcome.__
+__We do not endorse any of the methods used as *"standards"* or *"recommended"*, in fact, because we aim to start simple and avoid as far as possible non-essential packages, methods may be very much not recommended. Future updates will implement more advanced methods, i.e. code and datasets are simply intended to represent good, ecologically viable tests of performance. Suggestions for datasets or methods are welcome.__
 
-Benchmark for expression data (microarray), differential expression.
+Benchmark for expression data (microarray), differential expression. Unlike other benchmarks, we are including some *"(pre-)processing"* steps for this datatype, as they are so standardised and relatively stable.
 
 Data
 -----------
-http://www.ncbi.nlm.nih.gov/sites/GDSbrowser?acc=GDS5070
-http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE45417
-(Ramsey and Fontes, 2013)[http://www.ncbi.nlm.nih.gov/pubmed/23954399]
-(full article)[http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3783546/]
+Data was sourced from the (GEO repository)[http://www.ncbi.nlm.nih.gov/geo/], specifically the data for (Ramsey and Fontes, 2013)[http://www.ncbi.nlm.nih.gov/pubmed/23954399], as this was a relatively small and simple experimental design (2x2 design matrix, 3 samples per condition):
+- [http://www.ncbi.nlm.nih.gov/sites/GDSbrowser?acc=GDS5070]
+- [http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE45417]
+- (full article)[http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3783546/]
 
 
 Code
@@ -20,6 +20,7 @@ Code
     - filter
     - fitting linear model
     - extraction of top differentially expressed genes
+
 
 Aims
 -----------
