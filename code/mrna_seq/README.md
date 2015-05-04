@@ -6,14 +6,14 @@ Benchmark for expression data (mRNAseq), differential expression.
 
 Data
 -----------
-Data sourced from (ReCount)[http://bowtie-bio.sourceforge.net/recount/], which provide:
-~"...an online resource consisting of RNA-seq gene count datasets built using the raw data from 18 different studies. The raw sequencing data (.fastq files) were processed with (Myrna)[http://bowtie-bio.sourceforge.net/myrna/index.shtml] to obtain tables of counts for each gene. For ease of statistical analysis, we combined each count table with sample phenotype data to form an R object of class ExpressionSet. The count tables, ExpressionSets, and phenotype tables are ready to use and freely available here. By taking care of several preprocessing steps and combining many datasets into one easily-accessible website, we make finding and analyzing RNA-seq data considerably more straightforward."~
+Data sourced from [ReCount](http://bowtie-bio.sourceforge.net/recount/), which provide:
+~"...an online resource consisting of RNA-seq gene count datasets built using the raw data from 18 different studies. The raw sequencing data (.fastq files) were processed with [Myrna](http://bowtie-bio.sourceforge.net/myrna/index.shtml) to obtain tables of counts for each gene. For ease of statistical analysis, we combined each count table with sample phenotype data to form an R object of class ExpressionSet. The count tables, ExpressionSets, and phenotype tables are ready to use and freely available here. By taking care of several preprocessing steps and combining many datasets into one easily-accessible website, we make finding and analyzing RNA-seq data considerably more straightforward."~
 
 
 We used thesmallest dataset at ReCount, which has at least 3 replicates per experimental group:
 
 - the __"gilad"__ study 
-- (PMID: 20009012)[http://www.ncbi.nlm.nih.gov/pubmed?term=20009012]
+- [PMID: 20009012](http://www.ncbi.nlm.nih.gov/pubmed?term=20009012)
 - human data
 - 6 samples
 - 41,356,738 total aligned reads
@@ -22,7 +22,7 @@ Code
 -----------
 __edgeR_voom.R__
 - data loading to DGEList instance from (edgeR)[http://www.bioconductor.org/packages/release/bioc/html/edgeR.html]
-- processing as described in the (limma user guide)[http://www.bioconductor.org/packages/release/bioc/vignettes/limma/inst/doc/usersguide.pdf], (limma case study)[http://bioinf.wehi.edu.au/RNAseqCaseStudy/] and the (edgeR user guide)[http://www.bioconductor.org/packages/release/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf]
+- processing as described in the [limma user guide](http://www.bioconductor.org/packages/release/bioc/vignettes/limma/inst/doc/usersguide.pdf), [limma case study](http://bioinf.wehi.edu.au/RNAseqCaseStudy/) and the [edgeR user guide](http://www.bioconductor.org/packages/release/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf)
 
 Aims
 -----------
