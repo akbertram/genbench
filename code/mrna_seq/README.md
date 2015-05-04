@@ -21,7 +21,7 @@ We used thesmallest dataset at ReCount, which has at least 3 replicates per expe
 Code
 -----------
 __edgeR_voom.R__
-- data loading to DGEList instance from (edgeR)[http://www.bioconductor.org/packages/release/bioc/html/edgeR.html]
+- data loading to DGEList instance from [edgeR](http://www.bioconductor.org/packages/release/bioc/html/edgeR.html)
 - processing as described in the [limma user guide](http://www.bioconductor.org/packages/release/bioc/vignettes/limma/inst/doc/usersguide.pdf), [limma case study](http://bioinf.wehi.edu.au/RNAseqCaseStudy/) and the [edgeR user guide](http://www.bioconductor.org/packages/release/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf)
 
 Aims
