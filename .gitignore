@@ -2,3 +2,4 @@
 *.RData
 *.pper
 *.Rproj
+*.Rproj.user*
