@@ -258,3 +258,7 @@ write.table(file="", quote = FALSE, sep = "\t", row.names = FALSE, col.names = T
 write.table(file="", quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
   format(do.call("rbind", TIMES), digits=5)
 )
+
+# final clean up
+rm(list=ls())
+gc()

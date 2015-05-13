@@ -413,6 +413,8 @@ TIMES$pop.fig1b <- system.time(gcFirst = T,
 # maybe something from: http://cran.r-project.org/web/views/Genetics.html
 # for example something from package "gap", like gcontrol() 
 # http://www.inside-r.org/packages/cran/gap/docs/gcontrol
+
+
 # clean up
 TIMES$pop.clean <- system.time(gcFirst = T, expr = {
                                                     rm(pop);
@@ -446,4 +448,25 @@ TIMES$fam.window <- system.time(gcFirst = T,
 TIMES$fam.clean <- system.time(gcFirst = T, expr = {rm(fam, scores, fam.scores);
                                                     gc()}
 )
+
+# output results for comparison
+# todo: redirect to given file or similar
+write.table(file="", quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE,
+            do.call("rbind", 
+                    lapply(names(RESULTS), function(x){
+                      cbind(RESULTS[[x]], data.frame(res=x))
+                    }
+                    )
+            )
+)
+
+# timings
+# todo: redirect to file or other
+write.table(file="", quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
+            format(do.call("rbind", TIMES), digits=5)
+)
+
+# final clean up and exit
+rm(list=ls())
+gc()
 

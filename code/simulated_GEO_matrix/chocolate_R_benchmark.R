@@ -197,3 +197,8 @@ print(paste('SVD: ',          system.time(svd_irlba(),    gcFirst=T)['elapsed'],
 print(paste('Covariance: ',   system.time(covariance(),   gcFirst=T)['elapsed'], sep=''));
 print(paste('Biclustering: ', system.time(biclustering(), gcFirst=T)['elapsed'], sep=''));
 #print(paste('Stats: ',        system.time(stats(),        gcFirst=T)['elapsed'], sep='')); 
+
+
+# final cleanup
+rm(list=ls())
+gc()
