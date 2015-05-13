@@ -12,6 +12,7 @@ library(stats)
 INPUT <- "http://tcga-data.nci.nih.gov/docs/publications/TCGApancan_2014/RPPA_input.csv"
 OUTPUT <- "http://tcga-data.nci.nih.gov/docs/publications/TCGApancan_2014/RPPA_output.csv"
 VERBOSE <- TRUE # print progress?
+BENCHMARK <- "rppa" # name of benchmark
 
 # holder for results
 RESULTS <- list()
@@ -27,9 +28,9 @@ do.load <- function(csv){
   if (VERBOSE){print("Loading Data")}
   
   # samples x features matrix, including some sample metadata
-  try(download.file(csv, destfile = "../../data/protein/rppa.csv", method="internal"))
+  try(download.file(csv, destfile = file.path("..","..","data","protein","rppa.csv"), method="internal"))
   #try(rppa <- read.csv(csv, header=T, stringsAsFactors=F))
-  rppa <- read.csv("../../data/protein/rppa.csv", 
+  rppa <- read.csv(file.path("..","..","data","protein","rppa.csv"), 
                    header=T, stringsAsFactors=F, 
                    sep=",", row.names=NULL,
                    blank.lines.skip = TRUE
@@ -242,9 +243,22 @@ TIMES$km <- system.time(gcFirst = T,
 # compare stability of number of clusters or membership to expected results
 # TBD
 
-# output results for comparison
-# todo: redirect to given file or similar
-write.table(file="", quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE,
+## output results for comparison
+# check output directories exist
+if(!file.exists(file.path("..", "..", "generated", "results", basename(getwd())))){
+  
+  dir.create(file.path("..", "..", "generated", "results", basename(getwd())), recursive = TRUE)
+  
+}
+if(!file.exists(file.path("..", "..", "generated", "timings", basename(getwd())))){
+  
+  dir.create(file.path("..", "..", "generated", "timings", basename(getwd())), recursive = TRUE)
+  
+}
+# write results to file
+write.table(file=file.path("..", "..", "generated", "results", 
+                           basename(getwd()), paste(BENCHMARK, "results", "tsv", sep = '.')), 
+                           quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE,
   do.call("rbind", 
           lapply(names(RESULTS), function(x){
             cbind(RESULTS[[x]], data.frame(res=x))
@@ -254,8 +268,9 @@ write.table(file="", quote = FALSE, sep = "\t", row.names = FALSE, col.names = T
   )
 
 # timings
-# todo: redirect to file or other
-write.table(file="", quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
+write.table(file=file.path("..", "..", "generated", "results", 
+                           basename(getwd()), paste(BENCHMARK, format(Sys.time(), "%Y%m%d%H%M%S"), "tsv", sep = '.')), 
+            quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
   format(do.call("rbind", TIMES), digits=5)
 )
 

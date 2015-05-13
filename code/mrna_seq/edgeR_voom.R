@@ -21,6 +21,7 @@ PDATA <- "http://bowtie-bio.sourceforge.net/recount/phenotypeTables/gilad_phenod
 # holder for results
 RESULTS <- list()
 TIMES <- list()
+BENCHMARK <- "edgeR_voom"
 
 # reproducibility
 set.seed(8008)
@@ -111,9 +112,24 @@ TIMES$norm <- system.time(gcFirst = T,
 TIMES$limma <- system.time(gcFirst = T,
                           RESULTS$limma <- do.limma(vm)
 )
-# output results for comparison
-# todo: redirect to given file or similar
-write.table(file="", quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE,
+
+
+## output results for comparison
+# check output directories exist
+if(!file.exists(file.path("..", "..", "generated", "results", basename(getwd())))){
+  
+  dir.create(file.path("..", "..", "generated", "results", basename(getwd())), recursive = TRUE)
+  
+}
+if(!file.exists(file.path("..", "..", "generated", "timings", basename(getwd())))){
+  
+  dir.create(file.path("..", "..", "generated", "timings", basename(getwd())), recursive = TRUE)
+  
+}
+# write results to file
+write.table(file=file.path("..", "..", "generated", "results", 
+                           basename(getwd()), paste(BENCHMARK, "results", "tsv", sep = '.')), 
+            quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE,
             do.call("rbind", 
                     lapply(names(RESULTS), function(x){
                       cbind(RESULTS[[x]], data.frame(res=x))
@@ -123,11 +139,12 @@ write.table(file="", quote = FALSE, sep = "\t", row.names = FALSE, col.names = T
 )
 
 # timings
-# todo: redirect to file or other
-write.table(file="", quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
+write.table(file=file.path("..", "..", "generated", "results", 
+                           basename(getwd()), paste(BENCHMARK, format(Sys.time(), "%Y%m%d%H%M%S"), "tsv", sep = '.')), 
+            quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
             format(do.call("rbind", TIMES), digits=5)
 )
 
-# final clean up and exit
+# final clean up
 rm(list=ls())
 gc()

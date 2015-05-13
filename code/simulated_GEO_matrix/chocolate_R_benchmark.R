@@ -7,6 +7,7 @@ library(irlba)
 # data collection
 RESULTS <- list()
 TIMES <- list()
+BENCHMARK <- "chocolate_geo"
 
 # needs info about path and what size of data to run on
 args <- commandArgs(trailingOnly = TRUE)
@@ -205,8 +206,21 @@ TIMES$biclust <- system.time(biclustering(), gcFirst=T)
 #TIMES$stats <- system.time(stats(),        gcFirst=T) 
 
 ## write out captured timings and results
-# todo: redirect to given file or similar
-write.table(file="", quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE,
+# check output directories exist
+if(!file.exists(file.path("..", "..", "generated", "results", basename(getwd())))){
+  
+  dir.create(file.path("..", "..", "generated", "results", basename(getwd())), recursive = TRUE)
+  
+}
+if(!file.exists(file.path("..", "..", "generated", "timings", basename(getwd())))){
+  
+  dir.create(file.path("..", "..", "generated", "timings", basename(getwd())), recursive = TRUE)
+  
+}
+# write results to file
+write.table(file=file.path("..", "..", "generated", "results", 
+                           basename(getwd()), paste(BENCHMARK, "results", "tsv", sep = '.')), 
+            quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE,
             do.call("rbind", 
                     lapply(names(RESULTS), function(x){
                       cbind(RESULTS[[x]], data.frame(res=x))
@@ -216,11 +230,12 @@ write.table(file="", quote = FALSE, sep = "\t", row.names = FALSE, col.names = T
 )
 
 # timings
-# todo: redirect to file or other
-write.table(file="", quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
+write.table(file=file.path("..", "..", "generated", "results", 
+                           basename(getwd()), paste(BENCHMARK, format(Sys.time(), "%Y%m%d%H%M%S"), "tsv", sep = '.')), 
+            quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
             format(do.call("rbind", TIMES), digits=5)
 )
 
-# final cleanup
+# final clean up
 rm(list=ls())
 gc()

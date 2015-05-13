@@ -14,6 +14,7 @@ VERBOSE <- TRUE # print progress?
 # holder for results
 RESULTS <- list()
 TIMES <- list()
+BENCHMARK <- "mutation"
 
 # reproducibility
 set.seed(8008)
@@ -23,23 +24,26 @@ stopifnot(all(rev(strsplit(getwd(), "[\\\\/]", perl=TRUE)[[1]])[1:3] == c("mutat
 ## mutation data
 do.pop.load <- function(){
   
+  
+  DATA_DIR <- file.path("..", "..", "data", "mutation")
+  
   # prepare for downloading
-  if(!file.exists("../../data/mutation/pop")){
+  if(!file.exists(file.path(DATA_DIR, "pop"))){
     # create directory for holding data
-    dir.create(recursive = TRUE, "../../data/mutation/pop")
+    dir.create(recursive = TRUE, file.path(DATA_DIR, "pop"))
   }
   ## supplementary data described here:
   # http://www.nejm.org/doi/suppl/10.1056/NEJMoa1301689/suppl_file/nejmoa1301689_appendix.pdf
   #  supp table S6: All somatic mutations with annotation and read counts from DNA and RNA sequencing
-  download.file(destfile ="../../data/mutation/pop/laml.maf", "http://tcga-data.nci.nih.gov/docs/publications/laml_2012/SupplementalTable06.tsv")
-  readLines("../../data/mutation_pop/laml.maf", 3) # no header info other than col names
+  download.file(destfile =file.path(DATA_DIR, "pop","laml.maf"), "http://tcga-data.nci.nih.gov/docs/publications/laml_2012/SupplementalTable06.tsv")
+  readLines(file.path(DATA_DIR, "pop","laml.maf"), 3) # no header info other than col names
   
-  maf <- read.delim("../../data/mutation/pop/laml.maf", blank.lines.skip = TRUE, , stringsAsFactors = FALSE)
+  maf <- read.delim(file.path(DATA_DIR, "pop","laml.maf"), blank.lines.skip = TRUE, , stringsAsFactors = FALSE)
   
   ## sample data
-  download.file(destfile ="../../data/mutation/pop/laml.meta.tsv", 
+  download.file(destfile =file.path(DATA_DIR, "pop","laml.meta.tsv"), 
                 "http://tcga-data.nci.nih.gov/docs/publications/laml_2012/clinical_patient_laml.tsv")
-  meta <- read.delim("../../data/mutation/pop/laml.meta.tsv", blank.lines.skip = TRUE, stringsAsFactors = FALSE)
+  meta <- read.delim(file.path(DATA_DIR, "pop","laml.meta.tsv"), blank.lines.skip = TRUE, stringsAsFactors = FALSE)
   
   stopifnot(length(intersect(unique(maf$TCGA_id), unique(meta$bcr_patient_barcode))) == 197)
 
@@ -123,14 +127,16 @@ wapply <- function(x, width, by = NULL, FUN = NULL, ...){
 ## familial data
 do.fam.load <- function(chromosomes=c(10), n=3){
   
+  DATA_DIR <- file.path("..", "..", "data", "mutation")
+  
   ## download data for individuals from genomesunzipped.org
   # chromosomes : limit chromosomes loaded
   # n : limit number of individuals loaded
   
   # prepare for downloading
-  if(!file.exists("../../data/mutation/fam")){
+  if(!file.exists(file.path(DATA_DIR, "fam"))){
     # create directory for holding data
-    dir.create(recursive = TRUE, "../../data/mutation/fam")
+    dir.create(recursive = TRUE, file.path(DATA_DIR, "fam"))
   }
   fam_files <- data.frame(do.call("rbind", unlist(lapply(strsplit(split = "\n",
   "Daniel MacArthur | DGM001 | http://s3.amazonaws.com/gnz.genotypes/DGM001_genotypes.zip
@@ -148,7 +154,7 @@ do.fam.load <- function(chromosomes=c(10), n=3){
   function(x) strsplit(x, " | ", fixed = TRUE)), recursive=FALSE)), stringsAsFactors=FALSE)
   
   names(fam_files) <- c("member","dataset id","link")
-  fam_files$target <- file.path("../../data/mutation/fam", basename(fam_files$link))
+  fam_files$target <- file.path(DATA_DIR, "fam", basename(fam_files$link))
   
   # only take n files: could expand later if needed
   if(n > nrow(fam_files)){ n <- nrow(fam_files)  }
@@ -158,18 +164,18 @@ do.fam.load <- function(chromosomes=c(10), n=3){
   lapply(1:nrow(fam_files), function(x){
     download.file(fam_files[x,"link"], 
                   destfile = fam_files[x,"target"])
-    unzip(fam_files[x,"target"], exdir = "../../data/mutation/fam")
+    unzip(fam_files[x,"target"], exdir = file.path(DATA_DIR, "fam"))
     try(file.remove(fam_files[x,"target"]))
     })
   
   # read in each file, and strip down to chromosome 1 (again, could exapnd later if needed)
-  fam <- lapply(lapply(dir("../../data/mutation/fam/", full.names = TRUE), 
+  fam <- lapply(lapply(dir(file.path(DATA_DIR, "fam"), full.names = TRUE), 
              function(x) read.delim(x, skip= 14, 
                                     blank.lines.skip=TRUE, stringsAsFactors=FALSE)
              ),
              function(x) subset(x, chromosome %in% chromosomes)
              )
-  names(fam) <- dir("../../data/mutation/fam/", full.names = FALSE)
+  names(fam) <- dir(file.path(DATA_DIR, "fam"), full.names = FALSE)
   
   # return
   return(fam)
@@ -449,9 +455,22 @@ TIMES$fam.clean <- system.time(gcFirst = T, expr = {rm(fam, scores, fam.scores);
                                                     gc()}
 )
 
-# output results for comparison
-# todo: redirect to given file or similar
-write.table(file="", quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE,
+## output results for comparison
+# check output directories exist
+if(!file.exists(file.path("..", "..", "generated", "results", basename(getwd())))){
+  
+  dir.create(file.path("..", "..", "generated", "results", basename(getwd())), recursive = TRUE)
+  
+}
+if(!file.exists(file.path("..", "..", "generated", "timings", basename(getwd())))){
+  
+  dir.create(file.path("..", "..", "generated", "timings", basename(getwd())), recursive = TRUE)
+  
+}
+# write results to file
+write.table(file=file.path("..", "..", "generated", "results", 
+                           basename(getwd()), paste(BENCHMARK, "results", "tsv", sep = '.')), 
+            quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE,
             do.call("rbind", 
                     lapply(names(RESULTS), function(x){
                       cbind(RESULTS[[x]], data.frame(res=x))
@@ -461,12 +480,13 @@ write.table(file="", quote = FALSE, sep = "\t", row.names = FALSE, col.names = T
 )
 
 # timings
-# todo: redirect to file or other
-write.table(file="", quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
+write.table(file=file.path("..", "..", "generated", "results", 
+                           basename(getwd()), paste(BENCHMARK, format(Sys.time(), "%Y%m%d%H%M%S"), "tsv", sep = '.')), 
+            quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
             format(do.call("rbind", TIMES), digits=5)
 )
 
-# final clean up and exit
+# final clean up
 rm(list=ls())
 gc()
 

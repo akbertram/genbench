@@ -15,12 +15,13 @@ library(limma) # differential expression
 
 ## global vars
 VERBOSE <- TRUE # print progress?
-DATA_DIR <- "../../data/microarray"
+DATA_DIR <- file.path("..", "..", "data", "microarray")
 INPUT <- "ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE45nnn/GSE45417/suppl/GSE45417_RAW.tar"
 
 # holder for results
 RESULTS <- list()
 TIMES <- list()
+BENCHMARK <- "limma"
 
 # reproducibility
 set.seed(8008)
@@ -216,10 +217,23 @@ TIMES$limma <- system.time(gcFirst = T,
                           RESULTS$limma <- do.limma(eset)
 )
 
-### retporting
-# output results for comparison
-# todo: redirect to given file or similar
-write.table(file="", quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE,
+### reporting
+## output results for comparison
+# check output directories exist
+if(!file.exists(file.path("..", "..", "generated", "results", basename(getwd())))){
+  
+  dir.create(file.path("..", "..", "generated", "results", basename(getwd())), recursive = TRUE)
+  
+}
+if(!file.exists(file.path("..", "..", "generated", "timings", basename(getwd())))){
+  
+  dir.create(file.path("..", "..", "generated", "timings", basename(getwd())), recursive = TRUE)
+  
+}
+# write results to file
+write.table(file=file.path("..", "..", "generated", "results", 
+                           basename(getwd()), paste(BENCHMARK, "results", "tsv", sep = '.')), 
+            quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE,
             do.call("rbind", 
                     lapply(names(RESULTS), function(x){
                       cbind(RESULTS[[x]], data.frame(res=x))
@@ -229,11 +243,12 @@ write.table(file="", quote = FALSE, sep = "\t", row.names = FALSE, col.names = T
 )
 
 # timings
-# todo: redirect to file or other
-write.table(file="", quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
+write.table(file=file.path("..", "..", "generated", "results", 
+                           basename(getwd()), paste(BENCHMARK, format(Sys.time(), "%Y%m%d%H%M%S"), "tsv", sep = '.')), 
+            quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
             format(do.call("rbind", TIMES), digits=5)
 )
 
-# final clean up and exit
+# final clean up
 rm(list=ls())
 gc()
