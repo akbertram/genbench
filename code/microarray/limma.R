@@ -24,7 +24,7 @@ TIMES <- list()
 
 # reproducibility
 set.seed(8008)
-stopifnot(all(rev(strsplit(getwd(), "/")[[1]])[1:3] == c("microarray","code","genbase"))) # must be run from directory containing rppa.R
+stopifnot(all(rev(strsplit(getwd(), "[\\\\/]", perl=TRUE)[[1]])[1:3] == c("microarray","code","genbase"))) # must be run from directory containing rppa.R
 
 #### functions
 

@@ -19,10 +19,10 @@ if (length(args) > 0) {
   NGENES <- "500"
   NPATIENTS <- "500"
 }
-GEO <-      paste(PATH, '/GEO-', NGENES, '-', NPATIENTS, '.rds', sep="")
-GO <-       paste(PATH, '/GO-', NGENES, '-', NPATIENTS, '.rds', sep="")
-GENES <-    paste(PATH, '/GeneMetaData-', NGENES, '-', NPATIENTS, '.rds', sep="")
-PATIENTS <- paste(PATH, '/PatientMetaData-', NGENES, '-', NPATIENTS, '.rds', sep="")
+GEO <-      file.path(PATH, paste('GEO-', NGENES, '-', NPATIENTS, '.rds', sep=""))
+GO <-       file.path(PATH, paste('GO-', NGENES, '-', NPATIENTS, '.rds', sep=""))
+GENES <-    file.path(PATH, paste('GeneMetaData-', NGENES, '-', NPATIENTS, '.rds', sep=""))
+PATIENTS <- file.oath(PATH, paste('PatientMetaData-', NGENES, '-', NPATIENTS, '.rds', sep=""))
 
 
 # plain-R q&d replacement for acast(A, list(names(A)[1], names(A)[2]))
@@ -155,7 +155,7 @@ svd_irlba <- function() {
   ptm <- proc.time()
 
   # run svd
-  irlba(A, nu=50, nv=50, sigma="ls")
+  RESULTS$svd <- irlba(A, nu=50, nv=50, sigma="ls")
   TIMES$svd.analytics <<- proc.time() - ptm
 }
 
