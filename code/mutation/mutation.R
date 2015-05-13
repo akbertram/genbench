@@ -86,6 +86,7 @@ do.download <- function(n=3){
 ## mutation data
 
 do.pop.load <- function(){
+  DATA_DIR <- file.path("..", "..", "data", "mutation")
   
   readLines(file.path(DATA_DIR, "pop","laml.maf"), 3) # no header info other than col names
   

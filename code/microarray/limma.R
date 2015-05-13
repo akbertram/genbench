@@ -46,16 +46,15 @@ do.download <- function(INPUT, DATA_DIR){
   ptm <- proc.time()
   untar(file.path(DATA_DIR, basename(INPUT), exdir = DATA_DIR))
   TIMES$load.untar <<- proc.time() - ptm
-  ptm <- proc.time()
   
   return(TRUE)
   
 }
 
-do.load <- function(INPUT, DATA_DIR){
+do.load <- function(DATA_DIR){
   
   ## load downloaded data to ExpressionSet instance and return
-    
+  ptm <- proc.time()
   # collect names of downloaded files
   cel.files <- dir(DATA_DIR, pattern = ".CEL", full.names = TRUE)
   TIMES$load.read <<- proc.time() - ptm

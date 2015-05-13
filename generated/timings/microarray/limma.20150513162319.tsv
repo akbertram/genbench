@@ -1,0 +1,9 @@
+user.self	sys.self	elapsed	user.child	sys.child
+load.read	  0.00	  0.00	  0.00	    NA	    NA
+load	  6.42	  0.61	  7.47	    NA	    NA
+qc	 24.86	  0.26	 27.71	    NA	    NA
+norm.rma	 18.91	  0.03	 19.33	    NA	    NA
+norm.mas5	529.28	  0.99	547.03	    NA	    NA
+norm.filter	  1.70	  0.03	  1.73	    NA	    NA
+norm	549.89	  1.05	568.09	    NA	    NA
+limma	  2.17	  0.03	  2.36	    NA	    NA

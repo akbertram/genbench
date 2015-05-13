@@ -1,0 +1,5 @@
+user.self	sys.self	elapsed	user.child	sys.child
+load	 8.70	 1.39	10.98	   NA	   NA
+norm.voom	 0.33	 0.00	 0.36	   NA	   NA
+norm	 1.67	 0.00	 1.73	   NA	   NA
+limma	 2.43	 0.00	 2.48	   NA	   NA

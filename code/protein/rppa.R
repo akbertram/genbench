@@ -203,7 +203,7 @@ do.rf <- function(dist_mat){
 }
 
 # SVM
-do.rf <- function(dist_mat){
+do.svm <- function(dist_mat){
   # TODO: package e1071 not yet implemented in renjin
   
   # return 2 column dataframe of tumour ID and cluster id
@@ -220,7 +220,7 @@ do.bayes <- function(dist_mat){
 ## load data and compute matrix
 if(DOWNLOAD){
   TIMES$download <- system.time(gcFirst = T,
-                            do.download(csv=INPUT)
+                            do.download(csv=INPUT))
 }
 TIMES$load <- system.time(gcFirst = T,
   rppa <- do.load()
