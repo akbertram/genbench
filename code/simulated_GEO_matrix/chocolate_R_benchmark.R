@@ -4,6 +4,10 @@ library(biclust)
 library(s4vd)
 library(irlba)
 
+# data collection
+RESULTS <- list()
+TIMES <- list()
+
 # needs info about path and what size of data to run on
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) > 0) {
@@ -63,12 +67,12 @@ regression <- function() {
   A <- df2mxc(A)
 
   ### Data management ops end ###
-  cat(sprintf('Regression data management: %f\n', (proc.time() - ptm)['elapsed']))
+  TIMES$regression.data_management <<- proc.time() - ptm
   ptm = proc.time()
 
   # run regression
-  lm.fit(x=A, y=response)
-  cat(sprintf('Regression analytics: %f\n', (proc.time() - ptm)['elapsed']))
+  RESULTS$ regression <<- lm.fit(x=A, y=response) # todo: report data.frame
+  TIMES$regression.analytics <<- proc.time() - ptm
 }
 
 covariance <- function() {
@@ -91,20 +95,20 @@ covariance <- function() {
   # convert to matrix
   A <- df2mxc(A)
 
-  midtm <- (proc.time() - ptm)['elapsed']
+  midtm <- proc.time() - ptm
   ptm <- proc.time()  
 
   # calculate covariance
   covar <- cov(A)
-  cat(sprintf('Covariance analytics: %f\n', (proc.time() - ptm)['elapsed']))
+  TIMES$covariance.analytics <<- proc.time() - ptm
   ptm <- proc.time()
 
   covar <- which(covar>0.01*(max(covar)), arr.ind=T)
   res <- merge(covar, genes, by.x='row', by.y='id')
-  res <- merge(res, genes, by.x='col', by.y='id')  
+  RESULTS$covariance <<- merge(res, genes, by.x='col', by.y='id')  
  
   ### Data management ops end ###
-  cat(sprintf('Covariance data management: %f\n', (proc.time() - ptm)['elapsed'] + midtm))
+  TIMES$covariance.data_management <<- (proc.time() - ptm) + midtm
 }
 
 biclustering<-function() {
@@ -121,13 +125,12 @@ biclustering<-function() {
 
   ### Data management ops end ###
 
-  cat(sprintf('Biclust data management: %f\n', (proc.time() - ptm)['elapsed']))
+  TIMES$biclust.data_management <<- proc.time() - ptm
   ptm <- proc.time()
   
   # run biclustering
-
-  biclust(A, method=BCssvd, K=1)
-  cat(sprintf('Biclust analytics: %f\n', (proc.time() - ptm)['elapsed']))
+  RESULTS$biclust <<- biclust(A, method=BCssvd, K=1) # todo: report a data.frame
+  TIMES$biclust.analytics <<- proc.time() - ptm
 } 
 
 svd_irlba <- function() {
@@ -148,12 +151,12 @@ svd_irlba <- function() {
   A <- df2mxc(A)
 
   ### Data management ops end ###
-  cat(sprintf('SVD data management: %f\n', (proc.time() - ptm)['elapsed']))
+  TIMES$svd.data_management <<- proc.time() - ptm
   ptm <- proc.time()
 
   # run svd
   irlba(A, nu=50, nv=50, sigma="ls")
-  cat(sprintf('SVD analytics: %f\n', (proc.time() - ptm)['elapsed']))
+  TIMES$svd.analytics <<- proc.time() - ptm
 }
 
 stats <- function() {
@@ -176,7 +179,7 @@ stats <- function() {
   go <- df2mxs(go)
 
   ### Data management ops end ###
-  cat(sprintf('Stats data management: %f\n', (proc.time() - ptm)['elapsed']))
+  TIMES$stats.data_management <<- proc.time() - ptm
   ptm <- proc.time()
 
   for   (ii in 1:dim(go)[2]) {
@@ -189,15 +192,34 @@ stats <- function() {
       w < wilcox.test(set1, set2, alternative="less")
     }
   }
-  cat(sprintf('Stats analytics: %f\n', (proc.time() - ptm)['elapsed']))
+  # todo: capture results
+  
+  TIMES$stats.analytics <<- proc.time() - ptm
 }
 
-print(paste('Regression: ',   system.time(regression(),   gcFirst=T)['elapsed'], sep=''));
-print(paste('SVD: ',          system.time(svd_irlba(),    gcFirst=T)['elapsed'], sep=''));
-print(paste('Covariance: ',   system.time(covariance(),   gcFirst=T)['elapsed'], sep=''));
-print(paste('Biclustering: ', system.time(biclustering(), gcFirst=T)['elapsed'], sep=''));
-#print(paste('Stats: ',        system.time(stats(),        gcFirst=T)['elapsed'], sep='')); 
+### reporting of timings
+TIMES$regression <- system.time(regression(),   gcFirst=T)
+TIMES$svd <- system.time(svd_irlba(),    gcFirst=T)
+TIMES$covariance <- system.time(covariance(),   gcFirst=T)
+TIMES$biclust <- system.time(biclustering(), gcFirst=T)
+#TIMES$stats <- system.time(stats(),        gcFirst=T) 
 
+## write out captured timings and results
+# todo: redirect to given file or similar
+write.table(file="", quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE,
+            do.call("rbind", 
+                    lapply(names(RESULTS), function(x){
+                      cbind(RESULTS[[x]], data.frame(res=x))
+                    }
+                    )
+            )
+)
+
+# timings
+# todo: redirect to file or other
+write.table(file="", quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
+            format(do.call("rbind", TIMES), digits=5)
+)
 
 # final cleanup
 rm(list=ls())
