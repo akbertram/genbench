@@ -198,16 +198,22 @@ do.km <- function(dist_mat){
 # random forrest
 do.rf <- function(dist_mat){
   # TODO: package randomForest not yet implemented in renjin
+  
+  # return 2 column dataframe of tumour ID and cluster id
 }
 
 # SVM
 do.rf <- function(dist_mat){
   # TODO: package e1071 not yet implemented in renjin
+  
+  # return 2 column dataframe of tumour ID and cluster id
 }
 
 # bayesian
 do.bayes <- function(dist_mat){
- # TODO: package e1071 not yet implemented in renjin
+  # TODO: package e1071 not yet implemented in renjin
+  
+  # return 2 column dataframe of tumour ID and cluster id
 }
 
 ### reporting

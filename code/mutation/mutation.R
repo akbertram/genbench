@@ -129,7 +129,7 @@ do.pop.fig1a <- function(pop){
        )
   
   # return
-  return(fig_1a)
+  return(fig_1a[,c("TCGA_id", "tier", "mut_count")])
 }
 
 do.pop.fig1b <- function(pop){
@@ -154,7 +154,7 @@ do.pop.fig1b <- function(pop){
   TIMES$pop.fig1b.order <<- proc.time() - ptm
   
   # return
-  return(fig_1b)
+  return(fig_1b[,c("gene_name", "tier", "sample_count")])
 }
 
 # "window" apply
@@ -407,8 +407,8 @@ do.ibd.window <- function(fam.scores, window.sizes=seq(5, 50, 5)){
                  lapply(window.sizes, function(win){ 
                     # run sliding window, summing for each and dividing by number of markers
                     lapply(fam.scores, 
-                           function(x) summary(wapply(x$df$score, width=win, by=as.integer(win/2), 
-                                                  FUN=sum) / win))
+                           function(x) data.frame(width=win, pair=x$pair, q3=summary(wapply(x$df$score, width=win, by=as.integer(win/2), 
+                                                  FUN=sum) / win)["3rd Qu."]))
   })))
 
 }
@@ -492,6 +492,7 @@ write.table(file=file.path("..", "..", "generated", "results",
             quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE,
             do.call("rbind", 
                     lapply(names(RESULTS), function(x){
+                      names(RESULTS[[x]]) <- c(1:ncol(RESULTS[[x]]))
                       cbind(RESULTS[[x]], data.frame(res=x))
                     }
                     )
