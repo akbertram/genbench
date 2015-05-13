@@ -27,9 +27,9 @@ do.load <- function(csv){
   if (VERBOSE){print("Loading Data")}
   
   # samples x features matrix, including some sample metadata
-  try(download.file(csv, destfile = "../../data/rppa.csv", method="internal"))
+  try(download.file(csv, destfile = "../../data/protein/rppa.csv", method="internal"))
   #try(rppa <- read.csv(csv, header=T, stringsAsFactors=F))
-  rppa <- read.csv("../../data/rppa.csv", 
+  rppa <- read.csv("../../data/protein/rppa.csv", 
                    header=T, stringsAsFactors=F, 
                    sep=",", row.names=NULL,
                    blank.lines.skip = TRUE

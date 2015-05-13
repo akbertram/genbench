@@ -15,7 +15,7 @@ if (length(args) > 0) {
   NGENES <- args[2]
   NPATIENTS <- args[3]
 } else {
-  PATH <- "."
+  PATH <- "../../data/simulated_GEO_matrix/"
   NGENES <- "500"
   NPATIENTS <- "500"
 }

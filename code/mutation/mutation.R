@@ -24,22 +24,22 @@ stopifnot(all(rev(strsplit(getwd(), "[\\\\/]", perl=TRUE)[[1]])[1:3] == c("mutat
 do.pop.load <- function(){
   
   # prepare for downloading
-  if(!file.exists("../../data/mutation_pop")){
+  if(!file.exists("../../data/mutation/pop")){
     # create directory for holding data
-    dir.create(recursive = TRUE, "../../data/mutation_pop")
+    dir.create(recursive = TRUE, "../../data/mutation/pop")
   }
   ## supplementary data described here:
   # http://www.nejm.org/doi/suppl/10.1056/NEJMoa1301689/suppl_file/nejmoa1301689_appendix.pdf
   #  supp table S6: All somatic mutations with annotation and read counts from DNA and RNA sequencing
-  download.file(destfile ="../../data/mutation_pop/laml.maf", "http://tcga-data.nci.nih.gov/docs/publications/laml_2012/SupplementalTable06.tsv")
+  download.file(destfile ="../../data/mutation/pop/laml.maf", "http://tcga-data.nci.nih.gov/docs/publications/laml_2012/SupplementalTable06.tsv")
   readLines("../../data/mutation_pop/laml.maf", 3) # no header info other than col names
   
-  maf <- read.delim("../../data/mutation_pop/laml.maf", blank.lines.skip = TRUE, , stringsAsFactors = FALSE)
+  maf <- read.delim("../../data/mutation/pop/laml.maf", blank.lines.skip = TRUE, , stringsAsFactors = FALSE)
   
   ## sample data
-  download.file(destfile ="../../data/mutation_pop/laml.meta.tsv", 
+  download.file(destfile ="../../data/mutation/pop/laml.meta.tsv", 
                 "http://tcga-data.nci.nih.gov/docs/publications/laml_2012/clinical_patient_laml.tsv")
-  meta <- read.delim("../../data/mutation_pop/laml.meta.tsv", blank.lines.skip = TRUE, stringsAsFactors = FALSE)
+  meta <- read.delim("../../data/mutation/pop/laml.meta.tsv", blank.lines.skip = TRUE, stringsAsFactors = FALSE)
   
   stopifnot(length(intersect(unique(maf$TCGA_id), unique(meta$bcr_patient_barcode))) == 197)
 
@@ -128,9 +128,9 @@ do.fam.load <- function(chromosomes=c(10), n=3){
   # n : limit number of individuals loaded
   
   # prepare for downloading
-  if(!file.exists("../../data/mutation_fam")){
+  if(!file.exists("../../data/mutation/fam")){
     # create directory for holding data
-    dir.create(recursive = TRUE, "../../data/mutation_fam")
+    dir.create(recursive = TRUE, "../../data/mutation/fam")
   }
   fam_files <- data.frame(do.call("rbind", unlist(lapply(strsplit(split = "\n",
   "Daniel MacArthur | DGM001 | http://s3.amazonaws.com/gnz.genotypes/DGM001_genotypes.zip
@@ -148,7 +148,7 @@ do.fam.load <- function(chromosomes=c(10), n=3){
   function(x) strsplit(x, " | ", fixed = TRUE)), recursive=FALSE)), stringsAsFactors=FALSE)
   
   names(fam_files) <- c("member","dataset id","link")
-  fam_files$target <- file.path("../../data/mutation_fam", basename(fam_files$link))
+  fam_files$target <- file.path("../../data/mutation/fam", basename(fam_files$link))
   
   # only take n files: could expand later if needed
   if(n > nrow(fam_files)){ n <- nrow(fam_files)  }
@@ -158,18 +158,18 @@ do.fam.load <- function(chromosomes=c(10), n=3){
   lapply(1:nrow(fam_files), function(x){
     download.file(fam_files[x,"link"], 
                   destfile = fam_files[x,"target"])
-    unzip(fam_files[x,"target"], exdir = "../../data/mutation_fam")
+    unzip(fam_files[x,"target"], exdir = "../../data/mutation/fam")
     try(file.remove(fam_files[x,"target"]))
     })
   
   # read in each file, and strip down to chromosome 1 (again, could exapnd later if needed)
-  fam <- lapply(lapply(dir("../../data/mutation_fam/", full.names = TRUE), 
+  fam <- lapply(lapply(dir("../../data/mutation/fam/", full.names = TRUE), 
              function(x) read.delim(x, skip= 14, 
                                     blank.lines.skip=TRUE, stringsAsFactors=FALSE)
              ),
              function(x) subset(x, chromosome %in% chromosomes)
              )
-  names(fam) <- dir("../../data/mutation_fam/", full.names = FALSE)
+  names(fam) <- dir("../../data/mutation/fam/", full.names = FALSE)
   
   # return
   return(fam)
