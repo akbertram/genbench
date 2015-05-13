@@ -22,7 +22,7 @@ install.dependencies <- function() {
   
   # Install bioconductor packages
   source("http://bioconductor.org/biocLite.R")
-  for(pkg in c('affy', 'hgu133plus2cdf', 'limma', 'edgeR')) {
+  for(pkg in c('Biobase', 'affy', 'hgu133plus2cdf', 'limma', 'edgeR')) {
     if(!(pkg %in% installed.packages())) {
       biocLite(pkg, suppressUpdates = TRUE, suppressAutoUpdate = TRUE, ask = FALSE)
     }

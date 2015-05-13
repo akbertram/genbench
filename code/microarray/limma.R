@@ -9,6 +9,7 @@
 rm(list=ls())
 
 ## (bioconductor) packages
+library(Biobase)
 library(affy) # reading and normalising microarray data
 library(hgu133plus2cdf) # platform annotations
 library(limma) # differential expression
@@ -16,6 +17,7 @@ library(limma) # differential expression
 ## global vars
 VERBOSE <- TRUE # print progress?
 DATA_DIR <- file.path("..", "..", "data", "microarray")
+DOWNLOAD <- FALSE
 INPUT <- "ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE45nnn/GSE45417/suppl/GSE45417_RAW.tar"
 
 # holder for results
@@ -29,9 +31,10 @@ stopifnot(all(rev(strsplit(getwd(), "[\\\\/]", perl=TRUE)[[1]])[1:3] == c("micro
 
 #### functions
 
-do.load <- function(INPUT, DATA_DIR){
+do.download <- function(INPUT, DATA_DIR){
+  
   ## download CEL files from [INPUT] to [DATA_DIR]
-  ## load downloaded data to ExpressionSet instance and return
+  # download and unpack data
   
   # make sure DATA_DIR exists
   if(!file.exists(DATA_DIR)){   dir.create(DATA_DIR, recursive = TRUE)    }
@@ -44,6 +47,14 @@ do.load <- function(INPUT, DATA_DIR){
   untar(file.path(DATA_DIR, basename(INPUT), exdir = DATA_DIR))
   TIMES$load.untar <<- proc.time() - ptm
   ptm <- proc.time()
+  
+  return(TRUE)
+  
+}
+
+do.load <- function(INPUT, DATA_DIR){
+  
+  ## load downloaded data to ExpressionSet instance and return
     
   # collect names of downloaded files
   cel.files <- dir(DATA_DIR, pattern = ".CEL", full.names = TRUE)
@@ -203,16 +214,25 @@ do.limma <- function(cel.filtered){
 
 
 ### run and time code
+## get data
+if(DOWNLOAD){
+  TIMES$download <- system.time(gcFirst = T,
+                            do.download(INPUT, DATA_DIR)
+  )
+}
 ## load data and compute matrix
 TIMES$load <- system.time(gcFirst = T,
-                          cel.files <- do.load(INPUT, DATA_DIR)
+                          cel.files <- do.load(DATA_DIR)
 )
+## run QC
 TIMES$qc <- system.time(gcFirst = T,
                           cel.files <- do.qc(cel.files)
 )
+## normalise and scale
 TIMES$norm <- system.time(gcFirst = T,
                           eset <- do.norm(cel.files)
 )
+## linear modelling
 TIMES$limma <- system.time(gcFirst = T,
                           RESULTS$limma <- do.limma(eset)
 )
@@ -243,7 +263,7 @@ write.table(file=file.path("..", "..", "generated", "results",
 )
 
 # timings
-write.table(file=file.path("..", "..", "generated", "results", 
+write.table(file=file.path("..", "..", "generated", "timings", 
                            basename(getwd()), paste(BENCHMARK, format(Sys.time(), "%Y%m%d%H%M%S"), "tsv", sep = '.')), 
             quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
             format(do.call("rbind", TIMES), digits=5)

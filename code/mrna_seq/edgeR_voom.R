@@ -139,7 +139,7 @@ write.table(file=file.path("..", "..", "generated", "results",
 )
 
 # timings
-write.table(file=file.path("..", "..", "generated", "results", 
+write.table(file=file.path("..", "..", "generated", "timings", 
                            basename(getwd()), paste(BENCHMARK, format(Sys.time(), "%Y%m%d%H%M%S"), "tsv", sep = '.')), 
             quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
             format(do.call("rbind", TIMES), digits=5)

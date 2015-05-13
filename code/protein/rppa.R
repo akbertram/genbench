@@ -13,6 +13,7 @@ INPUT <- "http://tcga-data.nci.nih.gov/docs/publications/TCGApancan_2014/RPPA_in
 OUTPUT <- "http://tcga-data.nci.nih.gov/docs/publications/TCGApancan_2014/RPPA_output.csv"
 VERBOSE <- TRUE # print progress?
 BENCHMARK <- "rppa" # name of benchmark
+DOWNLOAD <- FALSE
 
 # holder for results
 RESULTS <- list()
@@ -23,12 +24,16 @@ set.seed(8008)
 stopifnot(all(rev(strsplit(getwd(), "[\\\\/]", perl=TRUE)[[1]])[1:3] == c("protein","code","genbase"))) # must be run from directory containing rppa.R
 
 ### functions
-do.load <- function(csv){
+do.download <- function(csv){
   ## load data
   if (VERBOSE){print("Loading Data")}
   
   # samples x features matrix, including some sample metadata
   try(download.file(csv, destfile = file.path("..","..","data","protein","rppa.csv"), method="internal"))
+  
+  return(TRUE)
+}
+do.load <- function(){
   #try(rppa <- read.csv(csv, header=T, stringsAsFactors=F))
   rppa <- read.csv(file.path("..","..","data","protein","rppa.csv"), 
                    header=T, stringsAsFactors=F, 
@@ -207,8 +212,12 @@ do.bayes <- function(dist_mat){
 
 ### reporting
 ## load data and compute matrix
+if(DOWNLOAD){
+  TIMES$download <- system.time(gcFirst = T,
+                            do.download(csv=INPUT)
+}
 TIMES$load <- system.time(gcFirst = T,
-  rppa <- do.load(csv=INPUT)
+  rppa <- do.load()
 )
 TIMES$dist <- system.time(gcFirst = T,
   dist_mat <- do.dist(input_data=rppa)
@@ -268,7 +277,7 @@ write.table(file=file.path("..", "..", "generated", "results",
   )
 
 # timings
-write.table(file=file.path("..", "..", "generated", "results", 
+write.table(file=file.path("..", "..", "generated", "timings", 
                            basename(getwd()), paste(BENCHMARK, format(Sys.time(), "%Y%m%d%H%M%S"), "tsv", sep = '.')), 
             quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
   format(do.call("rbind", TIMES), digits=5)

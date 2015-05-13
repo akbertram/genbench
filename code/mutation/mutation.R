@@ -10,6 +10,7 @@ library(utils)
 
 ## global vars
 VERBOSE <- TRUE # print progress?
+DOWNLOAD <- FALSE # download fresh data?
 
 # holder for results
 RESULTS <- list()
@@ -21,10 +22,9 @@ set.seed(8008)
 stopifnot(all(rev(strsplit(getwd(), "[\\\\/]", perl=TRUE)[[1]])[1:3] == c("mutation","code","genbase"))) # must be run from directory containing rppa.R
 
 ### functions
-## mutation data
-do.pop.load <- function(){
-  
-  
+## general
+do.download <- function(n=3){
+  # pop data
   DATA_DIR <- file.path("..", "..", "data", "mutation")
   
   # prepare for downloading
@@ -36,13 +36,62 @@ do.pop.load <- function(){
   # http://www.nejm.org/doi/suppl/10.1056/NEJMoa1301689/suppl_file/nejmoa1301689_appendix.pdf
   #  supp table S6: All somatic mutations with annotation and read counts from DNA and RNA sequencing
   download.file(destfile =file.path(DATA_DIR, "pop","laml.maf"), "http://tcga-data.nci.nih.gov/docs/publications/laml_2012/SupplementalTable06.tsv")
+  
+  download.file(destfile =file.path(DATA_DIR, "pop","laml.meta.tsv"), 
+                "http://tcga-data.nci.nih.gov/docs/publications/laml_2012/clinical_patient_laml.tsv")
+  
+  
+  # 'family' data
+  
+  ## download data for individuals from genomesunzipped.org
+  # n : limit number of individuals loaded
+  
+  # prepare for downloading
+  if(!file.exists(file.path(DATA_DIR, "fam"))){
+    # create directory for holding data
+    dir.create(recursive = TRUE, file.path(DATA_DIR, "fam"))
+  }
+  fam_files <- data.frame(do.call("rbind", unlist(lapply(strsplit(split = "\n",
+                                                                  "Daniel MacArthur | DGM001 | http://s3.amazonaws.com/gnz.genotypes/DGM001_genotypes.zip
+                                                                  Luke Jostins | LXJ001 | http://s3.amazonaws.com/gnz.genotypes/LXJ001_genotypes.zip
+                                                                  Dan Vorhaus | DBV001 | http://s3.amazonaws.com/gnz.genotypes/DBV001_genotypes.zip
+                                                                  Caroline Wright | CFW001 | http://s3.amazonaws.com/gnz.genotypes/CFW001_genotypes.zip
+                                                                  Kate Morley | KIM001 | http://s3.amazonaws.com/gnz.genotypes/KIM001_genotypes.zip
+                                                                  Vincent Plagnol | VXP001 | http://s3.amazonaws.com/gnz.genotypes/VXP001_genotypes.zip
+                                                                  Jeff Barrett | JCB001 | http://s3.amazonaws.com/gnz.genotypes/JCB001_genotypes.zip
+                                                                  Jan Aerts | JXA001 | http://s3.amazonaws.com/gnz.genotypes/JXA001_genotypes.zip
+                                                                  Joe Pickrell | JKP001 | http://s3.amazonaws.com/gnz.genotypes/JKP001_genotypes.zip
+                                                                  Don Conrad | DFC001 | http://s3.amazonaws.com/gnz.genotypes/JKP001_genotypes.zip
+                                                                  Carl Anderson | CAA001 | http://s3.amazonaws.com/gnz.genotypes/CAA001_genotypes.zip
+                                                                  Ilana Fisher | IPF001 | http://s3.amazonaws.com/gnz.genotypes/IPF001_genotypes.zip")[[1]], 
+  function(x) strsplit(x, " | ", fixed = TRUE)), recursive=FALSE)), stringsAsFactors=FALSE)
+  
+  names(fam_files) <- c("member","dataset id","link")
+  fam_files$target <- file.path(DATA_DIR, "fam", basename(fam_files$link))
+  
+  # only take n files: could expand later if needed
+  if(n > nrow(fam_files)){ n <- nrow(fam_files)  }
+  fam_files <- fam_files[1:n,]
+  
+  # download and unzip target files
+  lapply(1:nrow(fam_files), function(x){
+    download.file(fam_files[x,"link"], 
+                  destfile = fam_files[x,"target"])
+    unzip(fam_files[x,"target"], exdir = file.path(DATA_DIR, "fam"))
+    try(file.remove(fam_files[x,"target"]))
+    })
+  return(TRUE)
+}
+
+## mutation data
+
+do.pop.load <- function(){
+  
   readLines(file.path(DATA_DIR, "pop","laml.maf"), 3) # no header info other than col names
   
   maf <- read.delim(file.path(DATA_DIR, "pop","laml.maf"), blank.lines.skip = TRUE, , stringsAsFactors = FALSE)
   
   ## sample data
-  download.file(destfile =file.path(DATA_DIR, "pop","laml.meta.tsv"), 
-                "http://tcga-data.nci.nih.gov/docs/publications/laml_2012/clinical_patient_laml.tsv")
   meta <- read.delim(file.path(DATA_DIR, "pop","laml.meta.tsv"), blank.lines.skip = TRUE, stringsAsFactors = FALSE)
   
   stopifnot(length(intersect(unique(maf$TCGA_id), unique(meta$bcr_patient_barcode))) == 197)
@@ -125,48 +174,12 @@ wapply <- function(x, width, by = NULL, FUN = NULL, ...){
 
 
 ## familial data
-do.fam.load <- function(chromosomes=c(10), n=3){
+do.fam.load <- function(chromosomes=c(10)){
   
   DATA_DIR <- file.path("..", "..", "data", "mutation")
   
-  ## download data for individuals from genomesunzipped.org
+  ## load data for individuals from genomesunzipped.org
   # chromosomes : limit chromosomes loaded
-  # n : limit number of individuals loaded
-  
-  # prepare for downloading
-  if(!file.exists(file.path(DATA_DIR, "fam"))){
-    # create directory for holding data
-    dir.create(recursive = TRUE, file.path(DATA_DIR, "fam"))
-  }
-  fam_files <- data.frame(do.call("rbind", unlist(lapply(strsplit(split = "\n",
-  "Daniel MacArthur | DGM001 | http://s3.amazonaws.com/gnz.genotypes/DGM001_genotypes.zip
-  Luke Jostins | LXJ001 | http://s3.amazonaws.com/gnz.genotypes/LXJ001_genotypes.zip
-  Dan Vorhaus | DBV001 | http://s3.amazonaws.com/gnz.genotypes/DBV001_genotypes.zip
-  Caroline Wright | CFW001 | http://s3.amazonaws.com/gnz.genotypes/CFW001_genotypes.zip
-  Kate Morley | KIM001 | http://s3.amazonaws.com/gnz.genotypes/KIM001_genotypes.zip
-  Vincent Plagnol | VXP001 | http://s3.amazonaws.com/gnz.genotypes/VXP001_genotypes.zip
-  Jeff Barrett | JCB001 | http://s3.amazonaws.com/gnz.genotypes/JCB001_genotypes.zip
-  Jan Aerts | JXA001 | http://s3.amazonaws.com/gnz.genotypes/JXA001_genotypes.zip
-  Joe Pickrell | JKP001 | http://s3.amazonaws.com/gnz.genotypes/JKP001_genotypes.zip
-  Don Conrad | DFC001 | http://s3.amazonaws.com/gnz.genotypes/JKP001_genotypes.zip
-  Carl Anderson | CAA001 | http://s3.amazonaws.com/gnz.genotypes/CAA001_genotypes.zip
-  Ilana Fisher | IPF001 | http://s3.amazonaws.com/gnz.genotypes/IPF001_genotypes.zip")[[1]], 
-  function(x) strsplit(x, " | ", fixed = TRUE)), recursive=FALSE)), stringsAsFactors=FALSE)
-  
-  names(fam_files) <- c("member","dataset id","link")
-  fam_files$target <- file.path(DATA_DIR, "fam", basename(fam_files$link))
-  
-  # only take n files: could expand later if needed
-  if(n > nrow(fam_files)){ n <- nrow(fam_files)  }
-  fam_files <- fam_files[1:n,]
-  
-  # download and unzip target files
-  lapply(1:nrow(fam_files), function(x){
-    download.file(fam_files[x,"link"], 
-                  destfile = fam_files[x,"target"])
-    unzip(fam_files[x,"target"], exdir = file.path(DATA_DIR, "fam"))
-    try(file.remove(fam_files[x,"target"]))
-    })
   
   # read in each file, and strip down to chromosome 1 (again, could exapnd later if needed)
   fam <- lapply(lapply(dir(file.path(DATA_DIR, "fam"), full.names = TRUE), 
@@ -402,6 +415,12 @@ do.ibd.window <- function(fam.scores, window.sizes=seq(5, 50, 5)){
 
 
 ### reporting
+## collect data
+if(DOWNLOAD){
+  TIMES$download <- system.time(gcFirst = T,
+                                do.download()
+  )
+}
 ## population data
 # load data and compute matrix
 TIMES$pop.load <- system.time(gcFirst = T,
@@ -480,7 +499,7 @@ write.table(file=file.path("..", "..", "generated", "results",
 )
 
 # timings
-write.table(file=file.path("..", "..", "generated", "results", 
+write.table(file=file.path("..", "..", "generated", "timings", 
                            basename(getwd()), paste(BENCHMARK, format(Sys.time(), "%Y%m%d%H%M%S"), "tsv", sep = '.')), 
             quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
             format(do.call("rbind", TIMES), digits=5)
