@@ -38,5 +38,5 @@ for (SCRIPT in dir(file.path(getwd(), "code"),
                   ignore.case = TRUE)){
   # run benchmark script
   cat(timestamp(quiet = TRUE), "Running benchmark at ", SCRIPT,"\n")
-  source(SCRIPT, chdir = TRUE) # all scripts assume working dir is same as script
+  try(source(SCRIPT, chdir = TRUE)) # all scripts assume working dir is same as script
 }

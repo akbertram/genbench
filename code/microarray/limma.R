@@ -208,7 +208,93 @@ do.limma <- function(cel.filtered){
             } 
             ))
   
-  return(results)
+  return(results[,c("ID", "contrast", "adj.P.Val", "logFC")]) # return 4 column dataframe
+}
+
+do.geneset.examples <- function(){
+  # run gene set testing examples as provided
+  # in LIMMA manual
+  # http://www.bioconductor.org/packages/release/bioc/manuals/limma/man/limma.pdf
+  
+  # results collection
+  results <- list()
+  
+  # CAMERA
+#   y <- matrix(rnorm(1000*6),1000,6)
+#   design <- cbind(Intercept=1,Group=c(0,0,0,1,1,1))
+#   
+#   # First set of 20 genes are genuinely differentially expressed
+#   index1 <- 1:20
+#   y[index1,4:6] <- y[index1,4:6]+1
+#   
+#   # Second set of 20 genes are not DE
+#   index2 <- 21:40
+#   
+#   camera(y, index1, design)
+#   camera(y, index2, design)
+#   
+#   camera(y, list(set1=index1,set2=index2), design)
+  
+  ## romer
+  # construct random matrix
+  row_dim <- 1e4
+  col_dim <- 20
+  set.seed(888) # ensure reproducibility
+  y <- matrix(rnorm(row_dim*col_dim),row_dim,col_dim)
+  # arbitrary design
+  design <- cbind(Intercept=1,Group=round(rnorm(col_dim, 0, 1) > 0))
+  # set1 of 40 genes that are genuinely differential between the groups
+  iset1 <- 1:40
+  y[iset1,design[,"Group"]==1] <- y[iset1,design[,"Group"]==1]+rnorm(40, mean=3, sd=2)
+  iset <- list(
+    iset1,
+    # second set where only half are differential
+    iset1 + round(length(iset1)/2)  
+    )
+  for(N in 1:round(row_dim/20)){
+    # append additional (hopefully) non significant sets by shifting along the rows
+    tmp <- iset1+(length(iset1) + N)
+    # replace any values outside of dimensions
+    tmp <- unlist(lapply(tmp, function(x) ifelse(x > row_dim, x %% row_dim, x)))
+    iset <- append(iset, list(tmp))
+  }
+  names(iset) <- paste("iset", 1:length(iset), sep='')
+  # run simulation
+  r <- romer(
+              iset=iset, 
+              y=y,design=design,contrast=2,nrot=99
+              )
+  # reformat results
+  r <- data.frame(topRomer(r))
+  r$id <- row.names(r)
+  r$sim <- "romer"
+  
+  results <- append(results, list(r[, -c(names(r) %in% c("NGenes"))]))
+
+  ## roast
+  # re-use datasets from romer
+  r <- data.frame(mroast(iset,y,design,contrast=2)$P.Value)
+  r <- r[ order(r$Up, decreasing = FALSE), ]
+  r <- r[1:10,] # just take top 10
+  r$id <- row.names(r)
+  r$sim <- "roast"
+
+  results <- append(results, list(r))
+  
+  # combine and reformat results
+  do.call("rbind", results)
+  return(results[,c("id", "sim", "Up", "Mixed")])
+}
+
+do.geneset.real <- function(){
+  # competitive gene set enrichment testing
+  # controls for type I error by accounting for for inter-gene correlation
+  # paper: http://nar.oxfordjournals.org/content/early/2012/05/24/nar.gks461.full
+  
+  # gene sets
+  http://bioinf.wehi.edu.au/software/MSigDB/
+  
+  
 }
 
 
@@ -255,6 +341,7 @@ write.table(file=file.path("..", "..", "generated", "results",
             quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE,
             do.call("rbind", 
                     lapply(names(RESULTS), function(x){
+                      names(RESULTS[[x]]) <- c(1:ncol(RESULTS[[x]]))
                       cbind(RESULTS[[x]], data.frame(res=x))
                     }
                     )

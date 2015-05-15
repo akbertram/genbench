@@ -22,6 +22,9 @@ Code
     - filter
     - fitting linear model
     - extraction of top differentially expressed genes
+- Gene set enirchment testing
+ - random examples, as found in [limma manual](http://www.bioconductor.org/packages/release/bioc/manuals/limma/man/limma.pdf)
+ - [CAMERA](http://nar.oxfordjournals.org/content/early/2012/05/24/nar.gks461.full)
 
 
 Aims
