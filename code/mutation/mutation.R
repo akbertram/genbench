@@ -19,7 +19,8 @@ BENCHMARK <- "mutation"
 
 # reproducibility
 set.seed(8008)
-stopifnot(all(rev(strsplit(getwd(), "[\\\\/]", perl=TRUE)[[1]])[1:3] == c("mutation","code","genbase"))) # must be run from directory containing rppa.R
+#stopifnot(all(rev(strsplit(getwd(), "[\\\\/]", perl=TRUE)[[1]])[1:3] == c("mutation","code","genbase"))) # must be run from directory containing rppa.R
+stopifnot(file.exists("../../data")) # data path is relative
 
 ### functions
 ## general

@@ -27,7 +27,8 @@ BENCHMARK <- "limma"
 
 # reproducibility
 set.seed(8008)
-stopifnot(all(rev(strsplit(getwd(), "[\\\\/]", perl=TRUE)[[1]])[1:3] == c("microarray","code","genbase"))) # must be run from directory containing rppa.R
+#stopifnot(all(rev(strsplit(getwd(), "[\\\\/]", perl=TRUE)[[1]])[1:3] == c("microarray","code","genbase"))) # must be run from directory containing rppa.R
+stopifnot(file.exists("../../data")) # data path is relative
 
 #### functions
 
@@ -320,6 +321,12 @@ TIMES$norm <- system.time(gcFirst = T,
 ## linear modelling
 TIMES$limma <- system.time(gcFirst = T,
                           RESULTS$limma <- do.limma(eset)
+)
+
+## simulated genesets
+TIMES$genesets.examples <- system.time(gc.first=T,
+                                       RESULTS$genesets.examples <- do.geneset.examples()
+              
 )
 
 ### reporting

@@ -8,6 +8,7 @@ library(irlba)
 RESULTS <- list()
 TIMES <- list()
 BENCHMARK <- "chocolate_geo"
+stopifnot(file.exists("../../data")) # data path is relative
 
 # needs info about path and what size of data to run on
 args <- commandArgs(trailingOnly = TRUE)
