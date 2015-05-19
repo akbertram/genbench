@@ -10,7 +10,8 @@
 rm(list=ls())
 
 ## (bioconductor) packages
-library(Biobase)
+# library(rpx) # requires bioc > v3.0
+library(MSnbase)
 
 ## global vars
 VERBOSE <- TRUE # print progress?
@@ -34,9 +35,16 @@ do.download <- function(INPUT, DATA_DIR){
   ## download files from [INPUT] to [DATA_DIR]
   # download and unpack data
   
+   # PRD000032
+  
+  
 }
 
-do.load <- function(){}
+do.load <- function(){
+  
+  MSnSet
+  
+}
 
 
 ### reporting

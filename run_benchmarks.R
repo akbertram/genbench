@@ -14,7 +14,16 @@ install.dependencies <- function() {
   .libPaths(new="~/R/libs")
   
   # Install CRAN packages
-  for(pkg in c('stats', 'utils', 'biclust', 's4vd', 'irlba')) {
+  for(pkg in c(
+                # clustering
+                'stats','biclust', 's4vd', 'irlba',
+                # table processing
+                "plyr", "reshape","sqldf",
+                # utils
+                "utils", "R.utils", "XML",
+                # graph models
+                "igraph"
+               )) {
     if(!(pkg %in% installed.packages())) {
       install.packages(pkg, dependencies = TRUE)
     }
