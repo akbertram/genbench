@@ -49,3 +49,5 @@ for (SCRIPT in dir(file.path(getwd(), "code"),
   cat(timestamp(quiet = TRUE), "Running benchmark at ", SCRIPT,"\n")
   try(source(SCRIPT, chdir = TRUE)) # all scripts assume working dir is same as script
 }
+# multiruns
+# for (x in 1:10){cat(sprintf("run %i\n", x)); source("code//mrna_seq//edgeR_voom.R", chdir = TRUE)}
