@@ -25,9 +25,9 @@ PDATA <- "http://bowtie-bio.sourceforge.net/recount/phenotypeTables/gilad_phenod
 # load utilities
 source(file.path("..", "..","benchmark_utilities.R"))
 # holder for results
-RESULTS <- list()
-TIMES <- list()
 BENCHMARK <- "edgeR_voom"
+RESULTS <- results(benchmark_name = BENCHMARK)
+TIMES <- timings(benchmark_name = BENCHMARK)
 
 #### functions
 
@@ -84,9 +84,7 @@ do.norm <- function(dge){
   design <- model.matrix(~0+dge$samples$group) # levels = F, M, i.e. female is reference
   colnames(design) <- levels(dge$samples$group)
   
-  ptm <- proc.time()
   vm <- voom(dge,design,plot=FALSE)
-  TIMES$norm.voom <<- proc.time() - ptm
 
   return(vm)
 }
@@ -105,24 +103,29 @@ do.limma <- function(vm){
 
 ### run functions and time them
 ## load data and compute matrix
-TIMES$load <- system.time(gcFirst = T,
-                          dge <- do.load(INPUT)
+TIMES <- addRecord(TIMES, record_name = "load",
+                   record = system.time(gcFirst = T,
+                                        dge <- do.load(INPUT)
+                                        )
 )
-TIMES$norm <- system.time(gcFirst = T,
-                          vm <- do.norm(dge)
+TIMES <- addRecord(TIMES, record_name = "norm",
+                   record = system.time(gcFirst = T,
+                                        vm <- do.norm(dge)
+                                        )
 )
-TIMES$limma <- system.time(gcFirst = T,
-                          RESULTS$limma <- do.limma(vm)
+TIMES <- addRecord(TIMES, record_name = "limma",
+                   record = system.time(gcFirst = T,
+                                        RESULTS <- addRecord(RESULTS, record_name = "limma",
+                                                             record = do.limma(vm))
+                                        )
 )
 
 ## output results for comparison
-# check output directories exist
-check_generated()
 # write results to file
-report_results(RESULTS = RESULTS, BENCHMARK = BENCHMARK)
+reportRecords(RESULTS)
 
 # timings
-report_timings(TIMES = TIMES, BENCHMARK = BENCHMARK)
+reportRecords(TIMES)
 
 # final clean up
 rm(list=ls())

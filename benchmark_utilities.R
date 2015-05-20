@@ -208,14 +208,14 @@ reportRecords.genbench <- function(obj){
   checkOutputFile(obj, create = TRUE)
   lapply(getRecords(obj), function(rec){
     # append each record to output file
-    write.table(x = rec,file = getOutputFile(obj),append = TRUE,
+    write.table(x = rec, file = getOutputFile(obj), append = TRUE,
                 sep = "\t", row.names = TRUE, col.names=TRUE      
       )    
-  }
+  })
 }
 
 # reporting method for timings class
-reportRecords.timings <- function(TIMES){
+reportRecords.timings <- function(obj){
   checkOutputFile(obj, create = TRUE)
   write.table(file=getOutputFile(obj), 
               quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
