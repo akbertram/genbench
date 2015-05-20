@@ -9,6 +9,10 @@
 
 ### set up session
 rm(list=ls())
+# reproducibility
+set.seed(8008)
+stopifnot(file.exists(file.path("..", "..", "data"))) # data path is relative
+
 ## (bioconductor) packages
 library(limma)
 library(edgeR)
@@ -18,15 +22,12 @@ VERBOSE <- TRUE # print progress?
 INPUT <- "http://bowtie-bio.sourceforge.net/recount/countTables/gilad_count_table.txt"
 PDATA <- "http://bowtie-bio.sourceforge.net/recount/phenotypeTables/gilad_phenodata.txt"
 
+# load utilities
+source(file.path("..", "..","benchmark_utilities.R"))
 # holder for results
 RESULTS <- list()
 TIMES <- list()
 BENCHMARK <- "edgeR_voom"
-
-# reproducibility
-set.seed(8008)
-# stopifnot(all(rev(strsplit(getwd(), "[\\\\/]", perl=TRUE)[[1]])[1:3] == c("mrna_seq","code","genbase"))) # must be run from directory containing rppa.R
-stopifnot(file.exists("../../data")) # data path is relative
 
 #### functions
 
@@ -114,37 +115,14 @@ TIMES$limma <- system.time(gcFirst = T,
                           RESULTS$limma <- do.limma(vm)
 )
 
-
 ## output results for comparison
 # check output directories exist
-if(!file.exists(file.path("..", "..", "generated", "results", basename(getwd())))){
-  
-  dir.create(file.path("..", "..", "generated", "results", basename(getwd())), recursive = TRUE)
-  
-}
-if(!file.exists(file.path("..", "..", "generated", "timings", basename(getwd())))){
-  
-  dir.create(file.path("..", "..", "generated", "timings", basename(getwd())), recursive = TRUE)
-  
-}
+check_generated()
 # write results to file
-write.table(file=file.path("..", "..", "generated", "results", 
-                           basename(getwd()), paste(BENCHMARK, "results", "tsv", sep = '.')), 
-            quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE,
-            do.call("rbind", 
-                    lapply(names(RESULTS), function(x){
-                      cbind(RESULTS[[x]], data.frame(res=x))
-                    }
-                    )
-            )
-)
+report_results(RESULTS = RESULTS, BENCHMARK = BENCHMARK)
 
 # timings
-write.table(file=file.path("..", "..", "generated", "timings", 
-                           basename(getwd()), paste(BENCHMARK, format(Sys.time(), "%Y%m%d%H%M%S"), "tsv", sep = '.')), 
-            quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
-            format(do.call("rbind", TIMES), digits=5)
-)
+report_timings(TIMES = TIMES, BENCHMARK = BENCHMARK)
 
 # final clean up
 rm(list=ls())

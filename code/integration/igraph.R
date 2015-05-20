@@ -12,6 +12,12 @@
 
 ### set up session
 rm(list=ls())
+# reproducibility
+set.seed(8008)
+stopifnot(file.exists(file.path("..","..", "data"))) # data path is relative
+
+# load utilities
+source(file.path("..", "..","benchmark_utilities.R"))
 
 ## packages
 library(igraph) # requires > R-15.2
@@ -32,10 +38,6 @@ INPUT <- "ftp://ftp.ncbi.nih.gov/gene/GeneRIF/generifs_basic.gz"
 RESULTS <- list()
 TIMES <- list()
 BENCHMARK <- "igraph"
-
-# reproducibility
-set.seed(8008)
-stopifnot(file.exists(file.path("..", "..", "data"))) # data path is relative
 
 #### functions
 
@@ -359,3 +361,15 @@ lapply(c("Wnt Signaling Pathway", "Autistic Disorder", "Melanoma", "Hedgehog Pro
        )
 
 
+## output results for comparison
+# check output directories exist
+check_generated()
+# write results to file
+report_results(RESULTS = RESULTS, BENCHMARK = BENCHMARK)
+
+# timings
+report_timings(TIMES = TIMES, BENCHMARK = BENCHMARK)
+
+# final clean up
+rm(list=ls())
+gc()

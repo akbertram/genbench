@@ -7,6 +7,12 @@
 
 ### set up session
 rm(list=ls())
+# reproducibility
+set.seed(8008)
+stopifnot(file.exists(file.path("..","..", "data"))) # data path is relative
+
+# load utilities
+source(file.path("..", "..","benchmark_utilities.R"))
 
 ## (bioconductor) packages
 library(Biobase)
@@ -24,11 +30,6 @@ INPUT <- "ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE45nnn/GSE45417/suppl/GSE45417
 RESULTS <- list()
 TIMES <- list()
 BENCHMARK <- "limma"
-
-# reproducibility
-set.seed(8008)
-#stopifnot(all(rev(strsplit(getwd(), "[\\\\/]", perl=TRUE)[[1]])[1:3] == c("microarray","code","genbase"))) # must be run from directory containing rppa.R
-stopifnot(file.exists("../../data")) # data path is relative
 
 #### functions
 
@@ -332,35 +333,12 @@ TIMES$genesets.examples <- system.time(gc.first=T,
 ### reporting
 ## output results for comparison
 # check output directories exist
-if(!file.exists(file.path("..", "..", "generated", "results", basename(getwd())))){
-  
-  dir.create(file.path("..", "..", "generated", "results", basename(getwd())), recursive = TRUE)
-  
-}
-if(!file.exists(file.path("..", "..", "generated", "timings", basename(getwd())))){
-  
-  dir.create(file.path("..", "..", "generated", "timings", basename(getwd())), recursive = TRUE)
-  
-}
+check_generated()
 # write results to file
-write.table(file=file.path("..", "..", "generated", "results", 
-                           basename(getwd()), paste(BENCHMARK, "results", "tsv", sep = '.')), 
-            quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE,
-            do.call("rbind", 
-                    lapply(names(RESULTS), function(x){
-                      names(RESULTS[[x]]) <- c(1:ncol(RESULTS[[x]]))
-                      cbind(RESULTS[[x]], data.frame(res=x))
-                    }
-                    )
-            )
-)
+report_results(RESULTS = RESULTS, BENCHMARK = BENCHMARK)
 
 # timings
-write.table(file=file.path("..", "..", "generated", "timings", 
-                           basename(getwd()), paste(BENCHMARK, format(Sys.time(), "%Y%m%d%H%M%S"), "tsv", sep = '.')), 
-            quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
-            format(do.call("rbind", TIMES), digits=5)
-)
+report_timings(TIMES = TIMES, BENCHMARK = BENCHMARK)
 
 # final clean up
 rm(list=ls())

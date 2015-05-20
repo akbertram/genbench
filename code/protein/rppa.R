@@ -4,6 +4,14 @@
 
 ### set up session
 rm(list=ls())
+
+# reproducibility
+set.seed(8008)
+stopifnot(file.exists(file.path("..","..", "data"))) # data path is relative
+
+# load utilities
+source(file.path("..", "..","benchmark_utilities.R"))
+
 ## packages
 library(stats)
 
@@ -19,10 +27,6 @@ DOWNLOAD <- FALSE
 RESULTS <- list()
 TIMES <- list()
 
-# reproducibility
-set.seed(8008)
-#stopifnot(all(rev(strsplit(getwd(), "[\\\\/]", perl=TRUE)[[1]])[1:3] == c("protein","code","genbase"))) # must be run from directory containing rppa.R
-stopifnot(file.exists("../../data")) # data path is relative
 
 ### functions
 do.download <- function(csv){
@@ -259,36 +263,15 @@ TIMES$km <- system.time(gcFirst = T,
 # compare stability of number of clusters or membership to expected results
 # TBD
 
+
 ## output results for comparison
 # check output directories exist
-if(!file.exists(file.path("..", "..", "generated", "results", basename(getwd())))){
-  
-  dir.create(file.path("..", "..", "generated", "results", basename(getwd())), recursive = TRUE)
-  
-}
-if(!file.exists(file.path("..", "..", "generated", "timings", basename(getwd())))){
-  
-  dir.create(file.path("..", "..", "generated", "timings", basename(getwd())), recursive = TRUE)
-  
-}
+check_generated()
 # write results to file
-write.table(file=file.path("..", "..", "generated", "results", 
-                           basename(getwd()), paste(BENCHMARK, "results", "tsv", sep = '.')), 
-                           quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE,
-  do.call("rbind", 
-          lapply(names(RESULTS), function(x){
-            cbind(RESULTS[[x]], data.frame(res=x))
-              }
-            )
-          )
-  )
+report_results(RESULTS = RESULTS, BENCHMARK = BENCHMARK)
 
 # timings
-write.table(file=file.path("..", "..", "generated", "timings", 
-                           basename(getwd()), paste(BENCHMARK, format(Sys.time(), "%Y%m%d%H%M%S"), "tsv", sep = '.')), 
-            quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
-  format(do.call("rbind", TIMES), digits=5)
-)
+report_timings(TIMES = TIMES, BENCHMARK = BENCHMARK)
 
 # final clean up
 rm(list=ls())

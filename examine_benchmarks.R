@@ -58,10 +58,33 @@ g +
   facet_grid(. ~ block + benchmark_group, scales = "free_x") +
   scale_y_log10() +
   theme_bw() +
-  theme(axis.text.x  = element_text(angle=90, vjust=0.5))
+  theme(axis.text.x  = element_text(angle=90, vjust=0.5)) +
+  ylab("Time (seconds)") +
+  xlab("Benchmark section")
 
 ### summarise
+# total time per benchmark (i.e. per ID)
+g <- ggplot(data = 
+              res %>%
+                group_by(block, benchmark_group, id, variable) %>%
+                summarise(
+                  total_time = sum(value),
+                  max_time = max(value),
+                  mean_time = mean(value)
+                          )
+)
+g +
+  geom_jitter(aes(y=total_time, x=variable), 
+              position = position_jitter(width = .5)) +
+  facet_grid(. ~ block + benchmark_group, scales = "free_x") +
+  scale_y_log10() +
+  theme_bw() +
+  theme(axis.text.x  = element_text(angle=90, vjust=0.5))
+
+            
+
 # todo
+
 ### compare to expected results
 # todo
 
