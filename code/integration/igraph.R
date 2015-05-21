@@ -362,7 +362,7 @@ TIMES <- addRecord(TIMES, record_name = "cocitation",
                                         {
                                         network <- do.cocitation(network, plot_results = FALSE)
                                         RESULTS <- addRecord(RESULTS, record_name = "cocit",
-                                                             record = head(get.data.frame(network, what = "vertices")))
+                                                             record = head(get.data.frame(network, what = "vertices")[,c( "name", "degree")]))
                                         }
                                                             
                    )
@@ -374,7 +374,7 @@ TIMES <- addRecord(TIMES, record_name = "phospho",
                                     {
                                         network <- do.phospho(DATA_DIR, PATH)
                                         RESULTS <- addRecord(RESULTS, record_name = "phospho",
-                                                             record = head(get.data.frame(network, what = "vertices")))
+                                                             record = head(get.data.frame(network, what = "vertices")[,c( "name", "degree")]))
                                     }
                                         
                    )
