@@ -83,7 +83,6 @@ do.norm <- function(dge){
   ### normalise (TMM / skedacity compensation)
   design <- model.matrix(~0+dge$samples$group) # levels = F, M, i.e. female is reference
   colnames(design) <- levels(dge$samples$group)
-  
   vm <- voom(dge,design,plot=FALSE)
 
   return(vm)

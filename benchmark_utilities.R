@@ -169,7 +169,7 @@ checkOutputFile.genbench <- function(obj, create=FALSE){
 getOutputFile.timings <- function(obj){
   
   makeOutputFileStamped <- function(obj){
-    file.path("..", "..", "generated", "results", 
+    file.path("..", "..", "generated", "timings", 
               benchmarkGroup(obj), 
               paste(benchmarkName(obj), 
                     format(Sys.time(), "%Y%m%d%H%M%S"), # datestamped to the second

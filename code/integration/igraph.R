@@ -35,9 +35,9 @@ DOWNLOAD <- FALSE
 INPUT <- "ftp://ftp.ncbi.nih.gov/gene/GeneRIF/generifs_basic.gz"
 
 # holder for results
-RESULTS <- list()
-TIMES <- list()
 BENCHMARK <- "igraph"
+RESULTS <- results(benchmark_name = BENCHMARK)
+TIMES <- timings(benchmark_name = BENCHMARK)
 
 #### functions
 
@@ -158,7 +158,7 @@ do.decompose <- function(network, plot_results=TRUE){
       return(x[max.size][[1]])
     }
     else {
-      return(x[max.size])
+      return(x[[max.size]])
     }
   }
   network <- largest(network)
@@ -204,16 +204,13 @@ do.cocitation <- function(network, plot_results = TRUE){
   }
   
   return(network)
-  }
-  
-  
 }
 
 do.subset <- function(network, node_ids){
   
   ## return igraph instance containing only the nodes listed
   # copying all properties
-  network <- induced.subgraph(network, vids = genes, impl="copy_and_delete")
+  network <- induced.subgraph(network, vids = node_ids, impl="copy_and_delete")
   
   return(network)
   
@@ -229,7 +226,7 @@ do.phospho <- function(DATA_DIR, PATH){
   # 33                                 195 
   
   ## collect a fresh edge list containing all the information
-  network <- do.load.edges(PATH)
+  edges <- do.load.edges(PATH)
   # subset to phospho interaction network
   edges <- subset(edges, gene_id %in% pk.ids$gene_id)
   # create graph
@@ -244,35 +241,34 @@ do.phospho <- function(DATA_DIR, PATH){
   
   ## plot
   # black dots = kinases, red boxes = PPases
-  V(pk.gene)$shape <- c('circle', 'square')[1 + V(pk.gene)$name %in% pk.ids[pk.ids$go_term=="phosphoprotein phosphatase activity","gene_id"]]
-  V(pk.gene)$color <- c('black', 'red')[1 + V(pk.gene)$name %in% pk.ids[pk.ids$go_term=="phosphoprotein phosphatase activity","gene_id"]]
-  V(pk.gene)$degree <- scale(degree(pk.gene), center=F, scale=T)
-  E(pk.gene)$weight.scaled <- scale(E(pk.gene)$weight, center=F, scale=T)
-  V(pk.gene)$label <- V(pk.gene)$name # default
-  V(pk.gene)[rank(degree(pk.gene), ties.method="max") < length(V(pk.gene)) - 10]$label <- NA # replace everything but the top 10 with NA
-  V(pk.gene)$shape.2 <- V(pk.gene)$shape
-  V(pk.gene)[!is.na(V(pk.gene)$label)]$shape.2 <- 'none' # is it has a label, then don't plot a shape
-  V(pk.gene)$label.pp <- V(pk.gene)$name # default
-  V(pk.gene)[V(pk.gene)$shape == 'circle']$label.pp <- NA # replace kinases with NA
-  V(pk.gene)$shape.pp <- V(pk.gene)$shape
-  V(pk.gene)[!is.na(V(pk.gene)$label.pp)]$shape.pp <- 'none' # is it has a label, then don't plot a shape
+  V(network)$shape <- c('circle', 'square')[1 + V(network)$name %in% pk.ids[pk.ids$go_term=="phosphoprotein phosphatase activity","gene_id"]]
+  V(network)$color <- c('black', 'red')[1 + V(network)$name %in% pk.ids[pk.ids$go_term=="phosphoprotein phosphatase activity","gene_id"]]
+  V(network)$degree <- scale(degree(network), center=F, scale=T)
+  E(network)$weight.scaled <- scale(E(network)$weight, center=F, scale=T)
+  V(network)$label <- V(network)$name # default
+  V(network)[rank(degree(network), ties.method="max") < length(V(network)) - 10]$label <- NA # replace everything but the top 10 with NA
+  V(network)$shape.2 <- V(network)$shape
+  V(network)[!is.na(V(network)$label)]$shape.2 <- 'none' # is it has a label, then don't plot a shape
+  V(network)$label.pp <- V(network)$name # default
+  V(network)[V(network)$shape == 'circle']$label.pp <- NA # replace kinases with NA
+  V(network)$shape.pp <- V(network)$shape
+  V(network)[!is.na(V(network)$label.pp)]$shape.pp <- 'none' # is it has a label, then don't plot a shape
   # plot
-  pdf("output/example6.PK_RIFome.comp1.genes.pdf")
   plot(
-    pk.gene,                          #the graph to be plotted
+    network,                          #the graph to be plotted
     layout=layout.kamada.kawai,      # kamada.kawai|fruchterman.reingold|lgl|auto -  the layout method. see the igraph documentation for details
     main='largest component, cocitation, kinases - black dots, PPases - red boxes',                    #specifies the title
-    vertex.shape=V(pk.gene)$shape,                    #nodeshape
+    vertex.shape=V(network)$shape,                    #nodeshape
     vertex.size=3,                           #nodesize  
     # vertex.label.dist=0.5,    	            #puts the name labels slightly off the dots
-    vertex.color=V(pk.gene)$color,          #node colour
+    vertex.color=V(network)$color,          #node colour
     # vertex.frame.color='blue', 		          #the color of the border of the dots 
-    vertex.label.color=V(pk.gene)$color,		          #the color of the name labels
+    vertex.label.color=V(network)$color,		          #the color of the name labels
     vertex.label.font=2,			              #the font of the name labels
     vertex.label=NA,		                    #specifies the lables of the vertices. in this case the 'name' attribute is used
     vertex.label.cex=1,			                #specifies the size of the font of the labels. can also be made to vary
     
-    edge.width=E(pk.gene)$weight.scaled      #specifies the thickness of the edges
+    edge.width=E(network)$weight.scaled      #specifies the thickness of the edges
     
   )
   
@@ -294,7 +290,7 @@ do.mesh <- function(term="Wnt Signaling Pathway", PATH, plot_results=TRUE){
   if(VERBOSE){cat(sprintf('%i PMIDS found for term \"%s\"',length(res), term))}
   
   ## load edges, subset to retrieved terms and load graph
-  network <- do.load.edges(PATH)
+  edges <- do.load.edges(PATH)
   edges <- subset(edges, gene_id %in% pk.ids$gene_id)
   network<-graph.data.frame(
     d=edges,
@@ -343,32 +339,70 @@ do.mesh <- function(term="Wnt Signaling Pathway", PATH, plot_results=TRUE){
 }
 
 ### calls
+# download and load basic network
+TIMES <- addRecord(TIMES, record_name = "download",
+                   record = system.time(gcFirst = T,
+                                  PATH <- do.download(INPUT, DATA_DIR, DOWNLOAD=DOWNLOAD)      
+                   )
+)
+TIMES <- addRecord(TIMES, record_name = "load",
+                   record = system.time(gcFirst = T,
+                                        network <- do.load(PATH, plot_loaded_graph = FALSE)      
+                   )
+)
+# extract largest component
+TIMES <- addRecord(TIMES, record_name = "decompose",
+                   record = system.time(gcFirst = T,
+                                        network <- do.decompose(network, plot_results = FALSE)      
+                   )
+)
+# run cocitation
+TIMES <- addRecord(TIMES, record_name = "cocitation",
+                   record = system.time(gcFirst = T,
+                                        {
+                                        network <- do.cocitation(network, plot_results = FALSE)
+                                        RESULTS <- addRecord(RESULTS, record_name = "cocit",
+                                                             record = head(get.data.frame(network, what = "vertices")))
+                                        }
+                                                            
+                   )
+)
 
-PATH <- do.download(INPUT, DATA_DIR, DOWNLOAD=DOWNLOAD)
+# phospho network
+TIMES <- addRecord(TIMES, record_name = "phospho",
+                   record = system.time(gcFirst = T,
+                                    {
+                                        network <- do.phospho(DATA_DIR, PATH)
+                                        RESULTS <- addRecord(RESULTS, record_name = "phospho",
+                                                             record = head(get.data.frame(network, what = "vertices")))
+                                    }
+                                        
+                   )
+)
 
-network <- do.load(PATH)
-
-network <- do.decompose(network)
-network <- do.cocitation(network)
-
-do.phosho(DATA_DIR, PATH)
-
+## as above using MEsh terms
 # look up some interesting mesh terms
 # http://www.ncbi.nlm.nih.gov/mesh?term=autism
+TIMES <- addRecord(TIMES, record_name = "decompose",
+                   record = system.time(gcFirst = T,
+                          {
+                            lapply(c("Wnt Signaling Pathway", "Autistic Disorder", "Melanoma", "Hedgehog Proteins"),
+                                   function(x){
+                                     do.mesh(term=x, PATH)
+                                   }
+                            )
+                          }         
+                   )
+)
 
-lapply(c("Wnt Signaling Pathway", "Autistic Disorder", "Melanoma", "Hedgehog Proteins"),
-       function(x) do.mesh(term=x, PATH)
-       )
 
 
 ## output results for comparison
-# check output directories exist
-check_generated()
 # write results to file
-report_results(RESULTS = RESULTS, BENCHMARK = BENCHMARK)
+reportRecords(RESULTS)
 
 # timings
-report_timings(TIMES = TIMES, BENCHMARK = BENCHMARK)
+reportRecords(TIMES)
 
 # final clean up
 rm(list=ls())

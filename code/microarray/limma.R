@@ -25,11 +25,11 @@ VERBOSE <- TRUE # print progress?
 DATA_DIR <- file.path("..", "..", "data", "microarray")
 DOWNLOAD <- FALSE
 INPUT <- "ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE45nnn/GSE45417/suppl/GSE45417_RAW.tar"
+BENCHMARK <- "limma"
 
 # holder for results
-RESULTS <- list()
-TIMES <- list()
-BENCHMARK <- "limma"
+RESULTS <- results(benchmark_name = BENCHMARK)
+TIMES <- timings(benchmark_name = BENCHMARK)
 
 #### functions
 
@@ -42,12 +42,9 @@ do.download <- function(INPUT, DATA_DIR){
   if(!file.exists(DATA_DIR)){   dir.create(DATA_DIR, recursive = TRUE)    }
   
   # download files from repo to local data directory and unpack
-  ptm <- proc.time()
   download.file(INPUT,destfile = file.path(DATA_DIR, basename(INPUT), method="internal"))
-  TIMES$load.download <<- proc.time() - ptm
-  ptm <- proc.time()
+
   untar(file.path(DATA_DIR, basename(INPUT), exdir = DATA_DIR))
-  TIMES$load.untar <<- proc.time() - ptm
   
   return(TRUE)
   
@@ -56,10 +53,8 @@ do.download <- function(INPUT, DATA_DIR){
 do.load <- function(DATA_DIR){
   
   ## load downloaded data to ExpressionSet instance and return
-  ptm <- proc.time()
   # collect names of downloaded files
   cel.files <- dir(DATA_DIR, pattern = ".CEL", full.names = TRUE)
-  TIMES$load.read <<- proc.time() - ptm
   
   # construct "phenodata", i.e. metadata data.frame instance
   # for annotating CEL files with experimental groups, etc 
@@ -106,24 +101,18 @@ do.norm <- function(cel.files){
   ## filter out non-detected probes
   ## return ExpressionSet instance, ready for linear modeling
   
-  ptm <- proc.time()
-  
   # extract expression values using
   # robust multi-array average (RMA) method
   # note: rma returns expression values in log2 scale,
   # if using other expression meaasures, convert to log2 
   # (limma expects data to be log2 transformed)
   cel.rma <- rma(cel.files, normalize = TRUE, background = TRUE)
-  TIMES$norm.rma <<- proc.time() - ptm
-  ptm <- proc.time()
   
   
   # the below is not nessecary, but just to demonstrate the other common
   # expression method
   cel.mas <- mas5(cel.files, normalize = TRUE, sc = 150)
   exprs(cel.mas) <- log2(exprs(cel.mas))
-  TIMES$norm.mas5 <<- proc.time() - ptm
-  ptm <- proc.time()
   
   # filter probes
   # remove probes which do not have expression
@@ -152,7 +141,6 @@ do.norm <- function(cel.files){
   # for simplicity continue only with MAS5 expression values
   filterfun(cel.mas, threshold = 50, test_only = TRUE)
   cel.filtered <- cel.mas[ filterfun(cel.mas, threshold = 50)  ,]
-  TIMES$norm.filter <<- proc.time() - ptm
   
   return(cel.filtered)
 }
@@ -303,42 +291,49 @@ do.geneset.real <- function(){
 ### run and time code
 ## get data
 if(DOWNLOAD){
-  TIMES$download <- system.time(gcFirst = T,
-                            do.download(INPUT, DATA_DIR)
+  TIMES <- addRecord(TIMES, record_name = "download",
+                     record = system.time(gcFirst = T,
+                                          do.download(INPUT, DATA_DIR)
+                     )
   )
 }
+
 ## load data and compute matrix
-TIMES$load <- system.time(gcFirst = T,
+TIMES <- addRecord(TIMES, record_name = "load",
+                   record = system.time(gcFirst = T,
                           cel.files <- do.load(DATA_DIR)
-)
+))
 ## run QC
-TIMES$qc <- system.time(gcFirst = T,
+TIMES <- addRecord(TIMES, record_name = "qc",
+                   record = system.time(gcFirst = T,
                           cel.files <- do.qc(cel.files)
-)
+))
 ## normalise and scale
-TIMES$norm <- system.time(gcFirst = T,
+TIMES <- addRecord(TIMES, record_name = "norm",
+                   record = system.time(gcFirst = T,
                           eset <- do.norm(cel.files)
-)
+))
 ## linear modelling
-TIMES$limma <- system.time(gcFirst = T,
-                          RESULTS$limma <- do.limma(eset)
-)
+TIMES <- addRecord(TIMES, record_name = "limma",
+                   record = system.time(gcFirst = T,
+                          RESULTS <- addRecord(RESULTS, record_name = "limma",
+                                               record = do.limma(eset))
+))
 
 ## simulated genesets
-TIMES$genesets.examples <- system.time(gc.first=T,
-                                       RESULTS$genesets.examples <- do.geneset.examples()
+TIMES <- addRecord(TIMES, record_name = "genesets.examples",
+                   record = system.time(gcFirst = T,
+                          RESULTS <- addRecord(RESULTS, record_name = "genesets.examples",
+                                               record = do.geneset.examples())
               
-)
+))
 
 ### reporting
-## output results for comparison
-# check output directories exist
-check_generated()
 # write results to file
-report_results(RESULTS = RESULTS, BENCHMARK = BENCHMARK)
+reportRecords(RESULTS)
 
 # timings
-report_timings(TIMES = TIMES, BENCHMARK = BENCHMARK)
+reportRecords(TIMES)
 
 # final clean up
 rm(list=ls())
