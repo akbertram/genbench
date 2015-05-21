@@ -90,7 +90,7 @@ do.plot <- function(network, title="", layout=igraph::layout.kamada.kawai,
 do.load.edges <- function(PATH){
   
   # unpack data
-  tmpfile <- file.path(basename(PATH), "rif.tmp")
+  tmpfile <- file.path(dirname(PATH), "rif.tmp")
   gunzip(filename=PATH, remove=FALSE,
          destname=tmpfile)
   
@@ -305,7 +305,7 @@ do.mesh <- function(term="Wnt Signaling Pathway", PATH, plot_results=TRUE){
   V(network)$pr <- scale(page.rank(network)$vector, center=F, scale=T) # page rank
   V(network)$walktrap <- walktrap.community(network)$membership # community memberships
   V(network)$eigen <- leading.eigenvector.community(network)$membership
-  V(network)$spin <- spinglass.community(network)$membership
+  #V(network)$spin <- spinglass.community(network)$membership
   
   # for plotting
   V(network)$shape <- 'circle'
@@ -325,7 +325,7 @@ do.mesh <- function(term="Wnt Signaling Pathway", PATH, plot_results=TRUE){
     vertex.shape=V(network)$shape.2,                    #nodeshape
     vertex.size=V(network)$degree*4,                           #nodesize  
     # vertex.label.dist=0.5,  		            #puts the name labels slightly off the dots
-    vertex.color=V(network)$spin,          #node colour
+    vertex.color=V(network)$eigen,          #node colour
     # vertex.frame.color='blue', 		          #the color of the border of the dots 
     vertex.label.color=V(network)$color,		          #the color of the name labels
     vertex.label.font=2,			              #the font of the name labels
