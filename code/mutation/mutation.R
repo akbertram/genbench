@@ -471,13 +471,13 @@ TIMES <- addRecord(TIMES, record_name = "fam.window",
                    record = system.time(gcFirst = T,
                                RESULTS <- addRecord(RESULTS, record_name="fam.window",
                                                     record=do.ibd.window(fam.scores = fam.scores))
-)
+))
 
 # clean up
 TIMES <- addRecord(TIMES, record_name = "fam.clean",
                    record = system.time(gcFirst = T, expr = {rm(fam, scores, fam.scores);
                                                     gc()}
-)
+))
 
 ## output results for comparison
 # write results to file

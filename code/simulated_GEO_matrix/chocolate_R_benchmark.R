@@ -79,7 +79,8 @@ regression <- function() {
   res <- lm.fit(x=A, y=response) 
   
   # report data.frame of coefficients
-  res <- data.frame(coeff=names(res$coefficients), p=res$coefficients)
+  res <- data.frame(coeff=as.character(names(res$coefficients)), 
+                    p=res$coefficients)
   return(res)
 }
 
@@ -107,7 +108,10 @@ covariance <- function() {
 
   covar <- which(covar>0.75*(max(covar)), arr.ind=T)
   
-  return(data.frame(covar))
+  # return 2 column data.frame
+  res <- data.frame(covar)
+  res[,1] <- as.character(res[,1])
+  return(res[complete.cases(res),])
   
 }
 
@@ -125,7 +129,8 @@ biclustering<-function() {
   # run biclustering
   res <- biclust(A, method=BCssvd, K=5) 
   # report a data.frame
-  return(data.frame(id=rownames(A), clust=biclust::writeclust(res)))
+  res <- data.frame(id=as.character(rownames(A)), clust=biclust::writeclust(res))
+  return(res[complete.cases(res),])
   
 } 
 
@@ -148,10 +153,12 @@ svd_irlba <- function() {
   res <- irlba(A, nu=50, nv=50, sigma="ls") # compute largest singular values
   
   # return dataframe
-  return(data.frame(id=1:length(res$d), sv=res$d))
+  res <- data.frame(id=as.character(1:length(res$d)), sv=res$d)
+  return(res[complete.cases(res),])
 }
 
-stats <- function() {
+stats <- function(percentage=1) {
+  # [percentage] = percentage of rows and columns to runs stats on
   ### Data Management ops start ###
   geo      <- readRDS(GEO)
   go       <- readRDS(GO)
@@ -169,8 +176,8 @@ stats <- function() {
   go <- df2mxs(go)
   
   # run comparisons
-  res <- lapply(1:dim(go)[2], function(ii){
-    lapply(1:dim(A)[1], function(jj){
+  res <- lapply(1:as.integer((dim(go)[2]/100)*percentage), function(ii){
+    lapply(1:as.integer((dim(A)[1]/100)*percentage), function(jj){
       set1 <- A[jj, go[,ii] == 1]
       set2 <- A[jj, go[,ii] == 0]
 
@@ -180,7 +187,8 @@ stats <- function() {
   
   # combine and return results with low p vals
   res <- do.call("rbind",unlist(res, recursive = F))
-  return(subset(res, p < 1e-3))
+  res <- subset(res, p < 1e-3)
+  return(res[complete.cases(res),])
 }
 
 ### reporting of timings
@@ -216,7 +224,7 @@ TIMES <- addRecord(TIMES, record_name = "biclust",
 TIMES <- addRecord(TIMES, record_name = "stats",
                    record = system.time(gcFirst = T,
                                         RESULTS <- addRecord(RESULTS, record_name = "stats",
-                                                             record = stats())
+                                                             record = stats(percentage=1))
                    )
 )
 
@@ -231,3 +239,5 @@ reportRecords(TIMES)
 # final clean up
 rm(list=ls())
 gc()
+
+

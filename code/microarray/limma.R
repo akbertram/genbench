@@ -194,6 +194,7 @@ do.limma <- function(cel.filtered){
             function(x){
               tt <-topTable(fit2, adjust="BH", coef=x, number = 10) 
               tt$contrast <- x
+              tt$ID <- rownames(tt)
               return(tt)
             } 
             ))
@@ -201,7 +202,7 @@ do.limma <- function(cel.filtered){
   return(results[,c("ID", "contrast", "adj.P.Val", "logFC")]) # return 4 column dataframe
 }
 
-do.geneset.examples <- function(){
+do.geneset.examples <- function(  row_dim = 1e4, col_dim = 20, set_size=40){
   # run gene set testing examples as provided
   # in LIMMA manual
   # http://www.bioconductor.org/packages/release/bioc/manuals/limma/man/limma.pdf
@@ -227,14 +228,12 @@ do.geneset.examples <- function(){
   
   ## romer
   # construct random matrix
-  row_dim <- 1e4
-  col_dim <- 20
   set.seed(888) # ensure reproducibility
   y <- matrix(rnorm(row_dim*col_dim),row_dim,col_dim)
   # arbitrary design
   design <- cbind(Intercept=1,Group=round(rnorm(col_dim, 0, 1) > 0))
   # set1 of 40 genes that are genuinely differential between the groups
-  iset1 <- 1:40
+  iset1 <- 1:set_size
   y[iset1,design[,"Group"]==1] <- y[iset1,design[,"Group"]==1]+rnorm(40, mean=3, sd=2)
   iset <- list(
     iset1,
@@ -251,29 +250,32 @@ do.geneset.examples <- function(){
   names(iset) <- paste("iset", 1:length(iset), sep='')
   # run simulation
   r <- romer(
-              iset=iset, 
+              index=iset, 
               y=y,design=design,contrast=2,nrot=99
               )
   # reformat results
   r <- data.frame(topRomer(r))
   r$id <- row.names(r)
   r$sim <- "romer"
-  
-  results <- append(results, list(r[, -c(names(r) %in% c("NGenes"))]))
+  r <- r[,c("id", "sim", "Up", "Mixed")]
+  results <- append(results, list(r))
 
   ## roast
   # re-use datasets from romer
-  r <- data.frame(mroast(iset,y,design,contrast=2)$P.Value)
-  r <- r[ order(r$Up, decreasing = FALSE), ]
+  r <- mroast(y=y, index=iset,design,contrast=2)
+  r <- r[ order(r$PValue.Mixed, decreasing = FALSE), ]
+  r <- subset(r, Direction=="Up")
   r <- r[1:10,] # just take top 10
   r$id <- row.names(r)
   r$sim <- "roast"
+  r <- r[,c("id", "sim", "PValue", "PValue.Mixed")]
+  names(r) <- c("id", "sim", "Up", "Mixed")
 
   results <- append(results, list(r))
   
   # combine and reformat results
-  do.call("rbind", results)
-  return(results[,c("id", "sim", "Up", "Mixed")])
+  results <- do.call("rbind", results)
+  return(results)
 }
 
 do.geneset.real <- function(){
@@ -284,6 +286,7 @@ do.geneset.real <- function(){
   # gene sets
   #http://bioinf.wehi.edu.au/software/MSigDB/
   
+  # TODO
   
 }
 

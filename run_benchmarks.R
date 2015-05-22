@@ -42,12 +42,13 @@ install.dependencies <- function() {
 install.dependencies()
 
 # find and run all benchmark scripts
-for (SCRIPT in dir(file.path(getwd(), "code"), 
+for (SCRIPT in rev(dir(file.path(getwd(), "code"), 
                   full.names = TRUE, recursive = TRUE, pattern = "\\.R$", 
-                  ignore.case = TRUE)){
+                  ignore.case = TRUE))){
   # run benchmark script
   cat(timestamp(quiet = TRUE), "Running benchmark at ", SCRIPT,"\n")
-  try(source(SCRIPT, chdir = TRUE)) # all scripts assume working dir is same as script
+  try({source(SCRIPT, chdir = TRUE)},silent = T) # all scripts assume working dir is same as script
+  
 }
 # multiruns
 # for (x in 1:10){cat(sprintf("run %i\n", x)); source("code//mrna_seq//edgeR_voom.R", chdir = TRUE)}
