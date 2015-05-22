@@ -1,9 +1,0 @@
-user.self	sys.self	elapsed	user.child	sys.child
-load	  2.88	  0.02	  2.98	    NA	    NA
-dist	  2.62	  0.29	  2.91	    NA	    NA
-hc.clust	 52.91	  0.07	 53.84	    NA	    NA
-hc.cut	 30.33	  5.90	 36.74	    NA	    NA
-hc	 83.27	  5.97	 90.61	    NA	    NA
-km.clust	594.84	 14.83	621.34	    NA	    NA
-km.cut	  0.02	  0.00	  0.01	    NA	    NA
-km	594.91	 14.83	621.40	    NA	    NA
