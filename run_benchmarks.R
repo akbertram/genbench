@@ -5,7 +5,7 @@
 ### run all benchmarks in genbench
 
 # Install required packages
-install.dependencies <- function(cran=c(), bioc=c() {
+install.dependencies <- function(cran=c(), bioc=c()){
   
   # Set a CRAN mirror to use
   options(repos=structure(c(CRAN="http://cran.rstudio.com")))
