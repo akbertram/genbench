@@ -14,8 +14,8 @@ WITH good_ids AS (
 
 select distinct 
   rif.pubmed_ids,
-  rif.annotation,
-  rif.gene_id
+  rif.gene_id,
+  rif.annotation
 from
   generifs_basic rif
 where

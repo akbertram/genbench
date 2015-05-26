@@ -14,9 +14,9 @@ library(s4vd)
 library(irlba)
 
 # data collection
-RESULTS <- list()
-TIMES <- list()
 BENCHMARK <- "chocolate_geo"
+RESULTS <- results(benchmark_name = BENCHMARK)
+TIMES <- timings(benchmark_name = BENCHMARK)
 
 # needs info about path and what size of data to run on
 args <- commandArgs(trailingOnly = TRUE)
@@ -32,7 +32,7 @@ if (length(args) > 0) {
 GEO <-      file.path(PATH, paste('GEO-', NGENES, '-', NPATIENTS, '.rds', sep=""))
 GO <-       file.path(PATH, paste('GO-', NGENES, '-', NPATIENTS, '.rds', sep=""))
 GENES <-    file.path(PATH, paste('GeneMetaData-', NGENES, '-', NPATIENTS, '.rds', sep=""))
-PATIENTS <- file.oath(PATH, paste('PatientMetaData-', NGENES, '-', NPATIENTS, '.rds', sep=""))
+PATIENTS <- file.path(PATH, paste('PatientMetaData-', NGENES, '-', NPATIENTS, '.rds', sep=""))
 
 
 # plain-R q&d replacement for acast(A, list(names(A)[1], names(A)[2]))
@@ -57,7 +57,6 @@ df2mxs <- function(df) {
 
 
 regression <- function() {
-  ptm = proc.time()
 
   ### Data Management ops start ###
   geo      <- readRDS(GEO)
@@ -76,17 +75,16 @@ regression <- function() {
   # matrix cast
   A <- df2mxc(A)
 
-  ### Data management ops end ###
-  TIMES$regression.data_management <<- proc.time() - ptm
-  ptm = proc.time()
-
   # run regression
-  RESULTS$ regression <<- lm.fit(x=A, y=response) # todo: report data.frame
-  TIMES$regression.analytics <<- proc.time() - ptm
+  res <- lm.fit(x=A, y=response) 
+  
+  # report data.frame of coefficients
+  res <- data.frame(coeff=as.character(names(res$coefficients)), 
+                    p=res$coefficients)
+  return(res)
 }
 
 covariance <- function() {
-  ptm <- proc.time()
 
   ### Data Management ops start ###
 
@@ -103,26 +101,21 @@ covariance <- function() {
   A <- merge(geo, sub_pmd)[,c("patientid", "geneid", "expression.value")]
   
   # convert to matrix
-  A <- df2mxc(A)
-
-  midtm <- proc.time() - ptm
-  ptm <- proc.time()  
+  A <- df2mxc(A) 
 
   # calculate covariance
-  covar <- cov(A)
-  TIMES$covariance.analytics <<- proc.time() - ptm
-  ptm <- proc.time()
+  covar <- stats::cov(A)
 
-  covar <- which(covar>0.01*(max(covar)), arr.ind=T)
-  res <- merge(covar, genes, by.x='row', by.y='id')
-  RESULTS$covariance <<- merge(res, genes, by.x='col', by.y='id')  
- 
-  ### Data management ops end ###
-  TIMES$covariance.data_management <<- (proc.time() - ptm) + midtm
+  covar <- which(covar>0.75*(max(covar)), arr.ind=T)
+  
+  # return 2 column data.frame
+  res <- data.frame(covar)
+  res[,1] <- as.character(res[,1])
+  return(res[complete.cases(res),])
+  
 }
 
 biclustering<-function() {
-  ptm = proc.time()
 
   ### Data Management ops start ###
   geo      <- readRDS(GEO)
@@ -132,20 +125,16 @@ biclustering<-function() {
   colnames(sub_pmd)[1] <- "patientid"
   A <- merge(geo, sub_pmd)[,c("patientid", "geneid", "expression.value")]
   A <- df2mxc(A)
-
-  ### Data management ops end ###
-
-  TIMES$biclust.data_management <<- proc.time() - ptm
-  ptm <- proc.time()
   
   # run biclustering
-  RESULTS$biclust <<- biclust(A, method=BCssvd, K=1) # todo: report a data.frame
-  TIMES$biclust.analytics <<- proc.time() - ptm
+  res <- biclust(A, method=BCssvd, K=5) 
+  # report a data.frame
+  res <- data.frame(id=as.character(rownames(A)), clust=biclust::writeclust(res))
+  return(res[complete.cases(res),])
+  
 } 
 
 svd_irlba <- function() {
-  ptm <- proc.time()
-
   ### Data Management ops start ###
   geo      <- readRDS(GEO)
   genes    <- readRDS(GENES)
@@ -160,18 +149,16 @@ svd_irlba <- function() {
   # store as matrix
   A <- df2mxc(A)
 
-  ### Data management ops end ###
-  TIMES$svd.data_management <<- proc.time() - ptm
-  ptm <- proc.time()
-
   # run svd
-  RESULTS$svd <- irlba(A, nu=50, nv=50, sigma="ls")
-  TIMES$svd.analytics <<- proc.time() - ptm
+  res <- irlba(A, nu=50, nv=50, sigma="ls") # compute largest singular values
+  
+  # return dataframe
+  res <- data.frame(id=as.character(1:length(res$d)), sv=res$d)
+  return(res[complete.cases(res),])
 }
 
-stats <- function() {
-  ptm <- proc.time()
-
+stats <- function(percentage=1) {
+  # [percentage] = percentage of rows and columns to runs stats on
   ### Data Management ops start ###
   geo      <- readRDS(GEO)
   go       <- readRDS(GO)
@@ -187,42 +174,70 @@ stats <- function() {
   go[,1] <- go[,1] + 1
   go[,2] <- go[,2] + 1
   go <- df2mxs(go)
-
-  ### Data management ops end ###
-  TIMES$stats.data_management <<- proc.time() - ptm
-  ptm <- proc.time()
-
-  for   (ii in 1:dim(go)[2]) {
-    for (jj in 1:dim(A) [1]) {
+  
+  # run comparisons
+  res <- lapply(1:as.integer((dim(go)[2]/100)*percentage), function(ii){
+    lapply(1:as.integer((dim(A)[1]/100)*percentage), function(jj){
       set1 <- A[jj, go[,ii] == 1]
       set2 <- A[jj, go[,ii] == 0]
-      print(str(set1))
-      print(str(set2))
 
-      w < wilcox.test(set1, set2, alternative="less")
-    }
-  }
-  # todo: capture results
+      data.frame(id=paste(ii, jj), p=wilcox.test(set1, set2, alternative="less")$p.value)
+    })
+  })
   
-  TIMES$stats.analytics <<- proc.time() - ptm
+  # combine and return results with low p vals
+  res <- do.call("rbind",unlist(res, recursive = F))
+  res <- subset(res, p < 1e-3)
+  return(res[complete.cases(res),])
 }
 
 ### reporting of timings
-TIMES$regression <- system.time(regression(),   gcFirst=T)
-TIMES$svd <- system.time(svd_irlba(),    gcFirst=T)
-TIMES$covariance <- system.time(covariance(),   gcFirst=T)
-TIMES$biclust <- system.time(biclustering(), gcFirst=T)
-#TIMES$stats <- system.time(stats(),        gcFirst=T) 
+# regression
+TIMES <- addRecord(TIMES, record_name = "regression",
+                   record = system.time(gcFirst = T,
+                                        RESULTS <- addRecord(RESULTS, record_name = "regression",
+                                                             record = regression())
+                   )
+)
+# svd
+TIMES <- addRecord(TIMES, record_name = "svd",
+                   record = system.time(gcFirst = T,
+                                        RESULTS <- addRecord(RESULTS, record_name = "svd",
+                                                             record = svd_irlba())
+                   )
+)
+# covariance
+TIMES <- addRecord(TIMES, record_name = "covar",
+                   record = system.time(gcFirst = T,
+                                        RESULTS <- addRecord(RESULTS, record_name = "covar",
+                                                             record = covariance())
+                   )
+)
+# biclust
+TIMES <- addRecord(TIMES, record_name = "biclust",
+                   record = system.time(gcFirst = T,
+                                        RESULTS <- addRecord(RESULTS, record_name = "biclust",
+                                                             record = biclustering())
+                   )
+)
+# stats
+TIMES <- addRecord(TIMES, record_name = "stats",
+                   record = system.time(gcFirst = T,
+                                        RESULTS <- addRecord(RESULTS, record_name = "stats",
+                                                             record = stats(percentage=1))
+                   )
+)
+
 
 ## output results for comparison
-# check output directories exist
-check_generated()
 # write results to file
-report_results(RESULTS = RESULTS, BENCHMARK = BENCHMARK)
+reportRecords(RESULTS)
 
 # timings
-report_timings(TIMES = TIMES, BENCHMARK = BENCHMARK)
+reportRecords(TIMES)
 
 # final clean up
 rm(list=ls())
 gc()
+
+

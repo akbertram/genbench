@@ -25,11 +25,12 @@ VERBOSE <- TRUE # print progress?
 DATA_DIR <- file.path("..", "..", "data", "protein")
 DOWNLOAD <- FALSE
 INPUT <- "TODO"
+BENCHMARK <- "mass_spec"
 
 # holder for results
-RESULTS <- list()
-TIMES <- list()
-BENCHMARK <- "mass_spec"
+RESULTS <- results(benchmark_name = BENCHMARK)
+TIMES <- timings(benchmark_name = BENCHMARK)
+
 
 #### functions
 
@@ -47,29 +48,33 @@ do.load <- function(){
   
   MSnSet
   
+  40 x 1000 is typical size
+  
+  qualitative, number of spectra / molecular weight of protein
+  
 }
 
 
 ### reporting
-## load data and compute matrix
+## load data
 if(DOWNLOAD){
-  TIMES$download <- system.time(gcFirst = T,
-                                do.download(csv=INPUT))
+  TIMES <- addRecord(TIMES, record_name = "download",
+                     record = system.time(gcFirst = T,
+                                          do.download(csv=INPUT)
+                     ))
 }
-TIMES$load <- system.time(gcFirst = T,
-                          rppa <- do.load()
-)
-
+TIMES <- addRecord(TIMES, record_name = "load",
+                   record = system.time(gcFirst = T,
+                                        rppa <- do.load()
+                   ))
 
 
 ## output results for comparison
-# check output directories exist
-check_generated()
 # write results to file
-report_results(RESULTS = RESULTS, BENCHMARK = BENCHMARK)
+reportRecords(RESULTS)
 
 # timings
-report_timings(TIMES = TIMES, BENCHMARK = BENCHMARK)
+reportRecords(TIMES)
 
 # final clean up
 rm(list=ls())

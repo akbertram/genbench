@@ -19,11 +19,11 @@ library(utils)
 ## global vars
 VERBOSE <- TRUE # print progress?
 DOWNLOAD <- FALSE # download fresh data?
+BENCHMARK <- "mutation"
 
 # holder for results
-RESULTS <- list()
-TIMES <- list()
-BENCHMARK <- "mutation"
+RESULTS <- results(benchmark_name = BENCHMARK)
+TIMES <- timings(benchmark_name = BENCHMARK)
 
 ### functions
 ## general
@@ -107,7 +107,6 @@ do.pop.load <- function(){
 do.pop.fig1a <- function(pop){
   ## figure 1A: mutations per sample, split by mutation tier and disease status
   # split-apply-combine
-  proc.time() -> ptm
   fig_1a <- do.call("rbind", 
                     lapply(
                       split(pop$maf, 
@@ -118,14 +117,11 @@ do.pop.fig1a <- function(pop){
                         tmp$TCGA_id <- df[1,"TCGA_id"]
                         return(tmp)})
                     )
-  TIMES$pop.fig1a.sac <<- proc.time() - ptm
   
   # merge metadata
-  proc.time() -> ptm
   fig_1a <- merge(x=fig_1a, y=pop$meta, 
                   by.x = "TCGA_id", by.y = "bcr_patient_barcode", 
                   all.x = TRUE)
-  TIMES$pop.fig1a.merge <<- proc.time() - ptm
   # subset data
   fig_1a <- subset(fig_1a, tier=="tier1")
   # plot
@@ -139,7 +135,6 @@ do.pop.fig1a <- function(pop){
 
 do.pop.fig1b <- function(pop){
   ## figure 1B: samples per mutated gene
-  proc.time() -> ptm  
   fig_1b <- do.call("rbind", 
                     lapply(
                       split(pop$maf, 
@@ -152,11 +147,8 @@ do.pop.fig1b <- function(pop){
   )
   
   # reorder
-  proc.time() -> ptm
   fig_1b <- fig_1b[ order(fig_1b$sample_count, decreasing = TRUE) ,]
   fig_1b <- head(subset(fig_1b, tier == "tier1"), n = 100) # top 100 tier 1 genes by count
-  
-  TIMES$pop.fig1b.order <<- proc.time() - ptm
   
   # return
   return(fig_1b[,c("gene_name", "tier", "sample_count")])
@@ -321,14 +313,11 @@ do.fam.prepare <- function(fam){
 do.fam.check <- function(fam){
   ## check that all SNPs match
   checks <- c()
-  proc.time() -> ptm
   
   # all sets have the same number of SNPs
   if(length(unique(lapply(fam, nrow))) == 1){
     checks <- append(checks, TRUE)
   } else { checks <- append(checks, FALSE)  }
-  TIMES$fam.check.unique <<- proc.time() - ptm
-  proc.time() -> ptm
   
   # all SNP rsids the same
   if(
@@ -343,9 +332,6 @@ do.fam.check <- function(fam){
     checks <- append(checks, TRUE)
   } else { checks <- append(checks, FALSE)  }
   
-  TIMES$fam.check.intersect <<- proc.time() - ptm
-  proc.time() -> ptm
-  
   # all SNPs in the same order
   if(
     all(
@@ -358,8 +344,6 @@ do.fam.check <- function(fam){
   ){
     checks <- append(checks, TRUE)
   } else { checks <- append(checks, FALSE)  }
-  
-  TIMES$fam.check.order <<- proc.time() - ptm
   
   # all checks good?
   return(all(checks))
@@ -422,23 +406,30 @@ do.ibd.window <- function(fam.scores, window.sizes=seq(5, 50, 5)){
 ### reporting
 ## collect data
 if(DOWNLOAD){
-  TIMES$download <- system.time(gcFirst = T,
-                                do.download()
+  TIMES <- addRecord(TIMES, record_name = "download",
+                     record = system.time(gcFirst = T,
+                                          do.download()
+                     )
   )
 }
 ## population data
 # load data and compute matrix
-TIMES$pop.load <- system.time(gcFirst = T,
+TIMES <- addRecord(TIMES, record_name = "pop.load",
+                   record = system.time(gcFirst = T,
                           pop <- do.pop.load()
-)
+))
 # patient level summaries
-TIMES$pop.fig1a <- system.time(gcFirst = T,
-                          RESULTS$pop.fig1a <- do.pop.fig1a(pop = pop)
-)
+TIMES <- addRecord(TIMES, record_name = "pop.fig1a",
+                   record = system.time(gcFirst = T,
+                          RESULTS <- addRecord(RESULTS, record_name="pop.fig1a",
+                                               record=do.pop.fig1a(pop = pop))
+))
 # gene level summaries
-TIMES$pop.fig1b <- system.time(gcFirst = T,
-                          RESULTS$pop.fig1b <- do.pop.fig1b(pop = pop)
-)
+TIMES <- addRecord(TIMES, record_name = "pop.fig1b",
+                   record = system.time(gcFirst = T,
+                          RESULTS <- addRecord(RESULTS, record_name="pop.fig1b",
+                                               record=do.pop.fig1b(pop = pop))
+))
 # todo: something more advanced once packages are implemented in renjin
 # maybe something from: http://cran.r-project.org/web/views/Genetics.html
 # for example something from package "gap", like gcontrol() 
@@ -446,47 +437,54 @@ TIMES$pop.fig1b <- system.time(gcFirst = T,
 
 
 # clean up
-TIMES$pop.clean <- system.time(gcFirst = T, expr = {
+TIMES <- addRecord(TIMES, record_name = "pop.clean",
+                   record = system.time(gcFirst = T, 
+                               expr = {
                                                     rm(pop);
                                                     gc()}
-)
+))
 
 ## "family" data - comparing between (non related) individuals
 # load data and check SNP lists
-TIMES$fam.load <- system.time(gcFirst = T,
+TIMES <- addRecord(TIMES, record_name = "fam.load",
+                   record = system.time(gcFirst = T,
                               fam <- do.fam.load()
-)
-TIMES$fam.check <- system.time(gcFirst = T,
+))
+TIMES <- addRecord(TIMES, record_name = "fam.check",
+                   record = system.time(gcFirst = T,
                               stopifnot(do.fam.check(fam = fam))
-)
+))
 
 # prepare pre-calculated scoring matrix
-TIMES$fam.prepare <- system.time(gcFirst = T,
+TIMES <- addRecord(TIMES, record_name = "fam.prepare",
+                   record = system.time(gcFirst = T,
                               scores <- do.fam.prepare(fam = fam)
-)
+))
 
 # create vectors comparing pairwise all individuals
-TIMES$fam.score <- system.time(gcFirst = T,
+TIMES <- addRecord(TIMES, record_name = "fam.score",
+                   record = system.time(gcFirst = T,
                                fam.scores <- do.ibd.vector(fam = fam, scores = scores)
-)
+))
 # score on sliding window
-TIMES$fam.window <- system.time(gcFirst = T,
-                               RESULTS$fam.window <- do.ibd.window(fam.scores = fam.scores)
-)
+TIMES <- addRecord(TIMES, record_name = "fam.window",
+                   record = system.time(gcFirst = T,
+                               RESULTS <- addRecord(RESULTS, record_name="fam.window",
+                                                    record=do.ibd.window(fam.scores = fam.scores))
+))
 
 # clean up
-TIMES$fam.clean <- system.time(gcFirst = T, expr = {rm(fam, scores, fam.scores);
+TIMES <- addRecord(TIMES, record_name = "fam.clean",
+                   record = system.time(gcFirst = T, expr = {rm(fam, scores, fam.scores);
                                                     gc()}
-)
+))
 
 ## output results for comparison
-# check output directories exist
-check_generated()
 # write results to file
-report_results(RESULTS = RESULTS, BENCHMARK = BENCHMARK)
+reportRecords(RESULTS)
 
 # timings
-report_timings(TIMES = TIMES, BENCHMARK = BENCHMARK)
+reportRecords(TIMES)
 
 # final clean up
 rm(list=ls())

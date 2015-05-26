@@ -13,6 +13,7 @@ library(reshape)
 ### functions
 collect_reports <- function(){
   # read in all reported benchmarks
+  # TODO: update to use genbench classes for collection and handling
   require(reshape)
   reports <- lapply(
     dir(path = file.path("generated", "timings"), pattern = ".tsv$",

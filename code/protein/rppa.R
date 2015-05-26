@@ -24,9 +24,8 @@ BENCHMARK <- "rppa" # name of benchmark
 DOWNLOAD <- FALSE
 
 # holder for results
-RESULTS <- list()
-TIMES <- list()
-
+RESULTS <- results(benchmark_name = BENCHMARK)
+TIMES <- timings(benchmark_name = BENCHMARK)
 
 ### functions
 do.download <- function(csv){
@@ -139,17 +138,13 @@ do.elbow <- function(df){
 # hierarchical
 do.hc <- function(dist_mat){
   if (VERBOSE){print("Calculating Hierarchical clustering")}
-  ptm <- proc.time()
   
   require(stats)
   
   # hierarchical clustering, WARD as linkage
   res <- hclust(d = dist_mat, method="ward")
   
-  TIMES$hc.clust <<- proc.time() - ptm
-  
   # determine clustering statistics (within cluster SS), for a range of 'cuts'
-  ptm <- proc.time() # reset clock
   if (VERBOSE){print("Calculating Hierarchical clustering: cutting tree")}
   cuts <- lapply(2:25, FUN = function(i){ # note: 1 cluster => 'Inf' error
         if (VERBOSE){print(paste("    >", i, "clusters"))}
@@ -160,7 +155,6 @@ do.hc <- function(dist_mat){
     }  
   )
   
-  TIMES$hc.cut <<- proc.time() - ptm
   # determine optimal cut and return labels
   # use within cluster SS to be consistent with kmeans
   best_cut <- do.elbow(do.call("rbind", cuts)) # 8 according to paper
@@ -172,7 +166,6 @@ do.hc <- function(dist_mat){
 
 # kmeans
 do.km <- function(dist_mat){
-  ptm <- proc.time()
   if (VERBOSE){print("Calculating K-means clustering")}
   require(stats)
   
@@ -182,15 +175,12 @@ do.km <- function(dist_mat){
       kmeans(dist_mat, algorithm="Hartigan-Wong", centers=i)
     }
   )
-  TIMES$km.clust <<- proc.time() - ptm
   
   # determine clustering statistics for a range of 'cuts'
-  ptm <- proc.time() # reset
   cuts <- lapply(res, function(x){data.frame(
                                               cluster = max(x$cluster),
                                               within_ss = sum(x$withinss)
                                               )})
-  TIMES$km.cut <<- proc.time() - ptm
   
   # determine optimal cut and return labels for this
   best_cut <- do.elbow(do.call("rbind", cuts)) # 8 according to paper
@@ -224,24 +214,34 @@ do.bayes <- function(dist_mat){
 ### reporting
 ## load data and compute matrix
 if(DOWNLOAD){
-  TIMES$download <- system.time(gcFirst = T,
-                            do.download(csv=INPUT))
+  TIMES <- addRecord(TIMES, record_name = "download",
+                     record = system.time(gcFirst = T,
+                                    do.download(csv=INPUT)
+                    ))
 }
-TIMES$load <- system.time(gcFirst = T,
-  rppa <- do.load()
-)
-TIMES$dist <- system.time(gcFirst = T,
-  dist_mat <- do.dist(input_data=rppa)
-)
+TIMES <- addRecord(TIMES, record_name = "load",
+                   record = system.time(gcFirst = T,
+                                    rppa <- do.load()
+                   ))
+TIMES <- addRecord(TIMES, record_name = "dist",
+                   record = system.time(gcFirst = T,
+                                    dist_mat <- do.dist(input_data=rppa)
+                  ))
 ## clustering
 # hierarchical
-TIMES$hc <- system.time(gcFirst = T,
-  RESULTS$hc <- do.hc(dist_mat=dist_mat)
-)
+TIMES <- addRecord(TIMES, record_name = "hc",
+                   record = system.time(gcFirst = T,
+                                    RESULTS <- addRecord(RESULTS, record_name="hc",
+                                                         record=do.hc(dist_mat=dist_mat)
+                                    )
+))
 # kmeans
-TIMES$km <- system.time(gcFirst = T,
-  RESULTS$km <- do.km(dist_mat=dist_mat)
-)
+TIMES <- addRecord(TIMES, record_name = "km",
+                   record = system.time(gcFirst = T,
+                                        RESULTS <- addRecord(RESULTS, record_name="km",
+                                                             record=do.km(dist_mat=dist_mat)
+                                        )
+))
 
 # random forrest
 
@@ -265,13 +265,11 @@ TIMES$km <- system.time(gcFirst = T,
 
 
 ## output results for comparison
-# check output directories exist
-check_generated()
 # write results to file
-report_results(RESULTS = RESULTS, BENCHMARK = BENCHMARK)
+reportRecords(RESULTS)
 
 # timings
-report_timings(TIMES = TIMES, BENCHMARK = BENCHMARK)
+reportRecords(TIMES)
 
 # final clean up
 rm(list=ls())
