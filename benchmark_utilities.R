@@ -155,7 +155,7 @@ checkOutputFile.genbench <- function(obj, create=FALSE){
     return(TRUE)
   } else {
     if(create){
-        warning(sprintf("%s did not exist, creating..."))
+        warning(sprintf("%s did not exist, creating...", dirname(getOutputFile(obj))))
         dir.create(dirname(getOutputFile(obj)), recursive = TRUE)
         return(TRUE)
       } else {
