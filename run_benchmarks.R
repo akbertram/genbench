@@ -3,10 +3,18 @@
 # may 2015
 
 ### run all benchmarks in genbench
+# needs info about path and what size of data to run on
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) > 0) {
+  NRUNS <- args[1]
 
-# Install required packages
+} else {
+  NRUNS <- 1
+}
+
+## funcion definitions
 install.dependencies <- function(cran=c(), bioc=c()){
-  
+  # Install required packages
   # Set a CRAN mirror to use
   options(repos=structure(c(CRAN="http://cran.rstudio.com")))
   
@@ -60,7 +68,9 @@ cran <- c(
   # utils
   "utils", "R.utils", "XML",
   # graph models
-  "igraph"
+  "igraph",
+  # plotting
+  "ggplot2", "dplyr"
 )
 bioc <- c('Biobase', 'affy', 'hgu133plus2cdf', 'limma', 'edgeR')
 install.dependencies(bioc=bioc, cran=cran)
@@ -71,8 +81,8 @@ for (SCRIPT in rev(dir(file.path(getwd(), "code"),
                   ignore.case = TRUE))){
   # run benchmark script
   cat(timestamp(quiet = TRUE), "Running benchmark at ", SCRIPT,"\n")
-  try({source(SCRIPT, chdir = TRUE)}) # all scripts assume working dir is same as script
-  
+  for (x in 1:NRUNS){
+    cat(sprintf("\t>>>Run %i\n", x))
+    try({source(SCRIPT, chdir = TRUE)}) # all scripts assume working dir is same as script
+  }
 }
-# multiruns
-# for (x in 1:10){cat(sprintf("run %i\n", x)); source("code//mrna_seq//edgeR_voom.R", chdir = TRUE)}
