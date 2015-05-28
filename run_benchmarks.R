@@ -6,11 +6,12 @@
 # needs info about path and what size of data to run on
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) > 0) {
-  NRUNS <- args[1]
+  NRUNS <- as.integer(args[1])
+  cat(sprintf("Using %i runs per benchmark\n", NRUNS))
 
 } else {
-  cat("Using default number of runs\n")
   NRUNS <- 1
+  cat(sprintf("Using default number of runs (%i)\n", NRUNS))
 }
 
 ## funcion definitions
