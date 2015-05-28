@@ -9,6 +9,7 @@ if (length(args) > 0) {
   NRUNS <- args[1]
 
 } else {
+  cat("Using default number of runs")
   NRUNS <- 1
 }
 
@@ -86,3 +87,6 @@ for (SCRIPT in rev(dir(file.path(getwd(), "code"),
     try({source(SCRIPT, chdir = TRUE)}) # all scripts assume working dir is same as script
   }
 }
+
+## plot results so far
+source("examine_benchmarks.R")
