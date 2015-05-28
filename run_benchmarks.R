@@ -9,7 +9,7 @@ if (length(args) > 0) {
   NRUNS <- args[1]
 
 } else {
-  cat("Using default number of runs")
+  cat("Using default number of runs\n")
   NRUNS <- 1
 }
 
@@ -83,8 +83,11 @@ for (SCRIPT in rev(dir(file.path(getwd(), "code"),
   # run benchmark script
   cat(timestamp(quiet = TRUE), "Running benchmark at ", SCRIPT,"\n")
   for (x in 1:NRUNS){
+    local({ # required so that cleanup at the end of each benchmark does not wipe out gloabl variables like NRUNS
     cat(sprintf("\t>>>Run %i\n", x))
     try({source(SCRIPT, chdir = TRUE)}) # all scripts assume working dir is same as script
+  
+    })
   }
 }
 
