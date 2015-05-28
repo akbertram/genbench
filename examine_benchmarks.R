@@ -38,8 +38,13 @@ collect_reports <- function(){
       return(tmp)
     }
     )
+  reports <- do.call("rbind", reports)
+  # reorder variable for what was timed so that
+  # figures look nicer
+  levels(reports$variable) <- rev(sort(levels(reports$variable)))
   
-  return(do.call("rbind", reports))
+  
+  return(reports)
     
   
 }
@@ -63,19 +68,21 @@ g +
   ylab("Time (seconds)") +
   xlab("Benchmark section")
 
+# save results
+ggsave(filename = "generated/timings/current.all.pdf", width = 20, height = 10)
+
 ### summarise
-# total time per benchmark (i.e. per ID)
+## total time per benchmark run (i.e. per ID)
 g <- ggplot(data = 
               res %>%
                 group_by(block, benchmark_group, id, variable) %>%
                 summarise(
-                  total_time = sum(value),
-                  max_time = max(value),
-                  mean_time = mean(value)
+                  total_time = sum(value), # sum all parts of the benchmark
+                  time_stamp = as.numeric(unique(time))
                           )
 )
 g +
-  geom_jitter(aes(y=total_time, x=variable), 
+  geom_jitter(aes(y=total_time, x=variable, colour=time_stamp), 
               position = position_jitter(width = .5)) +
   facet_grid(. ~ block + benchmark_group, scales = "free_x") +
   scale_y_log10() +
@@ -83,8 +90,36 @@ g +
   theme(axis.text.x  = element_text(angle=90, vjust=0.5))
 
             
+# save results
+ggsave(filename = "generated/timings/current.summaryperrun.pdf", width = 20, height = 10)
 
-# todo
+## average time per benchmark file (i.e. per group)
+g <- ggplot(data = 
+              res %>%
+              group_by(block, benchmark_group, id, variable) %>% # total time per run
+              summarise(
+                value = sum(value)
+                ) %>%
+              group_by(block, benchmark_group, variable) %>% # now summarise across runs
+              summarise(
+                max_time = max(value),
+                mean_time = mean(value),
+                variance = var(value),
+                se = sd(value)/sqrt(length(value))
+              ),
+            aes(x=variable)
+)
+g +
+  geom_errorbar(aes(ymin=mean_time - se, ymax=mean_time+se, colour=variable)) +
+  geom_point(aes(y=mean_time, colour=variable)) +
+  facet_grid(. ~ block + benchmark_group, scales = "free_x") +
+  scale_y_log10() +
+  theme_bw() +
+  theme(axis.text.x  = element_text(angle=90, vjust=0.5))
+
+
+## save results
+ggsave(filename = "generated/timings/current.summaryperbenchmark.pdf", width = 20, height = 10)
 
 ### compare to expected results
 # todo
