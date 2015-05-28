@@ -18,17 +18,11 @@ BENCHMARK <- "chocolate_geo"
 RESULTS <- results(benchmark_name = BENCHMARK)
 TIMES <- timings(benchmark_name = BENCHMARK)
 
-# needs info about path and what size of data to run on
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) > 0) {
-  PATH <- args[1]
-  NGENES <- args[2]
-  NPATIENTS <- args[3]
-} else {
+
   PATH <- "../../data/simulated_GEO_matrix/"
   NGENES <- "500"
   NPATIENTS <- "500"
-}
+
 GEO <-      file.path(PATH, paste('GEO-', NGENES, '-', NPATIENTS, '.rds', sep=""))
 GO <-       file.path(PATH, paste('GO-', NGENES, '-', NPATIENTS, '.rds', sep=""))
 GENES <-    file.path(PATH, paste('GeneMetaData-', NGENES, '-', NPATIENTS, '.rds', sep=""))
