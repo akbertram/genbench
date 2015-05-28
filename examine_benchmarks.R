@@ -125,3 +125,8 @@ ggsave(filename = "generated/timings/current.summaryperbenchmark.pdf", width = 2
 # todo
 
 # add expected values to above plots for visualisation
+
+
+### clean up
+rm(list=ls())
+gc()

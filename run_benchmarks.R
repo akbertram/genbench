@@ -83,11 +83,10 @@ for (SCRIPT in rev(dir(file.path(getwd(), "code"),
   # run benchmark script
   cat(timestamp(quiet = TRUE), "Running benchmark at ", SCRIPT,"\n")
   for (x in 1:NRUNS){
-    local({ # required so that cleanup at the end of each benchmark does not wipe out gloabl variables like NRUNS
-    cat(sprintf("\t>>>Run %i\n", x))
-    try({source(SCRIPT, chdir = TRUE)}) # all scripts assume working dir is same as script
-  
-    })
+      cat(sprintf("\t>>>Run %i\n", x))
+      # all scripts assume working dir is same as script
+      # each script run in a fresh local environment
+      try({source(SCRIPT, chdir = TRUE, local=new.env())})
   }
 }
 
