@@ -227,6 +227,12 @@ reportRecords.timings <- function(obj){
 reportRecords.results <- function(obj){
   checkOutputFile(obj, create = TRUE)
   RESULTS <- getRecords(obj)
+  ## make sure all Records have the same number of columns for combining and printing
+  lapply(res, function(x){
+    if(max(sapply(res, ncol)) > ncol(x)){ # if dataframe has fewer columns than largest DF
+      x[,(ncol(x) +1):max(sapply(res, ncol))] <- NA} # add more until they have the same number
+    return(x)
+    } )
   write.table(file=getOutputFile(obj), 
               quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE,
               do.call("rbind", 
