@@ -19,3 +19,10 @@ Code
   - random 1%
   - limit genes by GO terms (or anything other annotation)
   - limit papers by MeSh terms
+
+- humanLiverCohort.R
+ - reproduce aspects of integrative analysis carried out in the Human Liver Cohort project
+  - [synapse entry](https://www.synapse.org/#!Synapse:syn299418)
+  - [Schadt et al, 2008](http://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.0060107)
+
+

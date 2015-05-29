@@ -65,6 +65,8 @@ if (FALSE){
 cran <- c(
   # clustering
   'stats','biclust', 's4vd', 'irlba',
+  # ML
+  "ncvreg", "boot", "lars", "lasso2", "mda", "leaps",
   # table processing
   "plyr", "reshape","sqldf",
   # utils
