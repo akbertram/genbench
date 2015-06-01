@@ -60,6 +60,7 @@ TIMES <- addRecord(TIMES, record_name = "TEMPLATE",
                                         RESULTS <- addRecord(RESULTS, record_name="TEMPLATE",
                                                              record=do.TEMPLATE()
                    ))
+)
 
 ## output results for comparison
 # write results to file
