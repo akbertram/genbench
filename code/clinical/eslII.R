@@ -20,6 +20,7 @@ library(lars)
 library(lasso2)
 library(mda)
 library(leaps)
+#library(survival)
 
 ## global vars
 VERBOSE <- TRUE # print progress?
@@ -60,8 +61,11 @@ do.load <- function(){
 }
 
 do.varselect <- function(data, plot_results=FALSE){
-  # http://myweb.uiowa.edu/pbreheny/publications/Breheny2011.pdf
-  # variable selection using coordinate descent
+  
+  ### variable selection using coordinate descent 
+  ### on prostate and heart datasets from ncvreg (see do.load)
+  # expects input from do.load
+  # see: http://myweb.uiowa.edu/pbreheny/publications/Breheny2011.pdf
   
   # capture
   results <- list()
@@ -108,6 +112,9 @@ do.varselect <- function(data, plot_results=FALSE){
 }
 
 do.prostate <- function(data, plot_results=FALSE){
+  ### some modelling on prostate dataset from ncvreg (see do.load)
+  # expects input from do.load
+  
   # see http://www-stat.stanford.edu/ElemStatLearn
   # 3.2.1 Example: Prostate Cancer
   ## code is adapted from
@@ -211,12 +218,41 @@ do.prostate <- function(data, plot_results=FALSE){
   return(do.call("rbind",results))
 }
 
-do.lung <- function(data, plot_results=FALSE){
-  # TODO
-  
-  #something with the Lung dataset
-  
-}
+# do.lung(data, plot_results=FALSE){
+#   ### not yet implemented
+#   ### survey data using Lung dataset from ncvreg
+#   # expects output from do.load
+#   
+# }
+
+# do.survival <- function(data, plot_results=FALSE){
+#   ### survival analysis on Lung dataset from ncvreg (see do.load)
+#   # expects input from do.load
+#   
+#   results <- list()
+#   
+#   ## kaplan-meier
+#   survfit()
+#   results <- append(results, 
+#                     list(data.frame(
+#                       dat="kaplan-meier",
+#                       var=,
+#                       coeff=
+#                     ))
+#   )
+#   
+#   ## cox stats
+#   results <- append(results, 
+#                     list(data.frame(
+#                       dat="cox",
+#                       var=,
+#                       coeff=
+#                     ))
+#   )
+#   
+#   ## return
+#   return(do.call("rbind",results))
+# }
 
 ### reporting
 # load data
@@ -240,6 +276,14 @@ TIMES <- addRecord(TIMES, record_name = "prostate",
 #                    record = system.time(gcFirst = T,
 #                                         RESULTS <- addRecord(RESULTS, record_name="lung",
 #                                                              record=do.lung(data)
+#                                         )
+#                    ))
+
+# not yet written
+# TIMES <- addRecord(TIMES, record_name = "survival",
+#                    record = system.time(gcFirst = T,
+#                                         RESULTS <- addRecord(RESULTS, record_name="survival",
+#                                                              record=do.survival(data)
 #                                         )
 #                    ))
 
