@@ -107,7 +107,7 @@ do.varselect <- function(data, plot_results=FALSE){
   
 }
 
-do.prostate <- function(data, print_results=FALSE){
+do.prostate <- function(data, plot_results=FALSE){
   # see http://www-stat.stanford.edu/ElemStatLearn
   # 3.2.1 Example: Prostate Cancer
   ## code is adapted from
@@ -117,7 +117,7 @@ do.prostate <- function(data, print_results=FALSE){
   results <- list()
   
   # examine data
-  if(print_results){
+  if(plot_results){
     cor( data$prostate[,1:8] )
     pairs( data$prostate[,1:9], col="violet" )
   }
@@ -131,7 +131,7 @@ do.prostate <- function(data, print_results=FALSE){
   
 
   # The book (page 56) uses only train subset, so we the same:
-  prostate.leaps <- regsubsets( lpsa ~ . , data=train, nbest=70, #all!
+  prostate.leaps <- regsubsets( lpsa ~ . , data=train, nbest=70,
                                 really.big=TRUE )
   prostate.leaps.sum <- summary( prostate.leaps )
   prostate.models <- prostate.leaps.sum$which
@@ -153,14 +153,14 @@ do.prostate <- function(data, print_results=FALSE){
           col="red2" )
     points( prostate.models.size, prostate.models.rss, pch=17, col="brown",cex=0.7 )
   }
-# TODO: capture something here
-#   results <- append(results, 
-#                     list(data.frame(
-#                       dat="rss",
-#                       var=rownames(prostate.lasso.coef),
-#                       coeff=prostate.lasso.coef[,"1"]
-#                     ))
-#   )
+  # capture some results
+  results <- append(results, 
+                    list(data.frame(
+                      dat="rss",
+                      var=names(prostate.models.best.rss),
+                      coeff=prostate.models.best.rss
+                    ))
+  )
 
   ## Calculations for the lasso:
   prostate.lasso <- l1ce( lpsa ~ ., data=train, trace=TRUE, sweep.out=~1,
@@ -202,7 +202,7 @@ do.prostate <- function(data, print_results=FALSE){
   results <- append(results, 
                     list(data.frame(
                       dat="glm",
-                      var=rownames(prostate.glm$coefficients),
+                      var=names(prostate.glm$coefficients),
                       coeff=prostate.glm$coefficients
                     ))
   )
