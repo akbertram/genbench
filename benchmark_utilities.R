@@ -6,7 +6,9 @@
 
 ## class definitions
 # generic "genbase" class with common aspects of results and timings
-genbench <- function(benchmark_name="NOT_SET", working_dir=getwd()){
+# benchmark_name must be a character string, by default "NOT_SET"
+# benchmark_group is by default the dir holding the benchmark script
+genbench <- function(benchmark_name="NOT_SET", benchmark_group=basename(getwd())){
   # check args
   if (!is.character(benchmark_name)) stop("benchmark_name must be character string")
   structure(
@@ -15,15 +17,16 @@ genbench <- function(benchmark_name="NOT_SET", working_dir=getwd()){
       data=list(),
       # attributes
       benchmark=benchmark_name, 
-      wd=working_dir,
-      benchmark_group=basename(working_dir)
+      wd=getwd(),
+      benchmark_group=benchmark_group,
+      env=R.Version()
       ),
     class = "genbench") 
 }
 
 # timings S3 class
-timings <- function(benchmark_name="NOT_SET", working_dir=getwd()){
-  instance <- genbench(benchmark_name, working_dir)
+timings <- function(benchmark_name="NOT_SET", benchmark_group=basename(getwd())){
+  instance <- genbench(benchmark_name, benchmark_group)
   # inherits from genbench
   # will search classpath left to right for methods 
   # (i.e. will call child method first choice, 
@@ -33,8 +36,8 @@ timings <- function(benchmark_name="NOT_SET", working_dir=getwd()){
 }
 
 # results S3 class
-results <- function(benchmark_name="NOT_SET", working_dir=getwd()){
-  instance <- genbench(benchmark_name, working_dir)
+results <- function(benchmark_name="NOT_SET", benchmark_group=basename(getwd())){
+  instance <- genbench(benchmark_name, benchmark_group)
   # inherits from genbench
   # will search classpath left to right for methods 
   # (i.e. will call child method first choice, 
