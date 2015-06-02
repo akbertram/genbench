@@ -19,7 +19,7 @@ genbench <- function(benchmark_name="NOT_SET", benchmark_group=basename(getwd())
       benchmark=benchmark_name, 
       wd=getwd(),
       benchmark_group=benchmark_group,
-      env=R.Version()
+      env=c(R.Version(), Sys.info()[c("sysname", "release", "version")])
       ),
     class = "genbench") 
 }
