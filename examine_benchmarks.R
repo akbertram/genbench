@@ -15,12 +15,25 @@ collect_reports <- function(){
   # read in all reported benchmarks
   # TODO: update to use genbench classes for collection and handling
   require(reshape)
+  require(rjson)
   reports <- lapply(
     dir(path = file.path("generated", "timings"), pattern = ".tsv$",
         full.names = TRUE, recursive = TRUE),
     function(path){
+      # read metadata header if it exists
+      if(length(grep(readLines(path, 1), pattern = "^\\{"))){
+        meta <- fromJSON(readLines(path, 1))
+      } else {
+        meta <- list("platform","arch","os","system","status","major",
+                     "minor","year","month","day","svn rev","language",
+                     "version.string","nickname","sysname","release", "version"
+                     )
+        names(meta) <- meta
+        meta <- lapply(meta, function(x) "not set") # set all values to not set
+      }
+      
       # read data and parse file names
-      tmp <- read.delim(path)
+      tmp <- read.delim(path, comment.char = "{")
       tmp$benchmark <- rownames(tmp)
       # melt to tall and skinny for plotting
       tmp <- melt(tmp, id.vars = c("benchmark"), na.rm = TRUE)
@@ -34,6 +47,13 @@ collect_reports <- function(){
       tmp$benchmark_group <- strsplit(tmp$id, '\\.')[[1]][[1]]
       
       tmp$time <- strsplit(tmp$id, '\\.')[[1]][[2]]
+      
+      # add meta data to results
+      tmp$sysname <- meta$sysname
+      tmp$release <- meta$release
+      tmp$lang <- meta$language
+      tmp$major <- meta$major
+      tmp$minor <- meta$minor
        
       return(tmp)
     }
@@ -61,7 +81,7 @@ g <- ggplot(data = res)
 g +
   geom_jitter(aes(y=value, x=benchmark, colour=variable), 
               position = position_jitter(width = .5)) +
-  facet_grid(. ~ block + benchmark_group, scales = "free_x") +
+  facet_grid(sysname + release + lang + major + minor ~ block + benchmark_group, scales = "free_x") +
   scale_y_log10() +
   theme_bw() +
   theme(axis.text.x  = element_text(angle=90, vjust=0.5)) +
@@ -75,7 +95,7 @@ ggsave(filename = "generated/timings/current.all.pdf", width = 20, height = 10)
 ## total time per benchmark run (i.e. per ID)
 g <- ggplot(data = 
               res %>%
-                group_by(block, benchmark_group, id, variable) %>%
+                group_by(sysname, release, lang, major, minor, block, benchmark_group, id, variable) %>%
                 summarise(
                   total_time = sum(value), # sum all parts of the benchmark
                   time_stamp = as.numeric(unique(time))
@@ -84,7 +104,7 @@ g <- ggplot(data =
 g +
   geom_jitter(aes(y=total_time, x=variable, colour=time_stamp), 
               position = position_jitter(width = .5)) +
-  facet_grid(. ~ block + benchmark_group, scales = "free_x") +
+  facet_grid(sysname+ release+ lang+ major+ minor ~ block + benchmark_group, scales = "free_x") +
   scale_y_log10() +
   theme_bw() +
   theme(axis.text.x  = element_text(angle=90, vjust=0.5))
@@ -96,11 +116,11 @@ ggsave(filename = "generated/timings/current.summaryperrun.pdf", width = 20, hei
 ## average time per benchmark file (i.e. per group)
 g <- ggplot(data = 
               res %>%
-              group_by(block, benchmark_group, id, variable) %>% # total time per run
+              group_by(sysname, release, lang, major, minor,block, benchmark_group, id, variable) %>% # total time per run
               summarise(
                 value = sum(value)
                 ) %>%
-              group_by(block, benchmark_group, variable) %>% # now summarise across runs
+              group_by(sysname, release, lang, major, minor,block, benchmark_group, variable) %>% # now summarise across runs
               summarise(
                 max_time = max(value),
                 mean_time = mean(value),
@@ -112,7 +132,7 @@ g <- ggplot(data =
 g +
   geom_errorbar(aes(ymin=mean_time - se, ymax=mean_time+se, colour=variable)) +
   geom_point(aes(y=mean_time, colour=variable)) +
-  facet_grid(. ~ block + benchmark_group, scales = "free_x") +
+  facet_grid(sysname+ release+ lang+ major+ minor ~ block + benchmark_group, scales = "free_x") +
   scale_y_log10() +
   theme_bw() +
   theme(axis.text.x  = element_text(angle=90, vjust=0.5))
