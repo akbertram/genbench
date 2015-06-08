@@ -129,6 +129,19 @@ getRecords.genbench <- function(obj){
   return(obj$data)
 }
 
+# get environment info
+getEnv <- function(obj){
+  UseMethod("getEnv", obj)  
+}
+getEnv.default <- function(obj){
+  warning(sprintf("Instance class cannot be handled."))
+  return(obj) 
+}
+getEnv.genbench <- function(obj){
+  # return environment info captured at instatiation
+  return(obj$env)
+}
+
 # get filename for writing captured results to
 getOutputFile <- function(obj){
   UseMethod("getOutputFile", obj)  
@@ -220,7 +233,9 @@ reportRecords.genbench <- function(obj){
 # reporting method for timings class
 reportRecords.timings <- function(obj){
   checkOutputFile(obj, create = TRUE)
-  write.table(file=getOutputFile(obj), 
+  # add 1 line JSON serialized header containing environment info
+  #writeLines(toJSON(getEnv(obj)), con = getOutputFile(obj))
+  write.table(file=getOutputFile(obj), append = TRUE,
               quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
               format(do.call("rbind", getRecords(obj)), digits=5)
               
@@ -228,6 +243,7 @@ reportRecords.timings <- function(obj){
 }
 
 reportRecords.results <- function(obj){
+  # check output file and collect results
   checkOutputFile(obj, create = TRUE)
   RESULTS <- getRecords(obj)
   ## make sure all Records have the same number of columns for combining and printing
@@ -236,7 +252,9 @@ reportRecords.results <- function(obj){
       x[,(ncol(x) +1):max(sapply(RESULTS, ncol))] <- NA} # add more until they have the same number
     return(x)
     } )
-  write.table(file=getOutputFile(obj), 
+  # add 1 line JSON serialized header containing environment info
+  #writeLines(toJSON(getEnv(obj)), con = getOutputFile(obj))
+  write.table(file=getOutputFile(obj), append = TRUE,
               quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE,
               do.call("rbind", 
                       lapply(names(RESULTS), function(x){
