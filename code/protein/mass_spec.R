@@ -5,6 +5,14 @@
 
 ### code based on examples found the Bioconductor proteomics workflow:
 # http://www.bioconductor.org/help/workflows/proteomics/
+# http://arxiv.org/pdf/1305.6559.pdf
+# library("RforProteomics")
+# This is the ’RforProteomics’ version 1.0.3.
+# Run ’RforProteomics()’ in R or visit
+# ’http://lgatto.github.com/RforProteomics/’ to get started.
+# source("http://bioconductor.org/biocLite.R")
+# biocLite("RforProteomics")
+# https://github.com/lgatto/RforProteomics/blob/master/vignettes/vigsrc/RforProteomics.R
 
 ### set up session
 rm(list=ls())
