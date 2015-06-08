@@ -5,6 +5,33 @@
 ### run all benchmarks in genbench
 # needs info about path and what size of data to run on
 args <- commandArgs(trailingOnly = TRUE)
+# reset timings?
+if ("--reset" %in% args){
+  # reset (remove) all timings files (tsv)
+  lapply(dir(file.path("generated/timings/"), pattern = "tsv$",
+                   full.names = TRUE, recursive = TRUE, include.dirs = FALSE
+                   ),
+        function(FILE){
+          try(file.remove(FILE))
+        }
+  )
+  # rename last results summary files (pdf)
+  lapply(dir(file.path("generated/timings/"), pattern = "^current.*.pdf$",
+                   full.names = TRUE, recursive = TRUE, include.dirs = FALSE),
+        function(FILE){
+          # rename file to a date stamped version
+#           newname <- strtrim(FILE, nchar(FILE) -4)
+#           newname <- sprintf("%s.%s.pdf", newname, format(Sys.time(), "%Y%m%d"))
+          newname <- strsplit(basename(FILE), "current")[[1]]
+          newname <- file.path(dirname(FILE), paste(c(format(Sys.time(), "%Y%m%d"), newname), sep = "", collapse = ""))
+          
+          try(file.rename(FILE, newname))
+        }
+  )
+  
+  # remove reset flag from args
+  args <- args[args != "--reset"]
+}
 if (length(args) > 0) {
   NRUNS <- as.integer(args[1])
   cat(sprintf("Using %i runs per benchmark\n", NRUNS))
