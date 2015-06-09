@@ -3,6 +3,7 @@
 # may 2015
 
 ### examine results of benchmark runs in genbench
+USE_DB <- TRUE
 
 ### set up environment
 rm(list=ls())
@@ -11,7 +12,45 @@ library(dplyr)
 library(reshape)
 
 ### functions
-collect_reports <- function(){
+collect_reports <- function(USE_DB=TRUE, usr="foo", pwd="bar"){
+  if(USE_DB){
+    res <- collect_reports.mysql(usr, pwd, )
+  } else {
+    
+    # use locally cached files instead
+    res <- collect_reports.local()
+    
+  }
+  
+  return(res)
+}
+collect_reports.mysql <- function(usr="foo", pwd="bar"){
+  
+  source(file.path("db", "sql_utilities.R"), chdir = TRUE)
+  
+  conn <- getConnection(usr, pwd, jdbcdriver = "db//mysql-connector-java-5.1.35.jar") 
+  
+  res <- dbGetQuery(conn, 
+                    "
+                      SELECT 
+                        t.block, t.variable, t.value,
+                        CONCAT(m.benchmark, '.', m.timestamp) AS id,
+                        m.benchmark_group, m.benchmark, m.timestamp,
+                        m.sys_name, m.sys_release,
+                        m.lang, m.lang_major, m.lang_minor
+                      FROM
+                        timings t
+                        JOIN meta m ON t.meta_id=m.meta_id
+                      ORDER BY
+                        m.benchmark_group, m.benchmark, m.timestamp, t.variable
+                      ;
+                    "
+                    )
+  return(res)
+  
+}
+
+collect_reports.local <- function(){
   # read in all reported benchmarks
   # TODO: update to use genbench classes for collection and handling
   require(reshape)
@@ -41,7 +80,6 @@ collect_reports <- function(){
       tmp <- tmp[!is.na(tmp$value),] # drop empty timings
       
       # parse path to group benchmarks
-      tmp$path <- path
       tmp$id <- strtrim(basename(path), nchar(basename(path)) - 4) # drop file extension
       tmp$benchmark_group <- basename(dirname(path))
       tmp$benchmark <- strsplit(tmp$id, '\\.')[[1]][[1]]
@@ -73,7 +111,7 @@ collect_reports <- function(){
 ############
 
 ### collect data
-res <- collect_reports()
+res <- collect_reports(USE_DB = FALSE)
 
 ### plot
 g <- ggplot(data = res)
