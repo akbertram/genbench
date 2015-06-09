@@ -34,26 +34,25 @@ collect_reports <- function(){
       
       # read data and parse file names
       tmp <- read.delim(path, comment.char = "{")
-      tmp$benchmark <- rownames(tmp)
+      tmp$block <- rownames(tmp)
       # melt to tall and skinny for plotting
-      tmp <- melt(tmp, id.vars = c("benchmark"), na.rm = TRUE)
+      tmp <- melt(tmp, id.vars = c("block"), na.rm = TRUE)
       suppressWarnings(tmp$value <- as.numeric(tmp$value))
       tmp <- tmp[!is.na(tmp$value),] # drop empty timings
       
       # parse path to group benchmarks
       tmp$path <- path
       tmp$id <- strtrim(basename(path), nchar(basename(path)) - 4) # drop file extension
-      tmp$block <- basename(dirname(path))
-      tmp$benchmark_group <- strsplit(tmp$id, '\\.')[[1]][[1]]
-      
-      tmp$time <- strsplit(tmp$id, '\\.')[[1]][[2]]
+      tmp$benchmark_group <- basename(dirname(path))
+      tmp$benchmark <- strsplit(tmp$id, '\\.')[[1]][[1]]
+      tmp$timestamp <- strsplit(tmp$id, '\\.')[[1]][[2]]
       
       # add meta data to results
-      tmp$sysname <- meta$sysname
-      tmp$release <- meta$release
+      tmp$sys_name <- meta$sysname
+      tmp$sys_release <- meta$release
       tmp$lang <- meta$language
-      tmp$major <- meta$major
-      tmp$minor <- meta$minor
+      tmp$lang_major <- meta$major
+      tmp$lang_minor <- meta$minor
        
       return(tmp)
     }
@@ -79,12 +78,13 @@ res <- collect_reports()
 ### plot
 g <- ggplot(data = res)
 g +
-  geom_jitter(aes(y=value, x=benchmark, colour=variable), 
+  geom_jitter(aes(y=value, x=block, colour=variable), 
               position = position_jitter(width = .5)) +
-  facet_grid(sysname + release + lang + major + minor ~ block + benchmark_group, scales = "free_x") +
+  facet_grid(sys_name + sys_release + lang + lang_major + lang_minor ~ benchmark_group + benchmark, scales = "free_x") +
   scale_y_log10() +
   theme_bw() +
   theme(axis.text.x  = element_text(angle=90, vjust=0.5)) +
+  ggtitle("Time per benchmark run, by block") +
   ylab("Time (seconds)") +
   xlab("Benchmark section")
 
@@ -95,32 +95,35 @@ ggsave(filename = "generated/timings/current.all.pdf", width = 20, height = 10)
 ## total time per benchmark run (i.e. per ID)
 g <- ggplot(data = 
               res %>%
-                group_by(sysname, release, lang, major, minor, block, benchmark_group, id, variable) %>%
+                group_by(sys_name, sys_release, lang, lang_major, lang_minor, benchmark_group, benchmark, id, variable) %>%
                 summarise(
                   total_time = sum(value), # sum all parts of the benchmark
-                  time_stamp = as.numeric(unique(time))
+                  time_stamp = as.numeric(unique(timestamp))
                           )
 )
 g +
   geom_jitter(aes(y=total_time, x=variable, colour=time_stamp), 
               position = position_jitter(width = .5)) +
-  facet_grid(sysname+ release+ lang+ major+ minor ~ block + benchmark_group, scales = "free_x") +
+  facet_grid(sys_name+ sys_release+ lang+ lang_major+ lang_minor ~ benchmark_group + benchmark, scales = "free_x") +
   scale_y_log10() +
   theme_bw() +
-  theme(axis.text.x  = element_text(angle=90, vjust=0.5))
+  theme(axis.text.x  = element_text(angle=90, vjust=0.5)) +
+  ggtitle("Total time per benchmark run") +
+  ylab("Time (seconds)") +
+  xlab("Timing type")
 
             
 # save results
 ggsave(filename = "generated/timings/current.summaryperrun.pdf", width = 20, height = 10)
 
-## average time per benchmark file (i.e. per group)
+## average time per benchmark file (i.e. per id)
 g <- ggplot(data = 
               res %>%
-              group_by(sysname, release, lang, major, minor,block, benchmark_group, id, variable) %>% # total time per run
+              group_by(sys_name, sys_release, lang, lang_major, lang_minor,benchmark_group, benchmark, id, variable) %>% # total time per run
               summarise(
                 value = sum(value)
                 ) %>%
-              group_by(sysname, release, lang, major, minor,block, benchmark_group, variable) %>% # now summarise across runs
+              group_by(sys_name, sys_release, lang, lang_major, lang_minor, benchmark_group, benchmark, variable) %>% # now summarise across runs
               summarise(
                 max_time = max(value),
                 mean_time = mean(value),
@@ -132,10 +135,13 @@ g <- ggplot(data =
 g +
   geom_errorbar(aes(ymin=mean_time - se, ymax=mean_time+se, colour=variable)) +
   geom_point(aes(y=mean_time, colour=variable)) +
-  facet_grid(sysname+ release+ lang+ major+ minor ~ block + benchmark_group, scales = "free_x") +
+  facet_grid(sys_name+ sys_release+ lang+ lang_major+ lang_minor ~ benchmark_group + benchmark, scales = "free_x") +
   scale_y_log10() +
   theme_bw() +
-  theme(axis.text.x  = element_text(angle=90, vjust=0.5))
+  theme(axis.text.x  = element_text(angle=90, vjust=0.5)) +
+  ggtitle("Summarised time per benchmark") +
+  ylab("Mean time (seconds)") +
+  xlab("Timing type")
 
 
 ## save results
