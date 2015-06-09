@@ -34,7 +34,7 @@ getConnection <- function(usr="foo", pwd="bar", connectionstring="jdbc:mysql://1
   return(conn)
 }
 conn <- getConnection()
-dbListTables(conn)
+#dbListTables(conn)
 
 ### create tables:
 ## meta table to hold metadata about each benchmark run
