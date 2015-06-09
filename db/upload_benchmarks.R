@@ -8,31 +8,9 @@ library(reshape)
 CREATE_NEW <- FALSE
 
 ### functions
-# whitespace stripper
-trim <- function( x ) {
-  gsub("(^[[:space:]]+|[[:space:]]+$)", "", x)
-}
-# statement reader (returns list, one element per statement in file)
-# read statements, dropping any empty lines (note: NO COMMENTS!)
-readSQL <- function(path){
-  statements <- lapply(
-                      strsplit(split = ";", paste(readLines(path), collapse = " ")),
-                      function(x) ifelse(trim(x)== "", NA, paste(x,";")))[[1]]
-  statements <- statements[!is.na(statements)]
-  return(statements)
-}
+source("sql_utilities.R")
 
-### connect to mysql instance and check connection
-# http://mvnrepository.com/artifact/mysql/mysql-connector-java/5.1.35
-getConnection <- function(usr="foo", pwd="bar", connectionstring="jdbc:mysql://173.194.246.104/Rbenchmarks"){
-  drv <- JDBC("com.mysql.jdbc.Driver",
-              "mysql-connector-java-5.1.35.jar",
-              identifier.quote="`"
-              )
-  conn <- dbConnect(drv, connectionstring,
-                    user=usr, password=pwd)
-  return(conn)
-}
+### connect to DB
 conn <- getConnection()
 #dbListTables(conn)
 
