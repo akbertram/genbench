@@ -9,6 +9,7 @@ rm(list=ls())
 library(ggplot2)
 library(dplyr)
 library(reshape)
+library(rjson)
 
 ### functions
 collect_reports <- function(){
