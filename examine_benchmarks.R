@@ -34,7 +34,9 @@ collect_reports <- function(){
       }
       
       # read data and parse file names
-      tmp <- read.delim(path, comment.char = "{")
+      tmp <- NA
+      try(tmp <- read.delim(path, comment.char = "{"))
+      if(is.na(tmp)){return(NA)}
       tmp$benchmark <- rownames(tmp)
       # melt to tall and skinny for plotting
       tmp <- melt(tmp, id.vars = c("benchmark"), na.rm = TRUE)
@@ -59,7 +61,7 @@ collect_reports <- function(){
       return(tmp)
     }
     )
-  reports <- do.call("rbind", reports)
+  reports <- do.call("rbind", na.omit(reports))
   # reorder variable for what was timed so that
   # figures look nicer
   levels(reports$variable) <- rev(sort(levels(reports$variable)))
