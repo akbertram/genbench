@@ -18,6 +18,7 @@ source(file.path("..", "..","benchmark_utilities.R"))
 ## packages
 # CRAN
 library(e1071)
+library(MASS) # rlm()
 # Bioc
 
 ## global vars
@@ -71,37 +72,121 @@ do.load <-function(DATA_DIR, DOWNLOAD=FALSE){
     }
   }
   
-  ## load zipped file and remove temp unzipped files
-  unzip(file.path(DATA_DIR, "curatedPhenotype.zip"), exdir = DATA_DIR)
-  data <- lapply(dir(DATA_DIR, pattern = ".txt$", full.names = TRUE), read.delim, stringsAsFactors=FALSE)
-  names(data) <- dir(DATA_DIR, pattern = ".txt$", full.names = FALSE)
+  ## unzip and load zipped files and remove temp unzipped files
+  data <- lapply(dir(DATA_DIR, include.dirs = FALSE), function(zipfile){
+    unzip(file.path(DATA_DIR, zipfile), exdir = DATA_DIR)
+    data <- lapply(dir(DATA_DIR, pattern = ".txt$", full.names = TRUE), read.delim, stringsAsFactors=FALSE)
+    names(data) <- dir(DATA_DIR, pattern = ".txt$", full.names = FALSE)
+    file.remove(dir(DATA_DIR, pattern = ".txt$", full.names = TRUE))
+    
+    return(data)
+  })
+  names(data) <- strtrim(dir(DATA_DIR, include.dirs = FALSE), 11)
   
-  file.remove(dir(DATA_DIR, pattern = ".txt$", full.names = TRUE))
-  
-  # check loaded data
-  if(VERBOSE){cat(str(data))}
-  
-  ## reformat loaded data
+  ### reformat loaded data
+  ## phenotype data
   # bind columns together (each row in file is one column)
-  tmp <- data.frame(t(rbind(data$phenotype.txt)), stringsAsFactors = FALSE)
-  tmp$indvidual_id <- rownames(tmp)
+  tmp <- data.frame(t(rbind(data$curatedPhen$"phenotype.txt")), stringsAsFactors = FALSE)
   names(tmp)<-tmp[1,] # first line in file is column names
   tmp <- tmp[2:nrow(tmp),] # drop header
   
+  # focus on male caucasian patients
+  if(VERBOSE){
+    table(tmp$inferred_population, tmp$self_reported_ethnicity, tmp$GENDER)
+  }
+  tmp <- subset(tmp, GENDER=="Male" & inferred_population=="Cauc" & self_reported_ethnicity=="W")
+  
+  
   # convert numeric columns from character
-  numeric_cols <- c(1, 5:18)
+  numeric_cols <- c(1, 6:7, 9:18)
   for (numeric_col in numeric_cols){
     tmp[,numeric_col] <- as.numeric(tmp[,numeric_col])
-    tmp[is.na(tmp[,numeric_col]), numeric_col] <- 0 # replace all NAs with 0s, i know this is horrible.
   }
   
+  # complete cases only
+  tmp <- tmp[complete.cases(tmp[,numeric_cols]),]
+  tmp$indvidual_id <- rownames(tmp)
+  
+  # overwrite parent dirty data
+  data$curatedPhen <- tmp
+  
+  ## expression data
+  tmp <- data$curatedExpr$"expression.txt"
+  # drop cases not in phenotype data
+  tmp <- tmp[,names(tmp) %in% c("feature_id", data$curatedPhen$indvidual_id)]
+  # merge on gene symbol
+  tmp <- merge(tmp, data$curatedExpr$"features.txt"[,c("feature_id", "genesymbol")], by = "feature_id")
+  # old skool split, apply combine to get mean expression per feature, per patient
+  tmp <- split(tmp, as.factor(tmp$genesymbol))
+  tmp <- lapply(tmp, function(df){
+    if(nrow(df)==1){
+      return(
+        # if only one row then just return reformatted dataframe
+        data.frame(
+          # keep gene symbol as feature id
+          feature_id=ifelse(df[1,"genesymbol"]=="", sprintf("feat_%.0f",df[1,"feature_id"]), df[1,"genesymbol"]),
+          # for other features calculate 5% trimmed mean
+          df[1,!names(df) %in% c("genesymbol", "feature_id")])
+        
+        )
+    } else {
+      return(
+        
+      data.frame(
+        # keep gene symbol as feature id
+        feature_id=ifelse(df[1,"genesymbol"]=="", sprintf("feat_%.0f",df[1,"feature_id"]), df[1,"genesymbol"]),
+        # for other features calculate 5% trimmed mean per subject
+        lapply(df[,!names(df) %in% c("genesymbol", "feature_id")], 
+               function(x) mean(x, na.rm=TRUE, trim=0.025)))
+      
+      )
+    }
+  })
+  tmp <- do.call("rbind", tmp)
+  
+  # remove invariant features and features with missing data
+  tmp <- tmp[complete.cases(tmp),]
+  tmp <- tmp[, remove invariant features ]
+  
+  # pivot
+  tmp <- list(hdr=tmp$feature_id, mat=t(tmp[,names(tmp) != "feature_id"]))
+  colnames(tmp$mat) <- tmp$hdr
+  
+  # overwrite uncleaned data
+  data$curatedExpr <- tmp$mat
+  
+  ## genotype data
+  tmp <- data$curatedGeno$genotype.txt
+  # drop cases not in phenotype data
+  tmp <- tmp[,names(tmp) %in% c("feature_id", data$curatedPhen$indvidual_id)]
+  # drop incomplete features (rows)
+  tmp <- tmp[complete.cases(tmp),]
+  # drop invariate features (only one variant)
+  tmp <- tmp[ apply(tmp[, !names(tmp) %in% "feature_id"], 1, function(x) length(unique(x))) > 1 ,]
+  # recode to factors
+  genotypes <- as.numeric(
+                factor(unlist(tmp[,!names(tmp) %in% c("feature_id")]))
+                )
+  for(icol in 2:ncol(tmp)){ # skip feature id
+    col <- names(tmp)[icol]
+    tmp[,col] <- genotypes[ ((icol-2)*(nrow(tmp)) + 1):((icol-1)*(nrow(tmp))) ]
+    
+  }
+  
+  # pivot
+  tmp <- list(hdr=tmp$feature_id, mat=t(tmp[,names(tmp) != "feature_id"]))
+  colnames(tmp$mat) <- tmp$hdr
+  
+  # overwrite old data
+  data$curatedGeno <- tmp$mat
+  
+  ### convert to standard form
   return(tmp)
   
 }
 
 do.svm <- function(liverdata){
   ### run some simple predictive modelling on liver cohort clinical data
-  # see integration/humanLiverCohort.R for more advanced calculations
   
   results <- list() # placeholder
   
@@ -167,8 +252,10 @@ do.svm <- function(liverdata){
 
 ### reporting
 # load data
-liverdata <- do.load(DATA_DIR=DATA_DIR, DOWNLOAD=DOWNLOAD)
-
+TIMES <- addRecord(TIMES, record_name = "dataload",
+                   record = system.time(gcFirst = T,
+                                        liverdata <- do.load(DATA_DIR=DATA_DIR, DOWNLOAD=DOWNLOAD)
+                                        ))
 # some simple predictions on basic data
 TIMES <- addRecord(TIMES, record_name = "svm",
                    record = system.time(gcFirst = T,
