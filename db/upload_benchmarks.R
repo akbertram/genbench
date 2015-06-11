@@ -5,36 +5,52 @@ library(rjson)
 library(reshape)
 
 # Options
-CREATE_NEW <- FALSE
+CREATE_NEW <- FALSE # default: do not recreate all tables
+CONN_INFO <- NA
+# check args to see if we should use database connection
+args <- commandArgs(trailingOnly = TRUE)
+# reset timings?
+if ("--create-new" %in% args){
+  CREATE_NEW <<- TRUE
+}
+# check for other required arguments
+conn_info <- args[args!="--create-new"]
+# split characters
+conn_info <- lapply(conn_info, function(x){strsplit(x, split = "=")[[1]]})
+# separate into key:value named list for ease of access
+names(conn_info) <- lapply(conn_info, function(x) x[[1]])
+conn_info <- lapply(conn_info, function(x) x[[2]])
+
+#   if(!"--driver" %in% names(conn_info)){
+#     # default: use mysql driver
+#     conn_info$`--driver` <- file.path(getwd(), dir("db", pattern = "mysql-connector-java-5.1.35.jar", full.names = TRUE))
+#   }
+
+if(all(c("--usr","--pwd","--conn") %in% names(conn_info))){
+  # all parameters are provided, so proceed with using database
+  # todo: more thorough testing of connection
+  
+  CONN_INFO <<- conn_info
+  USE_DB <<- TRUE
+  
+  cat("Working database credentials supplied, using database for examine_benchmarks.R")
+  
+} else {
+  
+  cat("Working database credentials NOT supplied, using local files for examine_benchmarks.R")
+  
+}
+
+
 
 ### functions
-# whitespace stripper
-trim <- function( x ) {
-  gsub("(^[[:space:]]+|[[:space:]]+$)", "", x)
-}
-# statement reader (returns list, one element per statement in file)
-# read statements, dropping any empty lines (note: NO COMMENTS!)
-readSQL <- function(path){
-  statements <- lapply(
-                      strsplit(split = ";", paste(readLines(path), collapse = " ")),
-                      function(x) ifelse(trim(x)== "", NA, paste(x,";")))[[1]]
-  statements <- statements[!is.na(statements)]
-  return(statements)
-}
+source("sql_utilities.R")
 
-### connect to mysql instance and check connection
-# http://mvnrepository.com/artifact/mysql/mysql-connector-java/5.1.35
-getConnection <- function(usr="foo", pwd="bar", connectionstring="jdbc:mysql://173.194.246.104/Rbenchmarks"){
-  drv <- JDBC("com.mysql.jdbc.Driver",
-              "mysql-connector-java-5.1.35.jar",
-              identifier.quote="`"
-              )
-  conn <- dbConnect(drv, connectionstring,
-                    user=usr, password=pwd)
-  return(conn)
-}
-conn <- getConnection()
-dbListTables(conn)
+### connect to DB
+conn <- getConnection(usr=CONN_INFO$`--usr`, 
+                      pwd=CONN_INFO$`--pwd`, 
+                      conn_string=CONN_INFO$`--conn`)
+#dbListTables(conn)
 
 ### create tables:
 ## meta table to hold metadata about each benchmark run
