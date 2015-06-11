@@ -2,7 +2,7 @@
 # may 2015
 
 ### upload benchmarks to MySQL instance
-
+install.packages("RJDBC", dependencies = TRUE)
 library(RJDBC)
 library(rjson)
 library(reshape)
