@@ -83,7 +83,9 @@ reports <- lapply(
     }
     
     # read data and parse file names
-    tmp <- read.delim(path, comment.char = "{")
+    tmp <- NA
+    try(tmp <- read.delim(path, comment.char = "{"))
+    if(is.na(tmp)){return(NA)}
     tmp$block <- rownames(tmp)
     # melt to tall and skinny for plotting
     tmp <- melt(tmp, id.vars = c("block"), na.rm = TRUE)
@@ -105,7 +107,7 @@ reports <- lapply(
 
 
 ### push data into meta and timings table
-lapply(reports, 
+lapply(reports[!is.na(reports)], 
        function(report){
          # check if this report has already been inserted
          if (nrow(dbGetQuery(conn, sprintf("

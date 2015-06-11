@@ -108,7 +108,9 @@ collect_reports.local <- function(){
       }
       
       # read data and parse file names
-      tmp <- read.delim(path, comment.char = "{")
+      tmp <- NA
+      try(tmp <- read.delim(path, comment.char = "{"))
+      if(is.na(tmp)){return(NA)}
       tmp$block <- rownames(tmp)
       # melt to tall and skinny for plotting
       tmp <- melt(tmp, id.vars = c("block"), na.rm = TRUE)
@@ -131,7 +133,7 @@ collect_reports.local <- function(){
       return(tmp)
     }
     )
-  reports <- do.call("rbind", reports)
+  reports <- do.call("rbind", reports[!is.na(reports)])
   # reorder variable for what was timed so that
   # figures look nicer
   levels(reports$variable) <- rev(sort(levels(reports$variable)))
