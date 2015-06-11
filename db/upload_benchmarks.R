@@ -14,6 +14,7 @@ CREATE_NEW <- FALSE # default: do not recreate all tables
 CONN_INFO <- NA
 # check args to see if we should use database connection
 args <- commandArgs(trailingOnly = TRUE)
+print(args)
 # reset timings?
 if ("--create-new" %in% args){
   CREATE_NEW <<- TRUE
