@@ -3,7 +3,7 @@ print(.libPaths())
 # may 2015
 
 ### upload benchmarks to MySQL instance
-library(RJDBC, lib = .libPaths()[1])
+library(RJDBC, lib.loc = .libPaths()[1])
 library(rjson)
 library(reshape)
 
