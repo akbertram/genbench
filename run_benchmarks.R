@@ -1,5 +1,3 @@
-print(.libPaths())
-
 # adapted from: https://github.com/bedatadriven/activityinfo-R/blob/development/inst/ci-build.R
 # ieuan clay
 # may 2015
@@ -49,13 +47,10 @@ install.dependencies <- function(cran=c(), bioc=c()){
   # Set a CRAN mirror to use
   options(repos=structure(c(CRAN="http://cran.rstudio.com")))
   
-  # Install packages to Jenkins' root folder
-  .libPaths(new="~/R/libs")
-  
   # Install CRAN packages
   for(pkg in cran) {
     if(!(pkg %in% installed.packages())) {
-      tryCatch(install.packages(pkg, dependencies = TRUE), 
+      tryCatch(install.packages(pkg, dependencies = TRUE, lib = .libPaths()[1]), 
                 error=function(e,pkg=pkg){
                       cat(sprintf("CRAN installation of %s failed with the following errors", pkg))
                       e
@@ -67,7 +62,8 @@ install.dependencies <- function(cran=c(), bioc=c()){
   source("http://bioconductor.org/biocLite.R")
   for(pkg in bioc) {
     if(!(pkg %in% installed.packages())) {
-      tryCatch(biocLite(pkg, suppressUpdates = TRUE, suppressAutoUpdate = TRUE, ask = FALSE),
+      tryCatch(biocLite(pkg, suppressUpdates = TRUE, 
+                        suppressAutoUpdate = TRUE, ask = FALSE),
                 error=function(e, pkg=pkg){
                   cat(sprintf("Bioc installation of %s failed with the following errors", pkg))
                   e
