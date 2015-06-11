@@ -1,9 +1,8 @@
-print(.libPaths())
 # ieuan clay
 # may 2015
 
 ### upload benchmarks to MySQL instance
-library(RJDBC, lib.loc = .libPaths()[1])
+library(RJDBC)
 library(rjson)
 library(reshape)
 
