@@ -2,6 +2,10 @@
 # may 2015
 
 ### upload benchmarks to MySQL instance
+rm(ls=list())
+# set libPath to local user dir
+.libPaths("~/R/libs")
+# packages
 library(RJDBC)
 library(rjson)
 library(reshape)

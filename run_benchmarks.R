@@ -46,7 +46,8 @@ install.dependencies <- function(cran=c(), bioc=c()){
   # Install required packages
   # Set a CRAN mirror to use
   options(repos=structure(c(CRAN="http://cran.rstudio.com")))
-  
+  # set libPath to local user dir
+  .libPaths("~/R/libs")
   # Install CRAN packages
   for(pkg in cran) {
     if(!(pkg %in% installed.packages())) {

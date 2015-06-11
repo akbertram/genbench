@@ -5,6 +5,9 @@
 ### examine results of benchmark runs in genbench
 ### set up environment
 rm(list=ls())
+# set libPath to local user dir
+.libPaths("~/R/libs")
+# packages
 library(ggplot2)
 library(dplyr)
 library(reshape)
