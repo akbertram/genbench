@@ -93,7 +93,7 @@ cran <- c(
   # clustering
   'stats','biclust', 's4vd', 'irlba',
   # ML
-  "ncvreg", "boot", "lars", "lasso2", "mda", "leaps", "e1071",
+  "ncvreg", "boot", "lars", "lasso2", "mda", "leaps", "e1071", "MASS",
   # survival
 #  "survival", # not yet implemented in clinical/esrII.R
   # table processing
@@ -114,13 +114,19 @@ install.dependencies(bioc=bioc, cran=cran)
 for (SCRIPT in rev(dir(file.path(getwd(), "code"), 
                   full.names = TRUE, recursive = TRUE, pattern = "\\.R$", 
                   ignore.case = TRUE))){
-  # run benchmark script
-  cat(timestamp(quiet = TRUE), "Running benchmark at ", SCRIPT,"\n")
-  for (x in 1:NRUNS){
-      cat(sprintf("\t>>>Run %i\n", x))
-      # all scripts assume working dir is same as script
-      # each script run in a fresh local environment
-      try({source(SCRIPT, chdir = TRUE, local=new.env())})
+  
+  if(NRUNS > 1){
+    # run benchmark script
+    cat(timestamp(quiet = TRUE), "Running benchmark at ", SCRIPT,"\n")
+    for (x in 1:NRUNS){
+        cat(sprintf("\t>>>Run %i\n", x))
+        # all scripts assume working dir is same as script
+        # each script run in a fresh local environment
+        try({source(SCRIPT, chdir = TRUE, local=new.env())})
+    }
+  } else {
+    # dry run, install packages only
+    cat("Not running benchmark at ", SCRIPT,"\n")
   }
 }
 
