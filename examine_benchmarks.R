@@ -150,7 +150,7 @@ collect_reports.local <- function(){
 if(USE_DB){
   res <- collect_reports(USE_DB = USE_DB, usr=CONN_INFO$`--usr`, 
                          pwd=CONN_INFO$`--pwd`, 
-                         conn=CONN_INFO$`--conn`
+                         conn_string=CONN_INFO$`--conn`
                          )
 } else {
   res <- collect_reports()

@@ -122,5 +122,3 @@ for (SCRIPT in rev(dir(file.path(getwd(), "code"),
   }
 }
 
-## plot results so far
-source("examine_benchmarks.R")
