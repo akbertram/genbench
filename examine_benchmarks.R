@@ -4,7 +4,6 @@
 
 ### examine results of benchmark runs in genbench
 ### set up environment
-rm(list=ls())
 # set libPath to local user dir
 .libPaths("~/R/libs")
 # packages
