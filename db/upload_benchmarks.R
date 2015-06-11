@@ -2,7 +2,7 @@
 # may 2015
 
 ### upload benchmarks to MySQL instance
-rm(ls=list())
+rm(list = ls())
 # set libPath to local user dir
 .libPaths("~/R/libs")
 # packages
