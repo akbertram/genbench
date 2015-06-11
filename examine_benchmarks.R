@@ -3,18 +3,54 @@
 # may 2015
 
 ### examine results of benchmark runs in genbench
-USE_DB <- TRUE
-
 ### set up environment
 rm(list=ls())
 library(ggplot2)
 library(dplyr)
 library(reshape)
+library(rjson)
+
+## use local files or database?
+USE_DB <- FALSE # default, use local files
+CONN_INFO <- NA
+# check args to see if we should use database connection
+args <- commandArgs(trailingOnly = TRUE)
+# reset timings?
+if ("--use-db" %in% args){
+  library(RJDBC)
+  # check for other required arguments
+  conn_info <- args[args!="--use-db"]
+  # split characters
+  conn_info <- lapply(conn_info, function(x){strsplit(x, split = "=")[[1]]})
+  # separate into key:value named list for ease of access
+  names(conn_info) <- lapply(conn_info, function(x) x[[1]])
+  conn_info <- lapply(conn_info, function(x) x[[2]])
+  
+#   if(!"--driver" %in% names(conn_info)){
+#     # default: use mysql driver
+#     conn_info$`--driver` <- file.path(getwd(), dir("db", pattern = "mysql-connector-java-5.1.35.jar", full.names = TRUE))
+#   }
+  
+  if(all(c("--usr","--pwd","--conn") %in% names(conn_info))){
+    # all parameters are provided, so proceed with using database
+    # todo: more thorough testing of connection
+    
+    CONN_INFO <<- conn_info
+    USE_DB <<- TRUE
+    
+    cat("Working database credentials supplied, using database for examine_benchmarks.R")
+    
+  } else {
+    
+    cat("Working database credentials NOT supplied, using local files for examine_benchmarks.R")
+    
+  }
+}
 
 ### functions
-collect_reports <- function(USE_DB=TRUE, usr="foo", pwd="bar"){
+collect_reports <- function(USE_DB=FALSE, usr="foo", pwd="bar", conn_string="baz"){
   if(USE_DB){
-    res <- collect_reports.mysql(usr, pwd, )
+    res <- collect_reports.mysql(usr, pwd, conn_string)
   } else {
     
     # use locally cached files instead
@@ -24,11 +60,11 @@ collect_reports <- function(USE_DB=TRUE, usr="foo", pwd="bar"){
   
   return(res)
 }
-collect_reports.mysql <- function(usr="foo", pwd="bar"){
+collect_reports.mysql <- function(usr="foo", pwd="bar", conn_string="baz"){
   
   source(file.path("db", "sql_utilities.R"), chdir = TRUE)
   
-  conn <- getConnection(usr, pwd, jdbcdriver = "db//mysql-connector-java-5.1.35.jar") 
+  conn <- getConnection(usr, pwd, conn_string) 
   
   res <- dbGetQuery(conn, 
                     "
@@ -111,7 +147,14 @@ collect_reports.local <- function(){
 ############
 
 ### collect data
-res <- collect_reports(USE_DB = FALSE)
+if(USE_DB){
+  res <- collect_reports(USE_DB = USE_DB, usr=CONN_INFO$`--usr`, 
+                         pwd=CONN_INFO$`--pwd`, 
+                         conn=CONN_INFO$`--conn`
+                         )
+} else {
+  res <- collect_reports()
+}
 
 ### plot
 g <- ggplot(data = res)

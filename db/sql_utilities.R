@@ -18,13 +18,13 @@ readSQL <- function(path){
 ### connect to mysql instance and check connection
 # http://mvnrepository.com/artifact/mysql/mysql-connector-java/5.1.35
 getConnection <- function(usr="foo", pwd="bar", 
-                          jdbcdriver="mysql-connector-java-5.1.35.jar",
-                          connectionstring="jdbc:mysql://173.194.246.104/Rbenchmarks"){
+                          driver="mysql-connector-java-5.1.35.jar",
+                          conn_string="jdbc:mysql://173.194.246.104/Rbenchmarks"){
   drv <- JDBC("com.mysql.jdbc.Driver",
-              jdbcdriver,
+              driver,
               identifier.quote="`"
   )
-  conn <- dbConnect(drv, connectionstring,
+  conn <- dbConnect(drv, conn_string,
                     user=usr, password=pwd)
   return(conn)
 }
