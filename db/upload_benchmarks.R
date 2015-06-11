@@ -1,3 +1,4 @@
+print(getwd())
 # upload benchmarks to MySQL instance
 
 library(RJDBC)
