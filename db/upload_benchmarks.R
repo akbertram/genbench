@@ -1,5 +1,7 @@
-print(getwd())
-# upload benchmarks to MySQL instance
+# ieuan clay
+# may 2015
+
+### upload benchmarks to MySQL instance
 
 library(RJDBC)
 library(rjson)
