@@ -14,7 +14,7 @@ CREATE_NEW <- FALSE # default: do not recreate all tables
 CONN_INFO <- NA
 # check args to see if we should use database connection
 args <- commandArgs(trailingOnly = TRUE)
-print(args)
+
 # reset timings?
 if ("--create-new" %in% args){
   CREATE_NEW <<- TRUE
@@ -90,7 +90,7 @@ reports <- lapply(
     
     # read data and parse file names
     tmp <- NA
-    try(tmp <- read.delim(path, comment.char = "{"))
+    try(tmp <- read.delim(path, comment.char = "{"), silent = TRUE)
     if(is.na(tmp)){return(NA)}
     tmp$block <- rownames(tmp)
     # melt to tall and skinny for plotting

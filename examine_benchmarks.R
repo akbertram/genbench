@@ -111,7 +111,7 @@ collect_reports.local <- function(){
       
       # read data and parse file names
       tmp <- NA
-      try(tmp <- read.delim(path, comment.char = "{"))
+      try(tmp <- read.delim(path, comment.char = "{"), silent = TRUE)
       if(is.na(tmp)){return(NA)}
       tmp$block <- rownames(tmp)
       # melt to tall and skinny for plotting
