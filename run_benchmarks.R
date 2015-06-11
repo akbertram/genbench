@@ -130,3 +130,5 @@ for (SCRIPT in rev(dir(file.path(getwd(), "code"),
   }
 }
 
+library(RJDBC)
+
