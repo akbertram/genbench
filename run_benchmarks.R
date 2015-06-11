@@ -1,3 +1,5 @@
+print(.libPaths())
+
 # adapted from: https://github.com/bedatadriven/activityinfo-R/blob/development/inst/ci-build.R
 # ieuan clay
 # may 2015
