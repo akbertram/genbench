@@ -145,24 +145,36 @@ do.load <-function(DATA_DIR, DOWNLOAD=FALSE){
   tmp <- do.call("rbind", tmp)
   
   # remove invariant features and features with missing data
+  # be conservative - later feature selection will remove further features
   tmp <- tmp[complete.cases(tmp),]
-  tmp <- tmp[, remove invariant features ]
+  tmp <- tmp[, c(
+    TRUE, # keep feature ID
+    # remove lowest quartile (by variance) of columns
+    unlist(apply(tmp[,2:ncol(tmp)], 2, var, na.rm = TRUE)) 
+      > quantile(unlist(apply(tmp[,2:ncol(tmp)], 2, var, na.rm = TRUE)), na.rm = TRUE, probs = 0.25, names = FALSE)[[1]]
+    )]
   
-  # pivot
-  tmp <- list(hdr=tmp$feature_id, mat=t(tmp[,names(tmp) != "feature_id"]))
+  # pivot to standard form
+  tmp <- list(hdr=as.character(tmp$feature_id), 
+              mat=t(tmp[,names(tmp) != "feature_id"])
+              )
   colnames(tmp$mat) <- tmp$hdr
   
   # overwrite uncleaned data
   data$curatedExpr <- tmp$mat
   
   ## genotype data
-  tmp <- data$curatedGeno$genotype.txt
+  tmp <- data$curatedGeno$"genotype.txt"
   # drop cases not in phenotype data
   tmp <- tmp[,names(tmp) %in% c("feature_id", data$curatedPhen$indvidual_id)]
   # drop incomplete features (rows)
   tmp <- tmp[complete.cases(tmp),]
   # drop invariate features (only one variant)
-  tmp <- tmp[ apply(tmp[, !names(tmp) %in% "feature_id"], 1, function(x) length(unique(x))) > 1 ,]
+  # conservative - later feature selection will remove more
+  tmp <- tmp[ 
+            # keep rows (SNPs) with more than 1 type of call
+            apply(tmp[, !names(tmp) %in% "feature_id"], 1, function(x){length(unique(x))}) > 1 
+            , ]
   # recode to factors
   genotypes <- as.numeric(
                 factor(unlist(tmp[,!names(tmp) %in% c("feature_id")]))
@@ -173,15 +185,15 @@ do.load <-function(DATA_DIR, DOWNLOAD=FALSE){
     
   }
   
-  # pivot
-  tmp <- list(hdr=tmp$feature_id, mat=t(tmp[,names(tmp) != "feature_id"]))
+  # pivot to standard form
+  tmp <- list(hdr=as.character(tmp$feature_id), mat=t(tmp[,names(tmp) != "feature_id"]))
   colnames(tmp$mat) <- tmp$hdr
   
   # overwrite old data
   data$curatedGeno <- tmp$mat
   
-  ### convert to standard form
-  return(tmp)
+  # return cleaned data
+  return(data)
   
 }
 
@@ -232,6 +244,7 @@ do.svm <- function(liverdata){
   train$pred <- predict(model, as.matrix(train[,livercols]))
   # and on the testset
   test$pred <- predict(model,as.matrix(test[,livercols]))
+  # TODO: calculate error
   
   # return results
   results <- append(results, 
@@ -250,6 +263,15 @@ do.svm <- function(liverdata){
   
 }
 
+# do.nb_expr <- function(liverdata){
+#   
+# }
+# 
+# do.rlm_expr <- function(liverdata){
+# 
+#     #"Expression trait processing. Expression traits were adjusted for age, sex, and medical center. Residuals were computed using rlm function from R statistical package (M-estimation with Tukey's bisquare weights). In examining the distributions of the mean log ratio measures for each expression trait in the HLC set, we noted a high rate of outliers. As a result, we used robust residuals and nonparametric tests to carry out the association analyses in the HLC. For each expression trait, residual values deviating from the median by more than three robust standard deviations were filtered out as outliers."
+#   # http://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.0060107
+# }
 ### reporting
 # load data
 TIMES <- addRecord(TIMES, record_name = "dataload",
@@ -257,11 +279,25 @@ TIMES <- addRecord(TIMES, record_name = "dataload",
                                         liverdata <- do.load(DATA_DIR=DATA_DIR, DOWNLOAD=DOWNLOAD)
                                         ))
 # some simple predictions on basic data
-TIMES <- addRecord(TIMES, record_name = "svm",
+TIMES <- addRecord(TIMES, record_name = "svm-pheno",
                    record = system.time(gcFirst = T,
-                                        RESULTS <- addRecord(RESULTS, record_name="svm",
-                                                             record=do.svm(liverdata)
+                                        RESULTS <- addRecord(RESULTS, record_name="svm-pheno",
+                                                             record=do.svm(liverdata$curatedPhen)
                                         )))
+
+# can expression data predict a class of liver enzyme activity?
+# TIMES <- addRecord(TIMES, record_name = "naivebayes-expr",
+#                    record = system.time(gcFirst = T,
+#                                         RESULTS <- addRecord(RESULTS, record_name="naivebayes-expr",
+#                                                              record=do.nb_expr(liverdata)
+#                                         )))
+# 
+# # can expression data predict liver enzyme activity?
+# TIMES <- addRecord(TIMES, record_name = "rlm-expr",
+#                    record = system.time(gcFirst = T,
+#                                         RESULTS <- addRecord(RESULTS, record_name="rlm-expr",
+#                                                              record=do.rlm_expr(liverdata)
+#                                         )))
 
 ## output results for comparison
 # write results to file
