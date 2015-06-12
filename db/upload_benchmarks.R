@@ -161,6 +161,7 @@ loaded <- lapply(reports[!is.na(reports)],
          cat(sprintf("Report successfully loaded from \'%s\'\n", report$meta$path))
          return(report)
          }
+       }
 )
 # report loading
 cat(sprintf("%i new reports loaded to database", sum(!is.na(loaded))))
