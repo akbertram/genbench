@@ -3,6 +3,7 @@
 # started: may 2015
 
 ### utility functions, classes and methods for running and reporting benchmarks
+library(parallel) # for examining machine
 
 ## class definitions
 # generic "genbase" class with common aspects of results and timings
@@ -19,7 +20,7 @@ genbench <- function(benchmark_name="NOT_SET", benchmark_group=basename(getwd())
       benchmark=benchmark_name, 
       wd=getwd(),
       benchmark_group=benchmark_group,
-      env=c(R.Version(), Sys.info()[c("sysname", "release", "version")])
+      env=c(R.Version(), Sys.info()[c("sysname", "release", "version")], nphyscores=detectCores(logical = FALSE), nlogcores=detectCores(logical = TRUE))
       ),
     class = "genbench") 
 }

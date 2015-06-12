@@ -156,6 +156,26 @@ loaded <- lapply(reports[!is.na(reports)],
                
                )}
          )
+         # insert additional meta data from header (row by row for report)
+         report$meta <- melt(
+                        data.frame(report$meta, meta_id=m_id), 
+                        id.vars = "meta_id")
+         lapply(1:nrow(report$meta), function(i){
+           dbSendUpdate(conn,
+                        # print(
+                        sprintf(
+                          "
+                              INSERT INTO extra_meta (meta_id, variable, value)
+                              VALUES (%i, \'%s\', \'%s\');
+                            ",
+                          report$meta[i,"meta_id"], 
+                          report$meta[i,"variable"], 
+                          as.character(report$meta[i,"value"])
+                          
+                        )
+                        
+           )}
+         )
          
          # report completion
          cat(sprintf("Report successfully loaded from \'%s\'\n", report$meta$path))
