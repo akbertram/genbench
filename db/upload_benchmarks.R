@@ -108,7 +108,7 @@ reports <- lapply(
 
 
 ### push data into meta and timings table
-lapply(reports[!is.na(reports)], 
+loaded <- lapply(reports[!is.na(reports)], 
        function(report){
          # check if this report has already been inserted
          if (nrow(dbGetQuery(conn, sprintf("
@@ -123,8 +123,8 @@ lapply(reports[!is.na(reports)],
            
            # report completion
            cat(sprintf("Report already loaded from \'%s\'\n", report$meta$path))
-           return(report)
-         }
+           return(NA)
+         } else {
          # insert metadata
          dbSendUpdate(conn,
                       sprintf(
@@ -160,8 +160,11 @@ lapply(reports[!is.na(reports)],
          # report completion
          cat(sprintf("Report successfully loaded from \'%s\'\n", report$meta$path))
          return(report)
-  }
+         }
 )
+# report loading
+cat(sprintf("%i new reports loaded to database", sum(!is.na(loaded))))
+cat(sprintf("%i reports already present in database", sum(is.na(loaded))))
 
 ### check results
 cat(sprintf("DB now contains %i benchmarks.", 
