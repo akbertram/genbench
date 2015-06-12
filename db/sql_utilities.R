@@ -18,8 +18,8 @@ readSQL <- function(path){
 ### connect to mysql instance and check connection
 # http://mvnrepository.com/artifact/mysql/mysql-connector-java/5.1.35
 getConnection <- function(usr="foo", pwd="bar", 
-                          driver=NULL,
-                          conn_string="jdbc:mysql://173.194.246.104/Rbenchmarks"){
+                          conn_string="jdbc:mysql://173.194.246.104/Rbenchmarks",
+                          driver=NULL){
   if(is.null(driver)){
     # the default driver is the local mysql.jar
     # this part is required such that sourcing this script from any dir

@@ -66,7 +66,9 @@ collect_reports.mysql <- function(usr="foo", pwd="bar", conn_string="baz"){
   
   source(file.path("db", "sql_utilities.R"))
   
-  conn <- getConnection(usr, pwd, conn_string) 
+  conn <- getConnection(usr=CONN_INFO$`--usr`, 
+                        pwd=CONN_INFO$`--pwd`, 
+                        conn_string=CONN_INFO$`--conn`) 
   
   res <- dbGetQuery(conn, 
                     "
