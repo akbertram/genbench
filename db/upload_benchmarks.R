@@ -27,11 +27,6 @@ conn_info <- lapply(conn_info, function(x){strsplit(x, split = "=")[[1]]})
 names(conn_info) <- lapply(conn_info, function(x) x[[1]])
 conn_info <- lapply(conn_info, function(x) x[[2]])
 
-#   if(!"--driver" %in% names(conn_info)){
-#     # default: use mysql driver
-#     conn_info$`--driver` <- file.path(getwd(), dir("db", pattern = "mysql-connector-java-5.1.35.jar", full.names = TRUE))
-#   }
-
 if(all(c("--usr","--pwd","--conn") %in% names(conn_info))){
   # all parameters are provided, so proceed with using database
   # todo: more thorough testing of connection

@@ -1,11 +1,5 @@
 
 require(RJDBC)
-# the default driver is the local mysql.jar
-# this part is required such that sourcing this script from any dir
-# will still correctly load the driver, without having to specify it each time
-# TODO: find a less ugly solution
-e <- new.env()
-local(driver <- file.path(getwd(), dir(pattern = ".jar")),envir = e)
 
 # whitespace stripper
 trim <- function( x ) {
@@ -24,8 +18,21 @@ readSQL <- function(path){
 ### connect to mysql instance and check connection
 # http://mvnrepository.com/artifact/mysql/mysql-connector-java/5.1.35
 getConnection <- function(usr="foo", pwd="bar", 
-                          driver=e$driver,
+                          driver=NULL,
                           conn_string="jdbc:mysql://173.194.246.104/Rbenchmarks"){
+  if(is.null(driver)){
+    # the default driver is the local mysql.jar
+    # this part is required such that sourcing this script from any dir
+    # will still correctly load the driver, without having to specify it each time
+    # NB: if the user specifies a custom driver, they must pass the full path!
+    tryCatch(driver <- file.path(
+                          getwd(), 
+                          dir(pattern = "mysql-connector-java.*.jar", 
+                                     full.names = TRUE, recursive = TRUE, 
+                                     include.dirs = FALSE, no.. = TRUE)[[1]]
+                        ),
+             error = function(e) sprintf("Driver could not be found: %s", e))
+  }
   drv <- JDBC("com.mysql.jdbc.Driver",
               driver,
               identifier.quote="`"
