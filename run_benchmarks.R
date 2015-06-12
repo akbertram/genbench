@@ -3,6 +3,8 @@
 # may 2015
 
 ### run all benchmarks in genbench
+# set loca libs for installing any packages
+.libPaths(file.path("~","R","libs"))
 # needs info about path and what size of data to run on
 args <- commandArgs(trailingOnly = TRUE)
 # reset timings?
@@ -47,7 +49,7 @@ install.dependencies <- function(cran=c(), bioc=c()){
   # Set a CRAN mirror to use
   options(repos=structure(c(CRAN="http://cran.rstudio.com")))
   # set libPath to local user dir
-  .libPaths("~/R/libs")
+  .libPaths(file.path("~","R","libs"))
   # Install CRAN packages
   for(pkg in cran) {
     if(!(pkg %in% installed.packages())) {

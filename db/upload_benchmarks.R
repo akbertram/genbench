@@ -3,7 +3,7 @@
 
 ### upload benchmarks to MySQL instance
 # set libPath to local user dir
-.libPaths("~/R/libs")
+.libPaths(file.path("~","R","libs"))
 # packages
 library(RJDBC)
 library(rjson)
@@ -169,4 +169,8 @@ lapply(reports[!is.na(reports)],
 )
 
 ### check results
-dbGetQuery(conn, "SELECT * FROM timings t JOIN meta m ON t.meta_id=m.meta_id WHERE t.variable=\"elapsed\";")
+cat(sprintf("DB now contains %i benchmarks.", 
+            dbGetQuery(conn, "
+                                  SELECT count(distinct meta_id) as cnt 
+                                  FROM meta;")$cnt)
+    )
