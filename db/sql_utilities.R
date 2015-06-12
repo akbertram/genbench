@@ -31,8 +31,9 @@ getConnection <- function(usr="foo", pwd="bar",
                                      full.names = TRUE, recursive = TRUE, 
                                      include.dirs = FALSE, no.. = TRUE)[[1]]
                         ),
-             error = function(e) sprintf("Driver could not be found: %s", e))
+             error = function(e) cat(sprintf("Driver could not be found: %s\n", e)))
   }
+  print(driver)
   drv <- JDBC("com.mysql.jdbc.Driver",
               driver,
               identifier.quote="`"
