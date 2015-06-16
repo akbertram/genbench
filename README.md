@@ -1,7 +1,7 @@
 genbench
 =======
 
-GenBench: Realworld Genomics Benchmarks for R, forked from and inspired by <a href= "https://github.com/hannesmuehleisen/genbase">GenBase</a>.
+GenBench: Realworld Genomics Benchmarks for R, forked from <a href= "https://github.com/hannesmuehleisen/genbase">GenBase</a> and inspired by [the original GenBase](https://github.com/mitdbg/genbase).
 
 
 Why do we need a new benchmark:
