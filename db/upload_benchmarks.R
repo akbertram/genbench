@@ -6,7 +6,7 @@
 .libPaths(file.path("~","R","libs"))
 # packages
 library(RJDBC)
-library(rjson)
+library(RJSONIO)
 library(reshape)
 
 # Options

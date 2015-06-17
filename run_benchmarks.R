@@ -106,7 +106,7 @@ cran <- c(
   # plotting
   "ggplot2", "dplyr",
   # db stuff and reporting
-  "rjson", "RJDBC"
+  "RJSONIO", "RJDBC"
 )
 bioc <- c('Biobase', 'affy', 'hgu133plus2cdf', 'limma', 'edgeR')
 install.dependencies(bioc=bioc, cran=cran)

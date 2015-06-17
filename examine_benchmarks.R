@@ -10,7 +10,7 @@
 library(ggplot2)
 library(dplyr)
 library(reshape)
-library(rjson)
+library(RJSONIO)
 
 ## use local files or database?
 USE_DB <- FALSE # default, use local files
