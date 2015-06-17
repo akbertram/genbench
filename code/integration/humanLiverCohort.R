@@ -203,23 +203,23 @@ do.svm <- function(liverdata){
   
   results <- list() # placeholder
   
-  ## SVM on gender and liver stats using liver enzyme data
+  ## SVM on age and liver stats using liver enzyme data
   # set test/train, sampling 1/3 rows as test
-  traintest <- rep(TRUE, nrow(liverdata))
-  traintest[sample(1:length(traintest), size = round(nrow(liverdata)/3), replace = FALSE)] <- FALSE
+  traintest <- rep(TRUE, nrow(liverdata$curatedPhen))
+  traintest[sample(1:length(traintest), size = round(nrow(liverdata$curatedPhen)/3), replace = FALSE)] <- FALSE
   
-  train <- liverdata[traintest,]
-  test <- liverdata[!traintest,]
+  train <- liverdata$curatedPhen[traintest,]
+  test <- liverdata$curatedPhen[!traintest,]
   livercols <- 9:18
   model <- svm(x = as.matrix(train[,livercols]), # all liver enzme activiy stats 
-               y=factor(train$GENDER, levels = c("Male", "Female")), 
+               y=factor(train$"AGE_(YRS)" > 50), 
                scale = TRUE, type = "C")
   # test model on training set
   pred <- predict(model, as.matrix(train[,livercols]))
   res <- classAgreement(table(pred, factor(train$GENDER, levels = c("Male", "Female"))))
   results <- append(results, 
                     list(data.frame(
-                      dat="gendertrain",
+                      dat="agetrain",
                       var=names(res),
                       coeff=unlist(res)
                     ))
@@ -231,7 +231,7 @@ do.svm <- function(liverdata){
   
   results <- append(results, 
                     list(data.frame(
-                      dat="gendertest",
+                      dat="agetest",
                       var=names(res),
                       coeff=unlist(res)
                     ))
@@ -343,45 +343,177 @@ do.nb_expr <- function(liverdata){
   test <- liverdata$curatedExpr[!traintest,]
   
   ## train model on each set of target classes
-  lapply(names(grps), function(grptype){
+  results <- lapply(names(grps), function(grptype){
     grp <- grps[[grptype]]
     # do training
     model <- naiveBayes(x = train, y = factor(grp[traintest]))
     
     # check error on training data
     pred <- predict(model, train)
-    res <- classAgreement(table(pred, grp[traintest]))
-    results <- append(results, 
-                      list(data.frame(
-                        dat=paste("nbtrain", grptype, sep = "-"),
-                        var=names(res),
-                        coeff=unlist(res)
-                      ))
-    )
+    trainres <- classAgreement(table(pred, grp[traintest]))
     
     # and on the testset
     pred <- predict(model,test)
     res <- classAgreement(table(pred, grp[!traintest]))
     
-    results <- append(results, 
-                      list(data.frame(
+    return(      list(data.frame(
                         dat=paste("nbtest", grptype, sep = "-"),
                         var=names(res),
                         coeff=unlist(res)
-                      ))
+                      ),
+                      data.frame(
+                        dat=paste("nbtrain", grptype, sep = "-"),
+                        var=names(trainres),
+                        coeff=unlist(trainres)
+                      )
+              )
     )
   })
   
   # return results
-  return(do.call("rbind",results))
+  return(do.call("rbind", unlist(results, recursive = F)))
 }
 
-# do.rlm_expr <- function(liverdata){
-# 
-#     #"Expression trait processing. Expression traits were adjusted for age, sex, and medical center. Residuals were computed using rlm function from R statistical package (M-estimation with Tukey's bisquare weights). In examining the distributions of the mean log ratio measures for each expression trait in the HLC set, we noted a high rate of outliers. As a result, we used robust residuals and nonparametric tests to carry out the association analyses in the HLC. For each expression trait, residual values deviating from the median by more than three robust standard deviations were filtered out as outliers."
-#   # PLOS Biology: Mapping the Genetic Architecture of Gene ...
-# http://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.0060107
-# }
+do.rlm_expr <- function(liverdata){
+
+  #"Expression trait processing. Expression traits were adjusted for age, sex, and medical center. Residuals were computed using rlm function from R statistical package (M-estimation with Tukey's bisquare weights). In examining the distributions of the mean log ratio measures for each expression trait in the HLC set, we noted a high rate of outliers. As a result, we used robust residuals and nonparametric tests to carry out the association analyses in the HLC. For each expression trait, residual values deviating from the median by more than three robust standard deviations were filtered out as outliers."
+  # PLOS Biology: Mapping the Genetic Architecture of Gene ...
+  # http://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.0060107
+  
+  ### using robus linear models to build predictive model for
+  ### Liver_Triglyceride levels
+  
+  results <- list() # placeholder
+  
+  ## split data into test and train
+  # set test/train, sampling 1/3 rows as test
+  traintest <- rep(TRUE, nrow(liverdata$curatedExpr))
+  traintest[sample(1:length(traintest), size = round(nrow(liverdata$curatedExpr)/3), replace = FALSE)] <- FALSE
+  
+  # make test and train datasets
+  train <- liverdata$curatedExpr[traintest,]
+  test <- liverdata$curatedExpr[!traintest,]
+  
+  ## feature selection
+  # simplest: most variable features
+  feats <- apply(train, MARGIN = 2, var)
+  if(VERBOSE){
+    # ~waterfall plot
+    # clear split between variable and non variable features
+    plot(feats, rank(feats), col=factor(rank(feats) > ncol(train) - 50))
+    # proceed with top variable features
+  }
+  feats <- (rank(feats) > (ncol(train) - 50))
+  # exclude any exact linear combinations of variables (singularity causes rlm to fail)
+  # see: http://stats.stackexchange.com/questions/70899/what-correlation-makes-a-matrix-singular-and-what-are-implications-of-singularit
+  feats[feats] <- !(apply(abs(cor(train[,feats])) >= 0.75, MARGIN = 1, sum) > 1)  ## train model against triglyceride data
+  if(VERBOSE){
+    # make sure determinant is higher than 0
+    det(cor(train[,feats]))
+  }
+  
+  ## train model against triglyceride data
+  # do training
+  model <- rlm( 
+                triglyc ~ ., 
+                # adding response column as first column
+                data = data.frame(triglyc=liverdata$curatedPhen[rownames(liverdata$curatedExpr)[traintest], "Liver_Triglyceride_(mg_per_dL)"],
+                                                  train[,feats]),
+#                x = train[,feats], 
+#                y = liverdata$curatedPhen[rownames(liverdata$curatedExpr)[traintest], "Liver_Triglyceride_(mg_per_dL)"],
+                method= "M", psi = psi.bisquare)
+  
+  # check error on training data
+  results <- append(results, 
+                    list(data.frame(
+                      dat="rlmtrain-topvar",
+                      var="cor",
+                      coeff=cor(liverdata$curatedPhen[rownames(liverdata$curatedExpr)[traintest], "Liver_Triglyceride_(mg_per_dL)"], 
+                                predict(model, data.frame(train[,feats])))
+                    ))
+  )
+  
+  # and on the testset
+  results <- append(results, 
+                    list(data.frame(
+                      dat="rlmtest-topvar",
+                      var="cor",
+                      coeff=cor(liverdata$curatedPhen[rownames(liverdata$curatedExpr)[!traintest], "Liver_Triglyceride_(mg_per_dL)"], 
+                                predict(model, data.frame(test[,feats])))
+                    ))
+  )
+
+
+  ### results above by heuristic feature selection are really poor,
+  # so try feature selection by sampling
+
+  bestcor <- 0
+  set.seed(8008)
+  for(i in 1:50){
+    if(VERBOSE){
+      cat(sprintf("starting iteration %i for rlm()\n", i))
+    }
+    feats <- apply(train, MARGIN = 2, var)
+    feats <- (rank(feats) > (ncol(train) - 1000)) # start from top 1000 by variablility
+    subfeats <- 1:length(feats)
+    subfeats <- subfeats[feats] # all top features
+    subfeats <- names(feats[sample(subfeats, 25, replace = F)]) # sample
+    # exclude any exact linear combinations of variables (singularity causes rlm to fail)
+    subfeats <- subfeats[!(apply(abs(cor(train[,subfeats])) >= 0.75, MARGIN = 1, sum) > 1)]  ## train model against triglyceride data
+    if(VERBOSE){
+      # make sure determinant is higher than 0
+      det(cor(train[,subfeats]))
+    }
+    
+    ## train model against triglyceride data
+    # do training with ERROR HANDLING
+    possibleError <- tryCatch(error=function(e) e,
+      model <- rlm( maxit=50,
+        triglyc ~ ., 
+        # adding response column as first column
+        data = data.frame(triglyc=liverdata$curatedPhen[rownames(liverdata$curatedExpr)[traintest], "Liver_Triglyceride_(mg_per_dL)"],
+                          train[,subfeats]),
+        #                x = train[,feats], 
+        #                y = liverdata$curatedPhen[rownames(liverdata$curatedExpr)[traintest], "Liver_Triglyceride_(mg_per_dL)"],
+        method= "M", psi = psi.bisquare))
+    # skip if model failed to converge
+    if(inherits(possibleError, "error")){
+      if(VERBOSE){
+        cat(sprintf("\titeration %i failed to converge\n", i))
+      }
+      next
+    }
+    
+    # check error on training data
+    tmp_res <- cor(liverdata$curatedPhen[rownames(liverdata$curatedExpr)[traintest], "Liver_Triglyceride_(mg_per_dL)"], 
+                   predict(model, data.frame(train[,subfeats])))
+    # stop now if the result is no better than the previous best
+    # no point testing on test set if training set is not better than previous best
+    if(tmp_res < bestcor){
+      next
+    }
+    # and on the testset
+    tmp_res <- cor(liverdata$curatedPhen[rownames(liverdata$curatedExpr)[!traintest], "Liver_Triglyceride_(mg_per_dL)"], 
+                   predict(model, data.frame(test[,subfeats])))
+    
+    if(tmp_res > bestcor){
+      bestcor <- tmp_res
+    }
+    
+  }  
+  # append the best result so far
+  results <- append(results, 
+                    list(data.frame(
+                      dat="rlm-sample",
+                      var="cor",
+                      coeff=bestcor
+                    ))
+  )
+  
+  # return results
+  return(do.call("rbind",results))
+  
+}
 
 ### reporting
 # load data
@@ -393,7 +525,7 @@ TIMES <- addRecord(TIMES, record_name = "dataload",
 TIMES <- addRecord(TIMES, record_name = "svm-pheno",
                    record = system.time(gcFirst = T,
                                         RESULTS <- addRecord(RESULTS, record_name="svm-pheno",
-                                                             record=do.svm(liverdata$curatedPhen)
+                                                             record=do.svm(liverdata)
                                         )))
 
 # can expression data predict a class of liver enzyme activity?
@@ -403,12 +535,12 @@ TIMES <- addRecord(TIMES, record_name = "naivebayes-expr",
                                                              record=do.nb_expr(liverdata)
                                         )))
 
-# # can expression data predict liver enzyme activity?
-# TIMES <- addRecord(TIMES, record_name = "rlm-expr",
-#                    record = system.time(gcFirst = T,
-#                                         RESULTS <- addRecord(RESULTS, record_name="rlm-expr",
-#                                                              record=do.rlm_expr(liverdata)
-#                                         )))
+# can expression data predict liver enzyme activity?
+TIMES <- addRecord(TIMES, record_name = "rlm-expr",
+                   record = system.time(gcFirst = T,
+                                        RESULTS <- addRecord(RESULTS, record_name="rlm-expr",
+                                                             record=do.rlm_expr(liverdata)
+                                        )))
 
 ## output results for comparison
 # write results to file
