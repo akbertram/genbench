@@ -116,7 +116,7 @@ for (SCRIPT in rev(dir(file.path(getwd(), "code"),
                   full.names = TRUE, recursive = TRUE, pattern = "\\.R$", 
                   ignore.case = TRUE))){
   
-  if(NRUNS > 1){
+  if(NRUNS >= 1){
     # run benchmark script
     cat(timestamp(quiet = TRUE), "Running benchmark at ", SCRIPT,"\n")
     for (x in 1:NRUNS){
