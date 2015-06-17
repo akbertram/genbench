@@ -504,7 +504,7 @@ do.rlm_expr <- function(liverdata){
   # append the best result so far
   results <- append(results, 
                     list(data.frame(
-                      dat="rlm-sample",
+                      dat="rlmtest-sample",
                       var="cor",
                       coeff=bestcor
                     ))
