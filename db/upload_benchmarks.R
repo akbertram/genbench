@@ -2,6 +2,7 @@
 # may 2015
 
 ### upload benchmarks to MySQL instance
+install.packages("RJSONIO")
 # set libPath to local user dir
 .libPaths(file.path("~","R","libs"))
 # packages
