@@ -10,7 +10,7 @@
 library(ggplot2)
 library(dplyr)
 library(reshape)
-library(RJSONIO)
+library(rjson)
 
 ## use local files or database?
 USE_DB <- FALSE # default, use local files
@@ -238,8 +238,9 @@ ggsave(filename = "generated/timings/current.summaryperbenchmark.pdf", width = 2
 # todo
 
 # add expected values to above plots for visualisation
+# todo
 
-
-### clean up
-rm(list=ls())
+## clean up and get ou
+dbDisconnect(conn)
+rm(list = ls())
 gc()
