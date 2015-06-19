@@ -2,7 +2,6 @@
 # may 2015
 
 ### upload benchmarks to MySQL instance
-install.packages("RJSONIO")
 # set libPath to local user dir
 .libPaths(file.path("~","R","libs"))
 # packages
@@ -72,10 +71,17 @@ reports <- lapply(
   dir(path = file.path("..", "generated", "timings"), pattern = ".tsv$",
       full.names = TRUE, recursive = TRUE),
   function(path){
+    # holder for data
+    tmp <- NA
+    # holder for header lines
+    header <- readLines(path)
     # read metadata header if it exists
-    if(length(grep(readLines(path, 1), pattern = "^\\{"))){
-      meta <- fromJSON(readLines(path, 1))
+    if(length(grep(header[[1]], pattern = "^\\{"))){
+      # cut header to lines enclosed in curly brackets
+      header <- header[1:max(sapply(1:length(header), FUN=function(x) if(length(grep(header[[x]], pattern="\\}$"))) return(x) else 0))]
+      meta <- fromJSON(paste(header, collapse = "\n"))
     } else {
+      header <- list()
       meta <- list("platform","arch","os","system","status","major",
                    "minor","year","month","day","svn rev","language",
                    "version.string","nickname","sysname","release", "version"
@@ -85,8 +91,7 @@ reports <- lapply(
     }
     
     # read data and parse file names
-    tmp <- NA
-    try(tmp <- read.delim(path, comment.char = "{"), silent = TRUE)
+    try(tmp <- read.delim(path, comment.char = "{", skip=length(header)), silent = TRUE)
     if(is.na(tmp)){return(NA)}
     tmp$block <- rownames(tmp)
     # melt to tall and skinny for plotting
@@ -185,12 +190,17 @@ loaded <- lapply(reports[!is.na(reports)],
        }
 )
 # report loading
-cat(sprintf("%i new reports loaded to database", sum(!is.na(loaded))))
-cat(sprintf("%i reports already present in database", sum(is.na(loaded))))
+cat(sprintf("%i new reports loaded to database\n", sum(!is.na(loaded))))
+cat(sprintf("%i reports already present in database\n", sum(is.na(loaded))))
 
 ### check results
-cat(sprintf("DB now contains %i benchmarks.", 
+cat(sprintf("DB now contains %i benchmarks.\n", 
             dbGetQuery(conn, "
                                   SELECT count(distinct meta_id) as cnt 
                                   FROM meta;")$cnt)
     )
+
+## clean up and get ou
+dbDisconnect(conn)
+rm(list = ls())
+gc()
