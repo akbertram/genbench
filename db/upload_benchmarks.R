@@ -6,7 +6,8 @@
 #.libPaths(file.path("~","R","libs"))
 # packages
 library(RJDBC)
-library(RJSONIO)
+# Use jsonlite instead of RJSONIO
+library(jsonlite)
 library(reshape)
 
 # Options
