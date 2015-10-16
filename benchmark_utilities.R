@@ -233,11 +233,11 @@ reportRecords.genbench <- function(obj){
 
 # reporting method for timings class
 reportRecords.timings <- function(obj){
-  require(RJSONIO)
+  #require(RJSONIO)
   checkOutputFile(obj, create = TRUE)
   out <- getOutputFile(obj)
   # add 1 line JSON serialized header containing environment info
-  writeLines(toJSON(getEnv(obj)), con = out)
+  #writeLines(toJSON(getEnv(obj)), con = out)
   write.table(file=out, append = TRUE,
               quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
               format(do.call("rbind", getRecords(obj)), digits=5)
@@ -246,7 +246,7 @@ reportRecords.timings <- function(obj){
 }
 
 reportRecords.results <- function(obj){
-  require(RJSONIO)
+  #require(RJSONIO)
   # check output file and collect results
   checkOutputFile(obj, create = TRUE)
   RESULTS <- getRecords(obj)
