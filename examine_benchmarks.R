@@ -10,7 +10,8 @@
 library(ggplot2)
 library(dplyr)
 library(reshape)
-library(rjson)
+# replace rjson with jsonlite
+library(jsonlite)
 
 ## use local files or database?
 USE_DB <- FALSE # default, use local files
@@ -94,7 +95,7 @@ collect_reports.local <- function(){
   # read in all reported benchmarks
   # TODO: update to use genbench classes for collection and handling
   require(reshape)
-  require(rjson)
+  require(jsonlite) # replace rjson with jsonlite
   reports <- lapply(
     dir(path = file.path("generated", "timings"), pattern = ".tsv$",
         full.names = TRUE, recursive = TRUE),
