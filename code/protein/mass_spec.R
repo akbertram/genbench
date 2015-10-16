@@ -54,11 +54,11 @@ do.download <- function(INPUT, DATA_DIR){
 
 do.load <- function(){
   
-  MSnSet
-  
-  40 x 1000 is typical size
-  
-  qualitative, number of spectra / molecular weight of protein
+#  MSnSet
+#  
+#  40 x 1000 is typical size
+#  
+#  qualitative, number of spectra / molecular weight of protein
   
 }
 
