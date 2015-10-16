@@ -73,18 +73,17 @@ install.dependencies <- function(cran=c(), bioc=c(), github=list()){
                })
     }
   }
-  
-  # Install Github packages
-  library('devtools')
-  for(pkg in github) {
-    if(!(pkg[[1]][1] %in% installed.packages())) {
-      tryCatch(install_github(pkg[[1]]), 
-               error=function(e,pkg=pkg[[1]]){
-                 cat(sprintf("CRAN installation of package %s with username %s failed with the following errors", pkg[[1]][1],pkg[[1]][2]))
-                 e
-               })
-    }
-  }
+#  # Install Github packages
+#  library('devtools')
+#  for(pkg in github) {
+#    if(!(pkg[[1]][1] %in% installed.packages())) {
+#     tryCatch(install_github(pkg[[1]]), 
+#               error=function(e,pkg=pkg[[1]]){
+#                 cat(sprintf("CRAN installation of package %s with username %s failed with the following errors", pkg[[1]][1],pkg[[1]][2]))
+#                 e
+#               })
+#    }
+#  }
 }
 
 ## install required packages if any
@@ -112,11 +111,11 @@ cran <- c(
   # table processing
   "plyr", "reshape","sqldf",
   # utils
-  "utils", "R.utils", "XML", "devtools",
+  "utils", "R.utils", "XML", #"devtools",
   # graph models
   "igraph",
   # plotting
-  "ggplot2", "dplyr", "googleVis",
+  "ggplot2", "dplyr", "ggvis", #"googleVis",
   # db stuff and reporting
   "RJDBC", "jsonlite" #, "RJSONIO"
 )
