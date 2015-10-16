@@ -10,7 +10,7 @@ Data sourced from [ReCount](http://bowtie-bio.sourceforge.net/recount/), which p
 **"...an online resource consisting of RNA-seq gene count datasets built using the raw data from 18 different studies. The raw sequencing data (.fastq files) were processed with [Myrna](http://bowtie-bio.sourceforge.net/myrna/index.shtml) to obtain tables of counts for each gene. For ease of statistical analysis, we combined each count table with sample phenotype data to form an R object of class ExpressionSet. The count tables, ExpressionSets, and phenotype tables are ready to use and freely available here. By taking care of several preprocessing steps and combining many datasets into one easily-accessible website, we make finding and analyzing RNA-seq data considerably more straightforward."**
 
 
-We used thesmallest dataset at ReCount, which has at least 3 replicates per experimental group:
+We used the smallest dataset at ReCount, which has at least 3 replicates per experimental group:
 
 - the __"gilad"__ study 
 - [PMID: 20009012](http://www.ncbi.nlm.nih.gov/pubmed?term=20009012)

@@ -91,6 +91,7 @@ do.load.edges <- function(PATH){
   
   # unpack data
   tmpfile <- file.path(dirname(PATH), "rif.tmp")
+  if(file.exists(tmpfile)){file.remove(tmpfile)}
   gunzip(filename=PATH, remove=FALSE,
          destname=tmpfile)
   

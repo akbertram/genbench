@@ -3,6 +3,8 @@
 # may 2015
 
 ### run all benchmarks in genbench
+# set loca libs for installing any packages
+.libPaths(file.path("~","R","libs"))
 # needs info about path and what size of data to run on
 args <- commandArgs(trailingOnly = TRUE)
 # reset timings?
@@ -46,10 +48,8 @@ install.dependencies <- function(cran=c(), bioc=c()){
   # Install required packages
   # Set a CRAN mirror to use
   options(repos=structure(c(CRAN="http://cran.rstudio.com")))
-  
-  # Install packages to Jenkins' root folder
-  .libPaths(new="~/R/libs")
-  
+  # set libPath to local user dir
+  .libPaths(file.path("~","R","libs"))
   # Install CRAN packages
   for(pkg in cran) {
     if(!(pkg %in% installed.packages())) {
@@ -65,7 +65,8 @@ install.dependencies <- function(cran=c(), bioc=c()){
   source("http://bioconductor.org/biocLite.R")
   for(pkg in bioc) {
     if(!(pkg %in% installed.packages())) {
-      tryCatch(biocLite(pkg, suppressUpdates = TRUE, suppressAutoUpdate = TRUE, ask = FALSE),
+      tryCatch(biocLite(pkg, suppressUpdates = TRUE, 
+                        suppressAutoUpdate = TRUE, ask = FALSE),
                 error=function(e, pkg=pkg){
                   cat(sprintf("Bioc installation of %s failed with the following errors", pkg))
                   e
@@ -93,7 +94,7 @@ cran <- c(
   # clustering
   'stats','biclust', 's4vd', 'irlba',
   # ML
-  "ncvreg", "boot", "lars", "lasso2", "mda", "leaps", "e1071",
+  "ncvreg", "boot", "lars", "lasso2", "mda", "leaps", "e1071", "MASS",
   # survival
 #  "survival", # not yet implemented in clinical/esrII.R
   # table processing
@@ -105,7 +106,7 @@ cran <- c(
   # plotting
   "ggplot2", "dplyr",
   # db stuff and reporting
-  "rjson", "RJDBC"
+  "RJSONIO", "RJDBC"
 )
 bioc <- c('Biobase', 'affy', 'hgu133plus2cdf', 'limma', 'edgeR')
 install.dependencies(bioc=bioc, cran=cran)
@@ -114,15 +115,20 @@ install.dependencies(bioc=bioc, cran=cran)
 for (SCRIPT in rev(dir(file.path(getwd(), "code"), 
                   full.names = TRUE, recursive = TRUE, pattern = "\\.R$", 
                   ignore.case = TRUE))){
-  # run benchmark script
-  cat(timestamp(quiet = TRUE), "Running benchmark at ", SCRIPT,"\n")
-  for (x in 1:NRUNS){
-      cat(sprintf("\t>>>Run %i\n", x))
-      # all scripts assume working dir is same as script
-      # each script run in a fresh local environment
-      try({source(SCRIPT, chdir = TRUE, local=new.env())})
+  
+  if(NRUNS >= 1){
+    # run benchmark script
+    cat(timestamp(quiet = TRUE), "Running benchmark at ", SCRIPT,"\n")
+    for (x in 1:NRUNS){
+        cat(sprintf("\t>>>Run %i\n", x))
+        # all scripts assume working dir is same as script
+        # each script run in a fresh local environment
+        try({source(SCRIPT, chdir = TRUE, local=new.env())})
+    }
+  } else {
+    # dry run, install packages only
+    cat("Not running benchmark at ", SCRIPT,"\n")
   }
 }
 
-## plot results so far
-source("examine_benchmarks.R")
+
