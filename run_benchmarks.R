@@ -44,7 +44,7 @@ if (length(args) > 0) {
 }
 
 ## funcion definitions
-install.dependencies <- function(cran=c(), bioc=c(), github=c()){
+install.dependencies <- function(cran=c(), bioc=c(), github=list()){
   # Install required packages
   # Set a CRAN mirror to use
   options(repos=structure(c(CRAN="http://cran.rstudio.com")))
@@ -75,7 +75,7 @@ install.dependencies <- function(cran=c(), bioc=c(), github=c()){
   }
   
   # Install Github packages
-  require('devtools')
+  library('devtools')
   for(pkg in github) {
     if(!(pkg[[1]][1] %in% installed.packages())) {
       tryCatch(install_github(pkg[[1]]), 
@@ -108,7 +108,7 @@ cran <- c(
   # ML
   "ncvreg", "boot", "lars", "lasso2", "mda", "leaps", "e1071", "MASS",
   # survival
-#  "survival", # not yet implemented in clinical/esrII.R
+  "survival", # not yet implemented in clinical/esrII.R
   # table processing
   "plyr", "reshape","sqldf",
   # utils
