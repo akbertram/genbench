@@ -226,7 +226,7 @@ do.preprocess <- function(DATA, WorkFlow){
   }
   
   
-  if(WorkFlow == "deg_hm_degg"){
+  if(WorkFlow == "deg_hm_kegg"){
 
   # Send data to preprocessing function and get processed data back
   pat.gene <- do.preprocess(DATA,"survival")[[1]]
@@ -276,7 +276,7 @@ do.survival <- function(DATA){
   
 }
 
-do.deg_hm_degg <- function(DATA){
+do.deg_hm_kegg <- function(DATA){
   
   # Unpack loaded data
   d1 <- DATA$d1
@@ -508,8 +508,8 @@ do.multiplot <- function(DATA){
   #parham: taken out next 1 lines of plotting steps 
   multiplot(gg1,gg2)
   
-  group <- do.preprocess(DATA,"deg_hm_degg")[[1]]
-  gr <- do.preprocess(DATA,"deg_hm_degg")[[2]]
+  group <- do.preprocess(DATA,"deg_hm_kegg")[[1]]
+  gr <- do.preprocess(DATA,"deg_hm_kegg")[[2]]
   
   n1 <- nPlot(N ~ gene3, group = group, data = gr, type = "multiBarChart") 
   n1$addParams(dom = "bargraph")
@@ -519,3 +519,60 @@ do.multiplot <- function(DATA){
   n1$save("test1.html", cdn=T)
   
 }
+
+## load data files
+TIMES <- addRecord(TIMES, record_name = "load",
+                   record = system.time(gcFirst = T,
+                          DATA <- do.load(DATA_DIR)
+))
+## run preprocessing survival
+TIMES <- addRecord(TIMES, record_name = "preprocess_survival",
+                   record = system.time(gcFirst = T,
+                          do.preprocess(DATA,"survival")
+))
+## run preprocessing exome
+TIMES <- addRecord(TIMES, record_name = "preprocess_exome",
+                   record = system.time(gcFirst = T,
+                          do.preprocess(DATA,"exome")
+))
+## run preprocessing deg_hm_kegg
+TIMES <- addRecord(TIMES, record_name = "preprocess_deg",
+                   record = system.time(gcFirst = T,
+                          do.preprocess(DATA,"deg_hm_kegg")
+))
+### normalise and scale 
+#TIMES <- addRecord(TIMES, record_name = "norm",
+#                   record = system.time(gcFirst = T,
+#                          eset <- do.norm(cel.files)
+#))
+
+## perform and save Survival analysis
+TIMES <- addRecord(TIMES, record_name = "ml_survival",
+                   record = system.time(gcFirst = T,
+                          RESULTS <- addRecord(RESULTS, record_name = "ml_survival",
+                                               record = do.survival(DATA))
+))
+## perform and save Exome analysis
+TIMES <- addRecord(TIMES, record_name = "ml_exome",
+                   record = system.time(gcFirst = T,
+                          RESULTS <- addRecord(RESULTS, record_name = "ml_exome",
+                                               record = do.exome(DATA))
+))
+## perform and save DifferentialExpressionAnlysis, KEGG, heatmap
+TIMES <- addRecord(TIMES, record_name = "ml_deg",
+                   record = system.time(gcFirst = T,
+                          RESULTS <- addRecord(RESULTS, record_name = "ml_deg",
+                                               record = do.deg_hm_kegg(DATA))
+))
+
+
+### reporting
+# write results to file
+reportRecords(RESULTS)
+
+# timings
+reportRecords(TIMES)
+
+# final clean up
+rm(list=ls())
+gc()
