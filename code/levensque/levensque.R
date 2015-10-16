@@ -82,7 +82,7 @@ do.load <- function(DATA_DIR){
   DATA$gene.name
   rm(d1,pat,m1,files,gene.name)
   
-  return(TRUE)
+  return(DATA)
 }
   
 do.multiplot <- function(DATA){
