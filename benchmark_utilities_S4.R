@@ -251,7 +251,8 @@ setMethod(f="reportRecords",
           signature="Timings",
           definition=function(obj)
           {
-            require(RJSONIO)
+            # replace RJSONIO with jsonlite
+            require(jsonlite)
             checkOutputFile(obj, create = TRUE)
             out <- getOutputFile(obj)
             # add 1 line JSON serialized header containing environment info
@@ -268,7 +269,8 @@ setMethod(f="reportRecords",
           signature="Results",
           definition=function(obj)
           {
-            require(RJSONIO)
+            # replace RJSONIO with jsonlite
+            require(jsonlite)
             # check output file and collect results
             checkOutputFile(obj, create = TRUE)
             RESULTS <- getRecords(obj)
