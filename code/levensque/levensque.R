@@ -39,6 +39,9 @@ library(ggvis)
 library(RColorBrewer)
 library(DT)
 
+# test if jsonlite can be loaded
+library(jsonlite)
+
 ## global vars
 VERBOSE <- TRUE # print progress?
 DOWNLOAD <- FALSE # download fresh data?
