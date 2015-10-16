@@ -119,7 +119,7 @@ cran <- c(
   # db stuff and reporting
   "RJDBC", "jsonlite" #, "RJSONIO"
 )
-bioc <- c('Biobase', 'affy', 'hgu133plus2cdf', 'limma', 'edgeR', 'DESeq2', 'gage')
+bioc <- c('Biobase', 'affy', 'hgu133plus2cdf', 'limma', 'edgeR', 'DESeq2', 'gage', 'MSnbase')
 github <- c('rCharts','ramnathv')
 install.dependencies(bioc=bioc, cran=cran, github=github)
 
