@@ -323,13 +323,15 @@ TIMES <- addRecord(TIMES, record_name = "limma",
                                                record = do.limma(eset))
 ))
 
-## simulated genesets
-TIMES <- addRecord(TIMES, record_name = "genesets.examples",
-                   record = system.time(gcFirst = T,
-                          RESULTS <- addRecord(RESULTS, record_name = "genesets.examples",
-                                               record = do.geneset.examples())
-              
-))
+if(as.integer(R.version$major) >= 3){
+  ## simulated genesets
+  TIMES <- addRecord(TIMES, record_name = "genesets.examples",
+                     record = system.time(gcFirst = T,
+                            RESULTS <- addRecord(RESULTS, record_name = "genesets.examples",
+                                                 record = do.geneset.examples())
+                
+  ))
+}
 
 ### reporting
 # write results to file

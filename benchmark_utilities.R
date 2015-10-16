@@ -3,6 +3,7 @@
 # started: may 2015
 
 ### utility functions, classes and methods for running and reporting benchmarks
+library(parallel) # for examining machine
 
 ## class definitions
 # generic "genbase" class with common aspects of results and timings
@@ -19,7 +20,7 @@ genbench <- function(benchmark_name="NOT_SET", benchmark_group=basename(getwd())
       benchmark=benchmark_name, 
       wd=getwd(),
       benchmark_group=benchmark_group,
-      env=c(R.Version(), Sys.info()[c("sysname", "release", "version")])
+      env=c(R.Version(), Sys.info()[c("sysname", "release", "version")], nphyscores=detectCores(logical = FALSE), nlogcores=detectCores(logical = TRUE))
       ),
     class = "genbench") 
 }
@@ -232,7 +233,7 @@ reportRecords.genbench <- function(obj){
 
 # reporting method for timings class
 reportRecords.timings <- function(obj){
-  require(rjson)
+  require(RJSONIO)
   checkOutputFile(obj, create = TRUE)
   out <- getOutputFile(obj)
   # add 1 line JSON serialized header containing environment info
@@ -245,7 +246,7 @@ reportRecords.timings <- function(obj){
 }
 
 reportRecords.results <- function(obj){
-  require(rjson)
+  require(RJSONIO)
   # check output file and collect results
   checkOutputFile(obj, create = TRUE)
   RESULTS <- getRecords(obj)
