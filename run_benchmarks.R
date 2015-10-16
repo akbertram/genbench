@@ -44,7 +44,7 @@ if (length(args) > 0) {
 }
 
 ## funcion definitions
-install.dependencies <- function(cran=c(), bioc=c()){
+install.dependencies <- function(cran=c(), bioc=c(), github=c()){
   # Install required packages
   # Set a CRAN mirror to use
   options(repos=structure(c(CRAN="http://cran.rstudio.com")))
@@ -67,10 +67,22 @@ install.dependencies <- function(cran=c(), bioc=c()){
     if(!(pkg %in% installed.packages())) {
       tryCatch(biocLite(pkg, suppressUpdates = TRUE, 
                         suppressAutoUpdate = TRUE, ask = FALSE),
-                error=function(e, pkg=pkg){
-                  cat(sprintf("Bioc installation of %s failed with the following errors", pkg))
-                  e
-                })
+               error=function(e, pkg=pkg){
+                 cat(sprintf("Bioc installation of %s failed with the following errors", pkg))
+                 e
+               })
+    }
+  }
+  
+  # Install Github packages
+  require('devtools')
+  for(pkg in github) {
+    if(!(pkg[[1]][1] %in% installed.packages())) {
+      tryCatch(install_github(pkg[[1]]), 
+               error=function(e,pkg=pkg[[1]]){
+                 cat(sprintf("CRAN installation of package %s with username %s failed with the following errors", pkg[[1]][1],pkg[[1]][2]))
+                 e
+               })
     }
   }
 }
@@ -100,16 +112,18 @@ cran <- c(
   # table processing
   "plyr", "reshape","sqldf",
   # utils
-  "utils", "R.utils", "XML",
+  "utils", "R.utils", "XML", "devtools",
   # graph models
   "igraph",
   # plotting
-  "ggplot2", "dplyr",
+  "ggplot2", "dplyr", "googleVis",
   # db stuff and reporting
-  "RJDBC" #, "RJSONIO"
+  "RJDBC", "jsonlite" #, "RJSONIO"
 )
-bioc <- c('Biobase', 'affy', 'hgu133plus2cdf', 'limma', 'edgeR')
-install.dependencies(bioc=bioc, cran=cran)
+bioc <- c('Biobase', 'affy', 'hgu133plus2cdf', 'limma', 'edgeR', 'DESeq2')
+github <- c('rCharts','ramnathv')
+install.dependencies(bioc=bioc, cran=cran, github=github)
+
 
 # find and run all benchmark scripts
 for (SCRIPT in rev(dir(file.path(getwd(), "code"), 
