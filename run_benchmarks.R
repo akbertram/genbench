@@ -102,6 +102,8 @@ if (FALSE){
   
 }
 cran <- c(
+  # levensque
+  'data.table', 'magrittr', 'd3heatmap', 'RColorBrewer', 'DT',
   # clustering
   'stats','biclust', 's4vd', 'irlba',
   # ML
