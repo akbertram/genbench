@@ -26,7 +26,8 @@ source(file.path("..", "..","benchmark_utilities.R"))
 
 ## (bioconductor) packages
 # library(rpx) # requires bioc > v3.0
-library(MSnbase)
+#parham: removed MSnbase due to alot of dependency issues
+#library(MSnbase)
 
 ## global vars
 VERBOSE <- TRUE # print progress?
