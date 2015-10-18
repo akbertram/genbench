@@ -91,13 +91,13 @@ do.load <- function(DATA_DIR){
 
 do.preprocess <- function(DATA, WorkFlow){
 
-  d1 <- DATA$d1
-  pat <- DATA$pat
-  m1 <- DATA$m1
-  gene.name <- DATA$gene.name
-  g1 <- DATA$g1
-
   if(WorkFlow == "survival"){
+    
+    d1 <- DATA$d1
+    pat <- DATA$pat
+    m1 <- DATA$m1
+    gene.name <- DATA$gene.name
+    g1 <- DATA$g1
     
   time <- "pfs"
   gleason <- c("2+4", "3+3", "3+4", "3+5", "4+3", "4+4", "4+5", "5+3", "5+4", "5+5")
@@ -135,6 +135,12 @@ do.preprocess <- function(DATA, WorkFlow){
   
   
   if(WorkFlow == "exome"){
+    
+    d1 <- DATA$d1
+    pat <- DATA$pat
+    m1 <- DATA$m1
+    gene.name <- DATA$gene.name
+    g1 <- DATA$g1
     
     time <- "pfs"
     gleason <- c("2+4", "3+3", "3+4", "3+5", "4+3", "4+4", "4+5", "5+3", "5+4", "5+5")
@@ -249,13 +255,20 @@ do.preprocess <- function(DATA, WorkFlow){
   
   
   
-  processed <- list(g1,mut2,mut3,mut4,mut5)
+  processed <- list(mut2,mut3,mut4,mut5)
   
   }
   
   
   if(WorkFlow == "deg_hm_kegg"){
 
+    d1 <- DATA$d1
+    pat <- DATA$pat
+    m1 <- DATA$m1
+    gene.name <- DATA$gene.name
+    g1 <- DATA$g1
+    
+    
   # Send data to preprocessing function and get processed data back
   pat.gene <- do.preprocess(DATA,"survival")[[1]]
   
