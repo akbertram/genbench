@@ -119,7 +119,7 @@ cran <- c(
   # plotting
   "ggplot2", "dplyr", "ggvis", #"googleVis",
   # db stuff and reporting
-  "RJDBC", "jsonlite" #, "RJSONIO"
+  "RJDBC", "jsonlite", "rjson" #, "RJSONIO"
 )
 bioc <- c('Biobase', 'affy', 'hgu133plus2cdf', 'limma', 'edgeR', 'DESeq2', 'gage', 'STRINGdb')
 github <- c('rCharts','ramnathv')
