@@ -42,4 +42,16 @@ ALTER TABLE timings
     REFERENCES meta(meta_id)
     ON DELETE CASCADE;
 
+CREATE TABLE extra_meta (
+    meta_id INT,
+    variable varchar(256) not null,
+    value varchar(256)
+);
+
+ALTER TABLE extra_meta 
+  ADD CONSTRAINT emeta_id_fk
+  FOREIGN KEY (meta_id) 
+    REFERENCES meta(meta_id)
+    ON DELETE CASCADE;
+
 

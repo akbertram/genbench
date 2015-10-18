@@ -26,7 +26,8 @@ source(file.path("..", "..","benchmark_utilities.R"))
 
 ## (bioconductor) packages
 # library(rpx) # requires bioc > v3.0
-library(MSnbase)
+#parham: removed MSnbase due to alot of dependency issues
+#library(MSnbase)
 
 ## global vars
 VERBOSE <- TRUE # print progress?
@@ -54,11 +55,11 @@ do.download <- function(INPUT, DATA_DIR){
 
 do.load <- function(){
   
-  MSnSet
-  
-  40 x 1000 is typical size
-  
-  qualitative, number of spectra / molecular weight of protein
+#  MSnSet
+#  
+#  40 x 1000 is typical size
+#  
+#  qualitative, number of spectra / molecular weight of protein
   
 }
 

@@ -3,9 +3,10 @@
 *.pper
 *.Rproj
 *.Rproj.user*
-
+*.R~
 *generated\results*
 *generated\timings*
-
 *generated/results*
 *generated/timings*
+.Rproj.user
+.gitignore

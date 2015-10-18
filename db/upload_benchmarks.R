@@ -1,40 +1,58 @@
-# upload benchmarks to MySQL instance
+# ieuan clay
+# may 2015
 
+### upload benchmarks to MySQL instance
+# set libPath to local user dir
+#.libPaths(file.path("~","R","libs"))
+# packages
 library(RJDBC)
-library(rjson)
+# Use jsonlite instead of RJSONIO
+library(jsonlite)
 library(reshape)
 
 # Options
-CREATE_NEW <- FALSE
+CREATE_NEW <- FALSE # default: do not recreate all tables
+CONN_INFO <- NA
+# check args to see if we should use database connection
+args <- commandArgs(trailingOnly = TRUE)
+
+# reset timings?
+if ("--create-new" %in% args){
+  CREATE_NEW <<- TRUE
+}
+# check for other required arguments
+conn_info <- args[args!="--create-new"]
+# split characters
+conn_info <- lapply(conn_info, function(x){strsplit(x, split = "=")[[1]]})
+# separate into key:value named list for ease of access
+names(conn_info) <- lapply(conn_info, function(x) x[[1]])
+conn_info <- lapply(conn_info, function(x) x[[2]])
+
+if(all(c("--usr","--pwd","--conn") %in% names(conn_info))){
+  # all parameters are provided, so proceed with using database
+  # todo: more thorough testing of connection
+  
+  CONN_INFO <<- conn_info
+  USE_DB <<- TRUE
+  
+  cat("Working database credentials supplied, using database for examine_benchmarks.R")
+  
+} else {
+  
+  cat("Working database credentials NOT supplied, using local files for examine_benchmarks.R")
+  
+}
+
+
 
 ### functions
-# whitespace stripper
-trim <- function( x ) {
-  gsub("(^[[:space:]]+|[[:space:]]+$)", "", x)
-}
-# statement reader (returns list, one element per statement in file)
-# read statements, dropping any empty lines (note: NO COMMENTS!)
-readSQL <- function(path){
-  statements <- lapply(
-                      strsplit(split = ";", paste(readLines(path), collapse = " ")),
-                      function(x) ifelse(trim(x)== "", NA, paste(x,";")))[[1]]
-  statements <- statements[!is.na(statements)]
-  return(statements)
-}
+source("sql_utilities.R")
 
-### connect to mysql instance and check connection
-# http://mvnrepository.com/artifact/mysql/mysql-connector-java/5.1.35
-getConnection <- function(usr="foo", pwd="bar", connectionstring="jdbc:mysql://173.194.246.104/Rbenchmarks"){
-  drv <- JDBC("com.mysql.jdbc.Driver",
-              "mysql-connector-java-5.1.35.jar",
-              identifier.quote="`"
-              )
-  conn <- dbConnect(drv, connectionstring,
-                    user=usr, password=pwd)
-  return(conn)
-}
-conn <- getConnection()
-dbListTables(conn)
+### connect to DB
+conn <- getConnection(usr=CONN_INFO$`--usr`, 
+                      pwd=CONN_INFO$`--pwd`, 
+                      conn_string=CONN_INFO$`--conn`)
+#dbListTables(conn)
 
 ### create tables:
 ## meta table to hold metadata about each benchmark run
@@ -54,10 +72,17 @@ reports <- lapply(
   dir(path = file.path("..", "generated", "timings"), pattern = ".tsv$",
       full.names = TRUE, recursive = TRUE),
   function(path){
+    # holder for data
+    tmp <- NA
+    # holder for header lines
+    header <- readLines(path)
     # read metadata header if it exists
-    if(length(grep(readLines(path, 1), pattern = "^\\{"))){
-      meta <- fromJSON(readLines(path, 1))
+    if(length(grep(header[[1]], pattern = "^\\{"))){
+      # cut header to lines enclosed in curly brackets
+      header <- header[1:max(sapply(1:length(header), FUN=function(x) if(length(grep(header[[x]], pattern="\\}$"))) return(x) else 0))]
+      meta <- fromJSON(paste(header, collapse = "\n"))
     } else {
+      header <- list()
       meta <- list("platform","arch","os","system","status","major",
                    "minor","year","month","day","svn rev","language",
                    "version.string","nickname","sysname","release", "version"
@@ -67,7 +92,8 @@ reports <- lapply(
     }
     
     # read data and parse file names
-    tmp <- read.delim(path, comment.char = "{")
+    try(tmp <- read.delim(path, comment.char = "{", skip=length(header)), silent = TRUE)
+    if(is.na(tmp)){return(NA)}
     tmp$block <- rownames(tmp)
     # melt to tall and skinny for plotting
     tmp <- melt(tmp, id.vars = c("block"), na.rm = TRUE)
@@ -89,7 +115,7 @@ reports <- lapply(
 
 
 ### push data into meta and timings table
-lapply(reports, 
+loaded <- lapply(reports[!is.na(reports)], 
        function(report){
          # check if this report has already been inserted
          if (nrow(dbGetQuery(conn, sprintf("
@@ -104,8 +130,8 @@ lapply(reports,
            
            # report completion
            cat(sprintf("Report already loaded from \'%s\'\n", report$meta$path))
-           return(report)
-         }
+           return(NA)
+         } else {
          # insert metadata
          dbSendUpdate(conn,
                       sprintf(
@@ -137,12 +163,45 @@ lapply(reports,
                
                )}
          )
+         # insert additional meta data from header (row by row for report)
+         report$meta <- melt(
+                        data.frame(report$meta, meta_id=m_id), 
+                        id.vars = "meta_id")
+         lapply(1:nrow(report$meta), function(i){
+           dbSendUpdate(conn,
+                        # print(
+                        sprintf(
+                          "
+                              INSERT INTO extra_meta (meta_id, variable, value)
+                              VALUES (%i, \'%s\', \'%s\');
+                            ",
+                          report$meta[i,"meta_id"], 
+                          report$meta[i,"variable"], 
+                          as.character(report$meta[i,"value"])
+                          
+                        )
+                        
+           )}
+         )
          
          # report completion
          cat(sprintf("Report successfully loaded from \'%s\'\n", report$meta$path))
          return(report)
-  }
+         }
+       }
 )
+# report loading
+cat(sprintf("%i new reports loaded to database\n", sum(!is.na(loaded))))
+cat(sprintf("%i reports already present in database\n", sum(is.na(loaded))))
 
 ### check results
-dbGetQuery(conn, "SELECT * FROM timings t JOIN meta m ON t.meta_id=m.meta_id WHERE t.variable=\"elapsed\";")
+cat(sprintf("DB now contains %i benchmarks.\n", 
+            dbGetQuery(conn, "
+                                  SELECT count(distinct meta_id) as cnt 
+                                  FROM meta;")$cnt)
+    )
+
+## clean up and get ou
+dbDisconnect(conn)
+rm(list = ls())
+gc()

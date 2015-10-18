@@ -3,6 +3,8 @@
 # may 2015
 
 ### run all benchmarks in genbench
+# set loca libs for installing any packages
+.libPaths(file.path("~","R","libs"))
 # needs info about path and what size of data to run on
 args <- commandArgs(trailingOnly = TRUE)
 # reset timings?
@@ -42,14 +44,12 @@ if (length(args) > 0) {
 }
 
 ## funcion definitions
-install.dependencies <- function(cran=c(), bioc=c()){
+install.dependencies <- function(cran=c(), bioc=c(), github=list()){
   # Install required packages
   # Set a CRAN mirror to use
   options(repos=structure(c(CRAN="http://cran.rstudio.com")))
-  
-  # Install packages to Jenkins' root folder
-  .libPaths(new="~/R/libs")
-  
+  # set libPath to local user dir
+  .libPaths(file.path("~","R","libs"))
   # Install CRAN packages
   for(pkg in cran) {
     if(!(pkg %in% installed.packages())) {
@@ -65,13 +65,25 @@ install.dependencies <- function(cran=c(), bioc=c()){
   source("http://bioconductor.org/biocLite.R")
   for(pkg in bioc) {
     if(!(pkg %in% installed.packages())) {
-      tryCatch(biocLite(pkg, suppressUpdates = TRUE, suppressAutoUpdate = TRUE, ask = FALSE),
-                error=function(e, pkg=pkg){
-                  cat(sprintf("Bioc installation of %s failed with the following errors", pkg))
-                  e
-                })
+      tryCatch(biocLite(pkg, suppressUpdates = TRUE, 
+                        suppressAutoUpdate = TRUE, ask = FALSE),
+               error=function(e, pkg=pkg){
+                 cat(sprintf("Bioc installation of %s failed with the following errors", pkg))
+                 e
+               })
     }
   }
+#  # Install Github packages
+#  library('devtools')
+#  for(pkg in github) {
+#    if(!(pkg[[1]][1] %in% installed.packages())) {
+#     tryCatch(install_github(pkg[[1]]), 
+#               error=function(e,pkg=pkg[[1]]){
+#                 cat(sprintf("CRAN installation of package %s with username %s failed with the following errors", pkg[[1]][1],pkg[[1]][2]))
+#                 e
+#               })
+#    }
+#  }
 }
 
 ## install required packages if any
@@ -90,39 +102,48 @@ if (FALSE){
   
 }
 cran <- c(
+  # levensque
+  'data.table', 'magrittr', 'd3heatmap', 'RColorBrewer', 'DT',
   # clustering
   'stats','biclust', 's4vd', 'irlba',
   # ML
-  "ncvreg", "boot", "lars", "lasso2", "mda", "leaps", "e1071",
+  "ncvreg", "boot", "lars", "lasso2", "mda", "leaps", "e1071", "MASS",
   # survival
-#  "survival", # not yet implemented in clinical/esrII.R
+  "survival", # not yet implemented in clinical/esrII.R
   # table processing
   "plyr", "reshape","sqldf",
   # utils
-  "utils", "R.utils", "XML",
+  "utils", "R.utils", "XML", #"devtools",
   # graph models
   "igraph",
   # plotting
-  "ggplot2", "dplyr",
+  "ggplot2", "dplyr", "ggvis", #"googleVis",
   # db stuff and reporting
-  "rjson", "RJDBC"
+  "RJDBC", "jsonlite" #, "RJSONIO"
 )
-bioc <- c('Biobase', 'affy', 'hgu133plus2cdf', 'limma', 'edgeR')
-install.dependencies(bioc=bioc, cran=cran)
+bioc <- c('Biobase', 'affy', 'hgu133plus2cdf', 'limma', 'edgeR', 'DESeq2', 'gage', 'STRINGdb')
+github <- c('rCharts','ramnathv')
+install.dependencies(bioc=bioc, cran=cran, github=github)
+
 
 # find and run all benchmark scripts
 for (SCRIPT in rev(dir(file.path(getwd(), "code"), 
                   full.names = TRUE, recursive = TRUE, pattern = "\\.R$", 
                   ignore.case = TRUE))){
-  # run benchmark script
-  cat(timestamp(quiet = TRUE), "Running benchmark at ", SCRIPT,"\n")
-  for (x in 1:NRUNS){
-      cat(sprintf("\t>>>Run %i\n", x))
-      # all scripts assume working dir is same as script
-      # each script run in a fresh local environment
-      try({source(SCRIPT, chdir = TRUE, local=new.env())})
+  
+  if(NRUNS >= 1){
+    # run benchmark script
+    cat(timestamp(quiet = TRUE), "Running benchmark at ", SCRIPT,"\n")
+    for (x in 1:NRUNS){
+        cat(sprintf("\t>>>Run %i\n", x))
+        # all scripts assume working dir is same as script
+        # each script run in a fresh local environment
+        try({source(SCRIPT, chdir = TRUE, local=new.env())})
+    }
+  } else {
+    # dry run, install packages only
+    cat("Not running benchmark at ", SCRIPT,"\n")
   }
 }
 
-## plot results so far
-source("examine_benchmarks.R")
+
