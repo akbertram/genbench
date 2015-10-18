@@ -386,9 +386,15 @@ do.deg_hm_kegg <- function(DATA){
 }
 
 do.exome <- function(DATA){
+  
+  pat.gene <- do.preprocess(DATA,"survival")[[1]]
 
   # Unpack loaded data
+  d1 <- DATA$d1
+  pat <- DATA$pat
   m1 <- DATA$m1
+  gene.name <- DATA$gene.name
+  g1 <- DATA$g1
   
   #exome data
   glist <- c("FRG1B", "SPOP", "TP53", "ANKRD36C", "KMT2C", "KMT2D", "KRTAP4-11", "SYNE1", "NBPF10", "ATM", "FOXA1", "LRP1B", "OBSCN", "SPTA1", "USH2A", "AHNAK2", "FAT3", "CHEK2", g1)
