@@ -56,6 +56,8 @@ do.load <- function(){
   
   alldata <- list(heart=e$heart, lung=e$Lung, prostate=e$prostate)
   
+  str(alldata[["heart"]])
+  
   return(alldata)
   
 }
