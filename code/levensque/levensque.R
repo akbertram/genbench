@@ -249,7 +249,7 @@ do.preprocess <- function(DATA, WorkFlow){
   
   
   
-  processed <- list(g1,mu2,mut3,mut4,mut5)
+  processed <- list(g1,mut2,mut3,mut4,mut5)
   
   }
   
