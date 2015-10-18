@@ -11,6 +11,7 @@ library(ggplot2)
 library(dplyr)
 library(reshape)
 # replace rjson with jsonlite
+library(rjson)
 library(jsonlite)
 
 ## use local files or database?
