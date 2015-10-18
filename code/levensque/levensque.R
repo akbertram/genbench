@@ -136,6 +136,33 @@ do.preprocess <- function(DATA, WorkFlow){
   
   if(WorkFlow == "exome"){
     
+    time <- "pfs"
+    gleason <- c("2+4", "3+3", "3+4", "3+5", "4+3", "4+4", "4+5", "5+3", "5+4", "5+5")
+    high <- (ncol(d1) - 2 ) * 0.75
+    low <- (ncol(d1) - 2) * 0.25
+    setkey(pat, gleason)
+    pat.d1 <- d1[,c("Gene", pat[gleason, name]), with=F]
+    setkey(pat.d1, Gene)
+    
+    #selecting row for gene and only retrieving values
+    
+    mgsub2 <- function(myrepl, mystring){
+      gsub2 <- function(l, x){
+        do.call('gsub', list(x = x, pattern = l[1], replacement = l[2]))
+      }
+      Reduce(gsub2, myrepl, init = mystring, right = T) 
+    }
+    
+    pat.d1.gene <- melt(pat.d1[g1, setdiff(colnames(pat.d1), "Gene"), with=F], id.vars = NULL, measure.vars = colnames(pat.d1)[-1], variable.name = "name", value.name="g1")
+    setkey(pat.d1.gene, g1)
+    pat.d1.gene[, name := factor(name, levels=name)]
+    pat.d1.gene[, ':=' (high = g1 > g1[eval(high)], low = g1 < g1[eval(low)])]
+    pat.d1.gene[, gene2 := high*2 + low]
+    pat.d1.gene[, gene3 := mgsub2(list(c("0", "middle"), c("1", "low"), c("2", "high")), pat.d1.gene$gene2)]
+    
+    phenosgene <- merge(pat, pat.d1.gene, by= "name")
+    pat.gene <- phenosgene[gene2 !=0]
+    
   #exome data
   glist <- c("FRG1B", "SPOP", "TP53", "ANKRD36C", "KMT2C", "KMT2D", "KRTAP4-11", "SYNE1", "NBPF10", "ATM", "FOXA1", "LRP1B", "OBSCN", "SPTA1", "USH2A", "AHNAK2", "FAT3", "CHEK2", g1)
   glist <- glist[!duplicated(glist)]
@@ -152,14 +179,14 @@ do.preprocess <- function(DATA, WorkFlow){
   test2 <- test1[!is.na(test1$Hugo_Symbol)] #dcast table with NA them remove NA column
   mut2 <- dcast.data.table(test2[!is.na(bcr_patient_barcode)], bcr_patient_barcode ~ Hugo_Symbol)
   mut2 <- rbindlist(list(mut2, data.table(bcr_patient_barcode = test1[is.na(test1$Hugo_Symbol), bcr_patient_barcode])), fill=T)
-  for (j in seq_len(ncol(mut2))[-1])  {
-    if (any(is.na(mut2[[j]]))) {
-      set(mut2, which(mut2[[j]] != 0),j,1)
-      set(mut2, which(is.na(mut2[[j]])),j,0)
-    } else {  
-      set(mut2, which(mut2[[j]] != 0),j,1)
-    }
-  }
+      for (j in seq_len(ncol(mut2))[-1])  {
+          if (any(is.na(mut2[[j]]))) {
+            set(mut2, which(mut2[[j]] != 0),j,1)
+            set(mut2, which(is.na(mut2[[j]])),j,0)
+          } else {  
+            set(mut2, which(mut2[[j]] != 0),j,1)
+          }
+      }
   
   mut2[, glist[!(glist %in% colnames(mut2)[-1])] := 0]
   mut2 <- mut2[, lapply(.SD, as.numeric), by= bcr_patient_barcode]
@@ -201,12 +228,12 @@ do.preprocess <- function(DATA, WorkFlow){
   mut2 <- dcast.data.table(test2[!is.na(bcr_patient_barcode)], bcr_patient_barcode ~ Hugo_Symbol)
   mut2 <- rbindlist(list(mut2, data.table(bcr_patient_barcode = test1[is.na(test1$Hugo_Symbol), bcr_patient_barcode])), fill=T)
   for (j in seq_len(ncol(mut2))[-1])  {
-    if (any(is.na(mut2[[j]]))) {
-      set(mut2, which(mut2[[j]] != 0),j,1)
-      set(mut2, which(is.na(mut2[[j]])),j,0)
-    } else {  
-      set(mut2, which(mut2[[j]] != 0),j,1)
-    }
+      if (any(is.na(mut2[[j]]))) {
+        set(mut2, which(mut2[[j]] != 0),j,1)
+        set(mut2, which(is.na(mut2[[j]])),j,0)
+      } else {  
+        set(mut2, which(mut2[[j]] != 0),j,1)
+      }
   }
   
   mut2[, glist[!(glist %in% colnames(mut2)[-1])] := 0]
