@@ -63,16 +63,16 @@ do.load <- function(DATA_DIR){
   files = list.files(DATA_DIR, pattern = "txt$")
   
   # read in RNAseq data
-  d1 = fread(file = files[grep("RNA",files)], sep="\t", header=T)
+  d1 = fread(input = files[grep("RNA",files)], sep="\t", header=T)
   setkey(d1, Gene)
   gene.name <- d1$Gene
   
   # read in patient data
-  pat = fread(file = files[grep("patient",files)], sep="\t", header=T)
+  pat = fread(input = files[grep("patient",files)], sep="\t", header=T)
   setkey(pat, bcr_patient_barcode, name)
   
   # read in exome sequencing data
-  m1 = fread(file = files[grep("exome",files)], sep="\t", header=T)
+  m1 = fread(input = files[grep("exome",files)], sep="\t", header=T)
   setkey(m1, bcr_patient_barcode)
   
   g1 <- "BAZ2A"
