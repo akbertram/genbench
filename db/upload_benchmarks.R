@@ -3,7 +3,7 @@
 
 ### upload benchmarks to MySQL instance
 # set libPath to local user dir
-#.libPaths(file.path("~","R","libs"))
+.libPaths(file.path("~","R","libs"))
 # packages
 library(RJDBC)
 # Use jsonlite instead of RJSONIO
