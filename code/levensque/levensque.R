@@ -8,6 +8,7 @@ rm(list=ls())
 # reproducibility
 set.seed(1000)
 stopifnot(file.exists(file.path("..","..", "data"))) # data path is relative
+.libPaths(file.path("~","R","libs"))
 
 # load utilities
 source(file.path("..", "..","benchmark_utilities.R"))
