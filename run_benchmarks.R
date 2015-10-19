@@ -53,7 +53,7 @@ install.dependencies <- function(cran=c(), bioc=c(), github=list()){
   # Install CRAN packages
   for(pkg in cran) {
     if(!(pkg %in% installed.packages())) {
-      tryCatch(install.packages(pkg, dependencies = TRUE), 
+      tryCatch(install.packages(pkg, lib = file.path("~","R","libs"), dependencies = TRUE), 
                 error=function(e,pkg=pkg){
                       cat(sprintf("CRAN installation of %s failed with the following errors", pkg))
                       e
@@ -65,7 +65,7 @@ install.dependencies <- function(cran=c(), bioc=c(), github=list()){
   source("http://bioconductor.org/biocLite.R")
   for(pkg in bioc) {
     if(!(pkg %in% installed.packages())) {
-      tryCatch(biocLite(pkg, suppressUpdates = TRUE, 
+      tryCatch(biocLite(pkg, suppressUpdates = TRUE, lib = file.path("~","R","libs"), lib.loc = file.path("~","R","libs"), 
                         suppressAutoUpdate = TRUE, ask = FALSE),
                error=function(e, pkg=pkg){
                  cat(sprintf("Bioc installation of %s failed with the following errors", pkg))

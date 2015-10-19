@@ -76,7 +76,7 @@ do.varselect <- function(data, plot_results=FALSE){
   # cross validation and model fitting
   cvfit <- cv.ncvreg(as.matrix(data$prostate[,1:8]),penalty="lasso", seed = 8008,
                      data$prostate$lpsa,
-                     nfolds=1000 # i know this is overkill
+                     nfolds=10 # changed to 10 instead of 1000
   )
   if(plot_results){
     plot(cvfit)
@@ -94,7 +94,7 @@ do.varselect <- function(data, plot_results=FALSE){
   # cross validated model fitting 
   cvfit <- cv.ncvreg(as.matrix(data$heart[,sapply(data$heart, is.numeric)]), penalty="lasso", seed = 8008, # changed to numeric cols instead of 1:9 due to undefined column selection or character col selection error
                      data$heart$chd,
-                     nfolds=1000 # i know this is overkill
+                     nfolds=1000 # changed to 10 instead of 1000
   )
   if(plot_results){
     plot(cvfit)
