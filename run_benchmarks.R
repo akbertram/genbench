@@ -119,9 +119,9 @@ cran <- c(
   # plotting
   "ggplot2", "dplyr", "ggvis", #"googleVis",
   # db stuff and reporting
-  "RJDBC", "jsonlite", "rjson" #, "RJSONIO"
+  "RJDBC", "jsonlite", "RPostgreSQL", "rjson" #, "RJSONIO"
 )
-bioc <- c('Biobase', 'XVector', 'GenomicRanges', 'affy', 'hgu133plus2cdf', 'limma', 'edgeR', 'gage', 'STRINGdb')
+bioc <- c('Biobase', 'XVector', 'GenomicRanges', 'affy', 'hgu133plus2cdf', 'limma', 'edgeR', 'gage', 'STRINGdb', 'dplyr', 'Rcpp')
 github <- c('rCharts','ramnathv')
 install.dependencies(bioc=bioc, cran=cran, github=github)
 
