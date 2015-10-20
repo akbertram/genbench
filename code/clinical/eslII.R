@@ -56,8 +56,6 @@ do.load <- function(){
   
   alldata <- list(heart=e$heart, lung=e$Lung, prostate=e$prostate)
   
-  str(alldata[["heart"]])
-  
   return(alldata)
   
 }
@@ -74,10 +72,10 @@ do.varselect <- function(data, plot_results=FALSE){
   
   ## prostate
   # cross validation and model fitting
-  cvfit <- cv.ncvreg(as.matrix(data$prostate[,1:8]),penalty="lasso", seed = 8008,
-                     data$prostate$lpsa,
-                     nfolds=10 # changed to 10 instead of 1000
-  )
+  X <- as.matrix(data$prostate[,1:8])
+  y <- data$prostate$lpsa
+  cvfit <- cv.ncvreg(X, y, penalty="lasso", seed = 8008, nfolds=10 )
+  
   if(plot_results){
     plot(cvfit)
     summary(cvfit)
@@ -92,10 +90,10 @@ do.varselect <- function(data, plot_results=FALSE){
   
   ## heart
   # cross validated model fitting 
-  cvfit <- cv.ncvreg(as.matrix(data$heart[,sapply(data$heart, is.numeric)]), penalty="lasso", seed = 8008, # changed to numeric cols instead of 1:9 due to undefined column selection or character col selection error
-                     data$heart$chd,
-                     nfolds=1000 # changed to 10 instead of 1000
-  )
+  X2 <- as.matrix(data$heart[,sapply(data$heart, is.numeric)])
+  y2 <- data$heart$transplant
+  cvfit <- cv.ncvreg(X2, y2, penalty="lasso", seed = 8008, nfolds=100 )
+  
   if(plot_results){
     plot(cvfit)
     summary(cvfit)
@@ -108,12 +106,12 @@ do.varselect <- function(data, plot_results=FALSE){
                     ))
   )
   
-  
   return(do.call("rbind",results))
   
 }
 
 do.prostate <- function(data, plot_results=FALSE){
+  
   ### some modelling on prostate dataset from ncvreg (see do.load)
   # expects input from do.load
   
@@ -138,7 +136,6 @@ do.prostate <- function(data, plot_results=FALSE){
   train <- data$prostate[traintest,1:9]
   test <- data$prostate[!traintest,1:9]
   
-
   # The book (page 56) uses only train subset, so we the same:
   prostate.leaps <- regsubsets( lpsa ~ . , data=train, nbest=70,
                                 really.big=TRUE )
@@ -170,7 +167,7 @@ do.prostate <- function(data, plot_results=FALSE){
                       coeff=prostate.models.best.rss
                     ))
   )
-
+  
   ## Calculations for the lasso:
   prostate.lasso <- l1ce( lpsa ~ ., data=train, trace=TRUE, sweep.out=~1,
                           bound=seq(0,1,by=0.1) )
@@ -215,7 +212,6 @@ do.prostate <- function(data, plot_results=FALSE){
                       coeff=prostate.glm$coefficients
                     ))
   )
-  
   
   return(do.call("rbind",results))
 }
