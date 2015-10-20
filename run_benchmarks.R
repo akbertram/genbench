@@ -65,7 +65,7 @@ install.dependencies <- function(cran=c(), bioc=c(), github=list()){
   source("http://bioconductor.org/biocLite.R")
   for(pkg in bioc) {
     if(!(pkg %in% installed.packages())) {
-      tryCatch(biocLite(pkg, suppressUpdates = TRUE, lib = file.path("~","R","libs"), lib.loc = file.path("~","R","libs"), 
+      tryCatch(biocLite(pkg, suppressUpdates = TRUE, lib = file.path("~","R","libs"), #lib.loc = file.path("~","R","libs"), 
                         suppressAutoUpdate = TRUE, ask = FALSE),
                error=function(e, pkg=pkg){
                  cat(sprintf("Bioc installation of %s failed with the following errors", pkg))
@@ -121,7 +121,7 @@ cran <- c(
   # db stuff and reporting
   "RJDBC", "jsonlite", "rjson" #, "RJSONIO"
 )
-bioc <- c('Biobase', 'affy', 'hgu133plus2cdf', 'limma', 'edgeR', 'DESeq2', 'gage', 'STRINGdb')
+bioc <- c('Biobase', 'XVector', 'GenomicRanges', 'affy', 'hgu133plus2cdf', 'limma', 'edgeR', 'gage', 'STRINGdb')
 github <- c('rCharts','ramnathv')
 install.dependencies(bioc=bioc, cran=cran, github=github)
 
