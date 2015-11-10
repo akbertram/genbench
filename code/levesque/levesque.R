@@ -433,7 +433,7 @@ do.analyse <- function(DATA,TARGET){
 cat("\nTIMES   record=do.load(DATA_DIR, 'RNAseq').....\n") #DEBUG
 TIMES <- addRecord(TIMES, record_name = "load_RNAseq",
                    record = system.time(gcFirst = T,
-                                        record=do.load(DATA_DIR, "RNAseq")
+                                        do.load(DATA_DIR, "RNAseq")
                                         )
                    )
 DATA_rna <- do.load(DATA_DIR, "RNAseq")
@@ -441,7 +441,7 @@ DATA_rna <- do.load(DATA_DIR, "RNAseq")
 cat("\nTIMES   record=do.preprocess(DATA_rna, 'RNAseq').....\n") #DEBUG
 TIMES <- addRecord(TIMES, record_name = "proc_RNA",
                    record = system.time(gcFirst = T,
-                                        record=do.preprocess(DATA_rna,"RNAseq")
+                                        do.preprocess(DATA_rna,"RNAseq")
                                         )
                    )
 DATA_rna <- do.preprocess(DATA_rna, "RNAseq")
@@ -450,7 +450,7 @@ DATA_rna <- do.preprocess(DATA_rna, "RNAseq")
 cat("\nTIMES   record=do.analyse(DATA_rna,'RNAseq_DEG').....\n") #DEBUG
 TIMES <- addRecord(TIMES, record_name = "compute_RNA_DEG",
                    record = system.time(gcFirst = T,
-                                        record=do.analyse(DATA_rna,"RNAseq_DEG")
+                                        do.analyse(DATA_rna,"RNAseq_DEG")
                                         )
                    )
 DATA_rna <- do.analyse(DATA_rna, "RNAseq_DEG")
@@ -466,21 +466,21 @@ TIMES <- addRecord(TIMES, record_name = "compute_RNA_HM",
 cat("\nTIMES   record=do.analyse(DATA_rna,'RNAseq_KEGG').....\n") #DEBUG
 TIMES <- addRecord(TIMES, record_name = "ml_analyze_RNAKEGG",
                    record = system.time(gcFirst = T,
-                                        record=do.analyse(DATA_rna,"RNAseq_KEGG")
+                                        do.analyse(DATA_rna,"RNAseq_KEGG")
                                         )
                    )
 
 cat("\nTIMES   record=do.analyse(DATA_rna,'RNAseq_STRING').....\n") #DEBUG
 TIMES <- addRecord(TIMES, record_name = "compute_RNA_STRING",
                    record = system.time(gcFirst = T,
-                                        record=do.analyse(DATA_rna,"RNAseq_STRING")
+                                        do.analyse(DATA_rna,"RNAseq_STRING")
                                         )
                    )
 
 # cat("\nTIMES   record=do.analyse(DATA_rna,'RNAseq_rChart').....\n") #DEBUG
 # TIMES <- addRecord(TIMES, record_name = "compute_RNAr_Chart",
 #                    record = system.time(gcFirst = T,
-#                                         record=do.analyse(DATA_rna,"RNAseq_rChart")
+#                                         do.analyse(DATA_rna,"RNAseq_rChart")
 #                                         )
 #                    )
 
@@ -490,7 +490,7 @@ TIMES <- addRecord(TIMES, record_name = "compute_RNA_STRING",
 cat("\nTIMES   record=do.load(DATA_DIR, 'Exome').....\n") #DEBUG
 TIMES <- addRecord(TIMES, record_name = "load_Exome",
                    record = system.time(gcFirst = T,
-                                        record=do.load(DATA_DIR, "Exome")
+                                        do.load(DATA_DIR, "Exome")
                                         )
                    )
 DATA_exo <- do.load(DATA_DIR, "Exome")
@@ -499,7 +499,7 @@ DATA_exo <- do.load(DATA_DIR, "Exome")
 cat("\nTIMES   record=do.preprocess(DATA_exo, 'Exome').....\n") #DEBUG
 TIMES <- addRecord(TIMES, record_name = "proc_Exome",
                    record = system.time(gcFirst = T,
-                                        record=do.preprocess(DATA_exo,"Exome")
+                                        do.preprocess(DATA_exo,"Exome")
                                         )
                    )
 DATA_exo <- do.preprocess(DATA_exo, "Exome")
@@ -507,7 +507,7 @@ DATA_exo <- do.preprocess(DATA_exo, "Exome")
 cat("\nTIMES   record=do.analyse(DATA_exo,'Exome').....\n") #DEBUG
 TIMES <- addRecord(TIMES, record_name = "compute_Exome",
                    record = system.time(gcFirst = T,
-                                        record=do.analyse(DATA_exo,"Exome")
+                                        do.analyse(DATA_exo,"Exome")
                                         )
                    )
 
@@ -515,7 +515,7 @@ TIMES <- addRecord(TIMES, record_name = "compute_Exome",
 cat("\nTIMES   record=do.load(DATA_DIR, 'Survival').....\n") #DEBUG
 TIMES <- addRecord(TIMES, record_name = "load_Survival",
                    record = system.time(gcFirst = T,
-                                        record=do.load(DATA_DIR, "Survival")
+                                        do.load(DATA_DIR, "Survival")
                                         )
                    )
 DATA_sur <- do.load(DATA_DIR, "Survival")
@@ -524,7 +524,7 @@ DATA_sur <- do.load(DATA_DIR, "Survival")
 cat("\nTIMES   record=do.preprocess(DATA_sur, 'Survival').....\n") #DEBUG
 TIMES <- addRecord(TIMES, record_name = "proc_Survival",
                    record = system.time(gcFirst = T,
-                                        record=do.preprocess(DATA_sur,"Survival")
+                                        do.preprocess(DATA_sur,"Survival")
                                         )
                    )
 DATA_sur <- do.preprocess(DATA_sur, "Survival")
@@ -534,7 +534,7 @@ DATA_sur <- do.preprocess(DATA_sur, "Survival")
 cat("\nTIMES   record=do.analyse(DATA_sur,'Survival').....\n") #DEBUG
 TIMES <- addRecord(TIMES, record_name = "compute_Survival",
                    record = system.time(gcFirst = T,
-                                        record=do.analyse(DATA_sur,"Survival")
+                                        do.analyse(DATA_sur,"Survival")
                                         )
                    )
 
