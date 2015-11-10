@@ -144,7 +144,7 @@ svd_irlba <- function() {
   A <- df2mxc(A)
 
   # run svd
-  res <- irlba(A, nu=50, nv=50, sigma="ls") # compute largest singular values
+  res <- irlba(A, nu=50, nv=50) # compute largest singular values
   
   # return dataframe
   res <- data.frame(id=as.character(1:length(res$d)), sv=res$d)
