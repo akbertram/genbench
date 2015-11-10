@@ -63,10 +63,10 @@ install.dependencies <- function(cran=c(), bioc=c(), github=list()){
   }
   
   # Install bioconductor packages
-  source("https://bioconductor.org/biocLite.R")
+  source("http://bioconductor.org/biocLite.R")
   for(pkg in bioc) {
     if(!(pkg %in% installed.packages())) {
-      tryCatch(biocLite(pkg, suppressUpdates = TRUE, lib = file.path("~","R","libs"), #lib.loc = file.path("~","R","libs"), 
+      tryCatch(biocLite(pkg, suppressUpdates = TRUE, lib = file.path("~","R","libs"),
                         suppressAutoUpdate = TRUE, ask = FALSE),
                error=function(e, pkg=pkg){
                  cat(sprintf("Bioc installation of %s failed with the following errors", pkg))
