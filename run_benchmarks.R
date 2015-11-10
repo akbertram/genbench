@@ -34,6 +34,7 @@ if ("--reset" %in% args){
   # remove reset flag from args
   args <- args[args != "--reset"]
 }
+
 if (length(args) > 0) {
   NRUNS <- as.integer(args[1])
   cat(sprintf("Using %i runs per benchmark\n", NRUNS))
@@ -62,7 +63,7 @@ install.dependencies <- function(cran=c(), bioc=c(), github=list()){
   }
   
   # Install bioconductor packages
-  source("http://bioconductor.org/biocLite.R")
+  source("https://bioconductor.org/biocLite.R")
   for(pkg in bioc) {
     if(!(pkg %in% installed.packages())) {
       tryCatch(biocLite(pkg, suppressUpdates = TRUE, lib = file.path("~","R","libs"), #lib.loc = file.path("~","R","libs"), 
@@ -101,6 +102,7 @@ if (FALSE){
   }
   
 }
+
 cran <- c(
   # levensque
   'data.table', 'magrittr', 'd3heatmap', 'RColorBrewer', 'DT',
@@ -117,10 +119,11 @@ cran <- c(
   # graph models
   "igraph",
   # plotting
-  "ggplot2", "dplyr", "ggvis", #"googleVis",
+  "ggplot2", "dplyr", "ggvis", "googleVis", 
   # db stuff and reporting
   "RJDBC", "jsonlite", "RPostgreSQL", "rjson" #, "RJSONIO"
 )
+
 bioc <- c('Biobase', 'XVector', 'GenomicRanges', 'affy', 'hgu133plus2cdf', 'limma', 'edgeR', 'gage', 'STRINGdb', 'dplyr', 'Rcpp')
 github <- c('rCharts','ramnathv')
 install.dependencies(bioc=bioc, cran=cran, github=github)
@@ -145,5 +148,4 @@ for (SCRIPT in rev(dir(file.path(getwd(), "code"),
     cat("Not running benchmark at ", SCRIPT,"\n")
   }
 }
-
 
