@@ -3,17 +3,14 @@
 # Test-case workflow for TCGA Browser Shiny app which is developed in Mitch Levesque lab by Phil Cheng
 # Analysis code provided by Phil Cheng.
 
-### set up session
+##### set up session ##### 
 rm(list=ls())
-# reproducibility
 set.seed(1000)
 stopifnot(file.exists(file.path("..","..", "data","levesque"))) # data path is relative
 .libPaths(file.path("~","R","libs"))
-
-# load utilities
 source(file.path("..", "..","benchmark_utilities.R"))
 
-## packages used in TCGA prostate RNAseq
+##### loading packages ##### 
 library(ncvreg) # source datasets from http://cran.r-project.org/web/packages/ncvreg/ncvreg.pdf
 library(boot)
 library(lars)
@@ -39,26 +36,20 @@ library(d3heatmap)
 library(ggvis)
 library(RColorBrewer)
 library(DT)
-
-# test if jsonlite can be loaded
-library(jsonlite)
+library(jsonlite) # test if jsonlite can be loaded
 
 cat("\nLoaded all libraries.....\n") #DEBUG
 
-## global vars
+##### Set global vars ##### 
 VERBOSE <- TRUE # print progress?
 DOWNLOAD <- FALSE # download fresh data?
 BENCHMARK <- "TCGAbrowser"
 DATA_DIR <- file.path("..","..", "data","levesque")
-
-# Get url of all txt files in the folder
 files = list.files(path = DATA_DIR, pattern = "txt$")
-
-# holder for results
 RESULTS <- results(benchmark_name = BENCHMARK)
 TIMES <- timings(benchmark_name = BENCHMARK)
 
-# functions
+##### Functions ##### 
 mgsub2 <- function(myrepl, mystring){
   gsub2 <- function(l, x){
     do.call('gsub', list(x = x, pattern = l[1], replacement = l[2]))
@@ -109,7 +100,7 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
     }
   }
 }
-
+##### Start #####
 do.load <- function(DATA_DIR,TARGET){
   # Load the required Data
   DATA <- list()
@@ -345,6 +336,7 @@ do.analyse <- function(DATA,TARGET){
     heatmap.2(map, col=redgreen,  trace = "none", keysize=0.6, labRow=F, labCol=F, scale = "row", ColSideColors=as.character(pat.gene[,gene2]+1))   
     dev.off()
     cat("\n after pdf \n")
+    DATA <- list(head(fit3))
   }
   
   if ( TARGET == "RNAseq_KEGG" ) {
@@ -415,6 +407,7 @@ do.analyse <- function(DATA,TARGET){
     lines(c(half[1],half[1]), c(0, 0.5), lwd=1, lty =2, col=1)
     lines(c(0,half[2]), c(0.5, 0.5), lwd=1, lty=2, col=2)
     lines(c(half[2],half[2]), c(0, 0.5), lwd=1, lty=2, col=2)
+    
   }
   
   if ( TARGET == 'Exome') {
@@ -438,124 +431,112 @@ do.analyse <- function(DATA,TARGET){
 ############################################################################
 
 cat("\nTIMES   record=do.load(DATA_DIR, 'RNAseq').....\n") #DEBUG
-TIMES <- addRecord(TIMES, record_name = "ml_load_RNAseq",
+TIMES <- addRecord(TIMES, record_name = "load_RNAseq",
                    record = system.time(gcFirst = T,
-                                        RESULTS <- addRecord(RESULTS, record_name="ml_load_RNAseq",
-                                                             record=do.load(DATA_DIR, "RNAseq")
+                                        record=do.load(DATA_DIR, "RNAseq")
                                         )
-                   ))
+                   )
 DATA_rna <- do.load(DATA_DIR, "RNAseq")
 
 cat("\nTIMES   record=do.preprocess(DATA_rna, 'RNAseq').....\n") #DEBUG
-TIMES <- addRecord(TIMES, record_name = "ml_preproc_RNA",
+TIMES <- addRecord(TIMES, record_name = "proc_RNA",
                    record = system.time(gcFirst = T,
-                                        RESULTS <- addRecord(RESULTS, record_name="ml_preproc_RNA",
-                                                             record=do.preprocess(DATA_rna,"RNAseq")
+                                        record=do.preprocess(DATA_rna,"RNAseq")
                                         )
-                   ))
+                   )
 DATA_rna <- do.preprocess(DATA_rna, "RNAseq")
 
 
 cat("\nTIMES   record=do.analyse(DATA_rna,'RNAseq_DEG').....\n") #DEBUG
-TIMES <- addRecord(TIMES, record_name = "ml_analyze_RNA:DEG",
+TIMES <- addRecord(TIMES, record_name = "compute_RNA_DEG",
                    record = system.time(gcFirst = T,
-                                        RESULTS <- addRecord(RESULTS, record_name="ml_analyze_RNA:DEG",
-                                                             record=do.analyse(DATA_rna,"RNAseq_DEG")
+                                        record=do.analyse(DATA_rna,"RNAseq_DEG")
                                         )
-                   ))
+                   )
 DATA_rna <- do.analyse(DATA_rna, "RNAseq_DEG")
 
 cat("\nTIMES   record=do.analyse(DATA_rna,'RNAseq_HM').....\n") #DEBUG
-TIMES <- addRecord(TIMES, record_name = "ml_analyze_RNA:HM",
+TIMES <- addRecord(TIMES, record_name = "compute_RNA_HM",
                    record = system.time(gcFirst = T,
-                                        RESULTS <- addRecord(RESULTS, record_name="ml_analyze_RNA:HM",
+                                        RESULTS <- addRecord(RESULTS, record_name="compute_RNA_HM",
                                                              record=do.analyse(DATA_rna,"RNAseq_HM")
                                         )
                    ))
 
 cat("\nTIMES   record=do.analyse(DATA_rna,'RNAseq_KEGG').....\n") #DEBUG
-TIMES <- addRecord(TIMES, record_name = "ml_analyze_RNA:KEGG",
+TIMES <- addRecord(TIMES, record_name = "ml_analyze_RNAKEGG",
                    record = system.time(gcFirst = T,
-                                        RESULTS <- addRecord(RESULTS, record_name="ml_analyze_RNA:KEGG",
-                                                             record=do.analyse(DATA_rna,"RNAseq_KEGG")
+                                        record=do.analyse(DATA_rna,"RNAseq_KEGG")
                                         )
-                   ))
+                   )
 
 cat("\nTIMES   record=do.analyse(DATA_rna,'RNAseq_STRING').....\n") #DEBUG
-TIMES <- addRecord(TIMES, record_name = "ml_analyze_RNA:STRING",
+TIMES <- addRecord(TIMES, record_name = "compute_RNA_STRING",
                    record = system.time(gcFirst = T,
-                                        RESULTS <- addRecord(RESULTS, record_name="ml_analyze_RNA:STRING",
-                                                             record=do.analyse(DATA_rna,"RNAseq_STRING")
+                                        record=do.analyse(DATA_rna,"RNAseq_STRING")
                                         )
-                   ))
+                   )
 
 # cat("\nTIMES   record=do.analyse(DATA_rna,'RNAseq_rChart').....\n") #DEBUG
-# TIMES <- addRecord(TIMES, record_name = "ml_analyze_RNA:rChart",
+# TIMES <- addRecord(TIMES, record_name = "compute_RNAr_Chart",
 #                    record = system.time(gcFirst = T,
-#                                         RESULTS <- addRecord(RESULTS, record_name="ml_analyze_RNA:rChart",
-#                                                              record=do.analyse(DATA_rna,"RNAseq_rChart")
+#                                         record=do.analyse(DATA_rna,"RNAseq_rChart")
 #                                         )
-#                    ))
+#                    )
 
 
 
 #######
 cat("\nTIMES   record=do.load(DATA_DIR, 'Exome').....\n") #DEBUG
-TIMES <- addRecord(TIMES, record_name = "ml_load_Exome",
+TIMES <- addRecord(TIMES, record_name = "load_Exome",
                    record = system.time(gcFirst = T,
-                                        RESULTS <- addRecord(RESULTS, record_name="ml_load_Exome",
-                                                             record=do.load(DATA_DIR, "Exome")
+                                        record=do.load(DATA_DIR, "Exome")
                                         )
-                   ))
+                   )
 DATA_exo <- do.load(DATA_DIR, "Exome")
 
 
 cat("\nTIMES   record=do.preprocess(DATA_exo, 'Exome').....\n") #DEBUG
-TIMES <- addRecord(TIMES, record_name = "ml_preproc_Exome",
+TIMES <- addRecord(TIMES, record_name = "proc_Exome",
                    record = system.time(gcFirst = T,
-                                        RESULTS <- addRecord(RESULTS, record_name="ml_preproc_Exome",
-                                                             record=do.preprocess(DATA_exo,"Exome")
+                                        record=do.preprocess(DATA_exo,"Exome")
                                         )
-                   ))
+                   )
 DATA_exo <- do.preprocess(DATA_exo, "Exome")
 
 cat("\nTIMES   record=do.analyse(DATA_exo,'Exome').....\n") #DEBUG
-TIMES <- addRecord(TIMES, record_name = "ml_analyze_Exome",
+TIMES <- addRecord(TIMES, record_name = "compute_Exome",
                    record = system.time(gcFirst = T,
-                                        RESULTS <- addRecord(RESULTS, record_name="ml_analyze_Exome",
-                                                             record=do.analyse(DATA_exo,"Exome")
+                                        record=do.analyse(DATA_exo,"Exome")
                                         )
-                   ))
+                   )
 
 #######
 cat("\nTIMES   record=do.load(DATA_DIR, 'Survival').....\n") #DEBUG
-TIMES <- addRecord(TIMES, record_name = "ml_load_Survival",
+TIMES <- addRecord(TIMES, record_name = "load_Survival",
                    record = system.time(gcFirst = T,
-                                        RESULTS <- addRecord(RESULTS, record_name="ml_load_Survival",
-                                                             record=do.load(DATA_DIR, "Survival")
+                                        record=do.load(DATA_DIR, "Survival")
                                         )
-                   ))
+                   )
 DATA_sur <- do.load(DATA_DIR, "Survival")
 
 
 cat("\nTIMES   record=do.preprocess(DATA_sur, 'Survival').....\n") #DEBUG
-TIMES <- addRecord(TIMES, record_name = "ml_preproc_Survival",
+TIMES <- addRecord(TIMES, record_name = "proc_Survival",
                    record = system.time(gcFirst = T,
-                                        RESULTS <- addRecord(RESULTS, record_name="ml_preproc_Survival",
-                                                             record=do.preprocess(DATA_sur,"Survival")
+                                        record=do.preprocess(DATA_sur,"Survival")
                                         )
-                   ))
+                   )
 DATA_sur <- do.preprocess(DATA_sur, "Survival")
 
 
 
 cat("\nTIMES   record=do.analyse(DATA_sur,'Survival').....\n") #DEBUG
-TIMES <- addRecord(TIMES, record_name = "ml_analyze_Survival",
+TIMES <- addRecord(TIMES, record_name = "compute_Survival",
                    record = system.time(gcFirst = T,
-                                        RESULTS <- addRecord(RESULTS, record_name="ml_analyze_Survival",
-                                                             record=do.analyse(DATA_sur,"Survival")
+                                        record=do.analyse(DATA_sur,"Survival")
                                         )
-                   ))
+                   )
 
 
 ### reporting
