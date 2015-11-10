@@ -74,17 +74,6 @@ install.dependencies <- function(cran=c(), bioc=c(), github=list()){
                })
     }
   }
-#  # Install Github packages
-#  library('devtools')
-#  for(pkg in github) {
-#    if(!(pkg[[1]][1] %in% installed.packages())) {
-#     tryCatch(install_github(pkg[[1]]), 
-#               error=function(e,pkg=pkg[[1]]){
-#                 cat(sprintf("CRAN installation of package %s with username %s failed with the following errors", pkg[[1]][1],pkg[[1]][2]))
-#                 e
-#               })
-#    }
-#  }
 }
 
 ## install required packages if any
@@ -125,8 +114,7 @@ cran <- c(
 )
 
 bioc <- c('Biobase', 'XVector', 'GenomicRanges', 'affy', 'hgu133plus2cdf', 'limma', 'edgeR', 'gage', 'STRINGdb', 'dplyr', 'Rcpp')
-github <- c('rCharts','ramnathv')
-install.dependencies(bioc=bioc, cran=cran, github=github)
+install.dependencies(bioc=bioc, cran=cran)
 
 
 # find and run all benchmark scripts
