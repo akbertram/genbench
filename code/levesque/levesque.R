@@ -336,8 +336,7 @@ do.analyse <- function(DATA,TARGET){
     heatmap.2(map, col=redgreen,  trace = "none", keysize=0.6, labRow=F, labCol=F, scale = "row", ColSideColors=as.character(pat.gene[,gene2]+1))   
     dev.off()
     cat("\n after pdf \n")
-    DATA <- list()
-    DATA <- append(DATA, list(head(fit3)) )
+    DATA <- head(fit3)
   }
   
   if ( TARGET == "RNAseq_KEGG" ) {
@@ -459,7 +458,7 @@ cat("\nTIMES   record=do.analyse(DATA_rna,'RNAseq_HM').....\n") #DEBUG
 TIMES <- addRecord(TIMES, record_name = "compute_RNA_HM",
                    record = system.time(gcFirst = T,
                                         RESULTS <- addRecord(RESULTS, record_name="compute_RNA_HM",
-                                                             record=do.analyse(DATA_rna,"RNAseq_HM")
+                                                             record = do.analyse(DATA_rna,"RNAseq_HM")
                                         )
                    ))
 
