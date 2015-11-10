@@ -336,7 +336,8 @@ do.analyse <- function(DATA,TARGET){
     heatmap.2(map, col=redgreen,  trace = "none", keysize=0.6, labRow=F, labCol=F, scale = "row", ColSideColors=as.character(pat.gene[,gene2]+1))   
     dev.off()
     cat("\n after pdf \n")
-    DATA <- list(head(fit3))
+    DATA <- list()
+    DATA <- append(DATA, list(head(fit3)) )
   }
   
   if ( TARGET == "RNAseq_KEGG" ) {
@@ -433,27 +434,26 @@ do.analyse <- function(DATA,TARGET){
 cat("\nTIMES   record=do.load(DATA_DIR, 'RNAseq').....\n") #DEBUG
 TIMES <- addRecord(TIMES, record_name = "load_RNAseq",
                    record = system.time(gcFirst = T,
-                                        do.load(DATA_DIR, "RNAseq")
+                                        DATA_rna <- do.load(DATA_DIR, "RNAseq")
                                         )
                    )
-DATA_rna <- do.load(DATA_DIR, "RNAseq")
+
 
 cat("\nTIMES   record=do.preprocess(DATA_rna, 'RNAseq').....\n") #DEBUG
 TIMES <- addRecord(TIMES, record_name = "proc_RNA",
                    record = system.time(gcFirst = T,
-                                        do.preprocess(DATA_rna,"RNAseq")
+                                        DATA_rna <- do.preprocess(DATA_rna,"RNAseq")
                                         )
                    )
-DATA_rna <- do.preprocess(DATA_rna, "RNAseq")
 
 
 cat("\nTIMES   record=do.analyse(DATA_rna,'RNAseq_DEG').....\n") #DEBUG
 TIMES <- addRecord(TIMES, record_name = "compute_RNA_DEG",
                    record = system.time(gcFirst = T,
-                                        do.analyse(DATA_rna,"RNAseq_DEG")
+                                        DATA_rna <- do.analyse(DATA_rna,"RNAseq_DEG")
                                         )
                    )
-DATA_rna <- do.analyse(DATA_rna, "RNAseq_DEG")
+
 
 cat("\nTIMES   record=do.analyse(DATA_rna,'RNAseq_HM').....\n") #DEBUG
 TIMES <- addRecord(TIMES, record_name = "compute_RNA_HM",
@@ -490,19 +490,18 @@ TIMES <- addRecord(TIMES, record_name = "compute_RNA_STRING",
 cat("\nTIMES   record=do.load(DATA_DIR, 'Exome').....\n") #DEBUG
 TIMES <- addRecord(TIMES, record_name = "load_Exome",
                    record = system.time(gcFirst = T,
-                                        do.load(DATA_DIR, "Exome")
+                                        DATA_exo <- do.load(DATA_DIR, "Exome")
                                         )
                    )
-DATA_exo <- do.load(DATA_DIR, "Exome")
 
 
 cat("\nTIMES   record=do.preprocess(DATA_exo, 'Exome').....\n") #DEBUG
 TIMES <- addRecord(TIMES, record_name = "proc_Exome",
                    record = system.time(gcFirst = T,
-                                        do.preprocess(DATA_exo,"Exome")
+                                        DATA_exo <- do.preprocess(DATA_exo,"Exome")
                                         )
                    )
-DATA_exo <- do.preprocess(DATA_exo, "Exome")
+
 
 cat("\nTIMES   record=do.analyse(DATA_exo,'Exome').....\n") #DEBUG
 TIMES <- addRecord(TIMES, record_name = "compute_Exome",
@@ -515,20 +514,17 @@ TIMES <- addRecord(TIMES, record_name = "compute_Exome",
 cat("\nTIMES   record=do.load(DATA_DIR, 'Survival').....\n") #DEBUG
 TIMES <- addRecord(TIMES, record_name = "load_Survival",
                    record = system.time(gcFirst = T,
-                                        do.load(DATA_DIR, "Survival")
+                                        DATA_sur <- do.load(DATA_DIR, "Survival")
                                         )
                    )
-DATA_sur <- do.load(DATA_DIR, "Survival")
 
 
 cat("\nTIMES   record=do.preprocess(DATA_sur, 'Survival').....\n") #DEBUG
 TIMES <- addRecord(TIMES, record_name = "proc_Survival",
                    record = system.time(gcFirst = T,
-                                        do.preprocess(DATA_sur,"Survival")
+                                        DATA_sur <- do.preprocess(DATA_sur,"Survival")
                                         )
                    )
-DATA_sur <- do.preprocess(DATA_sur, "Survival")
-
 
 
 cat("\nTIMES   record=do.analyse(DATA_sur,'Survival').....\n") #DEBUG
