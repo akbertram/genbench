@@ -28,18 +28,19 @@ TIMES   <- timings(benchmark_name = BENCHMARK)
 do.load <- function(INPUT){
   ### import data
   # read data into data.frames
-  dat <- read.csv(INPUT)
-  dat <- dat[,c(-1)]
-  
+  temp_dat <- read.csv(INPUT)
+  dat <- data.frame( temp_dat[,c(2:(dim(temp_dat)[2]))], row.names = temp_dat[,1] )
+  #
   var_len = dim(dat)[2]
   var_arr = 3:var_len
   # get the variables from data
   #  ydata is a data.frame keeps the status of the patient and time of last follow-up
-  ydata     <- cbind( time=dat[,2], status=dat[,1])
+  ydata     <- cbind( time=dat$time, status=dat$status)
   #  xdata keeps the gene expression for each patient
   xdata     <- dat[,var_arr]
   #
-  return(list(ydata = ydata, xdata=xdata))
+  surv_data <- list(ydata = ydata, xdata=xdata)
+  return(surv_data)
 }
 
 do.calc <- function(surv_data){
@@ -55,7 +56,7 @@ do.calc <- function(surv_data){
   lambda_vec <- array(0,params.nlambda)
   alpha_vec  <- array(0,params.nalpha)
   #
-  xdata <- surv_data$xdata
+  xdata <- as.matrix(surv_data$xdata)
   ydata <- surv_data$ydata
   #
   # create results structure, as it was not possible to determine before the first loop
@@ -91,7 +92,6 @@ TIMES <- addRecord(TIMES, record_name = "calc",
                    )
 )
 
-
 ## output results for comparison
 # write results to file
 reportRecords(RESULTS)
@@ -102,67 +102,3 @@ reportRecords(TIMES)
 # final clean up
 rm(list=ls())
 gc()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-rm(list = ls())
-
-require('glmnet')
-require('survival')
-
-#params.lambda <- c(1e-5,1e-4)
-params.nlambda <- 500
-params.lam_max <- 1e-4
-params.lam_rat <- 0.001
-params.lambda  <- seq(params.lam_max, params.lam_rat * params.lam_max, length.out=params.nlambda)
-params.alpha   <- seq(0,1,0.1)
-params.nalpha  <- length(params.alpha)
-results        <- NULL
-
-lambda_vec <- array(0,params.nlambda)
-alpha_vec  <- array(0,params.nalpha)
-
-  # read data in matlab format
-  dat <- read.csv( "tcga.csv" )
-  var_len = dim(dat)[2]
-  var_arr = 3:var_len
-  # get the variables
-  ydata     <- cbind( time=dat[,1], status=dat[,2])
-  xdata     <- dat[,var_arr]
-  #
-  rm(dat) # remove big variable, as all data has been read
-  # create results structure, as it was not possible to determine before the first loop
-  results <- array(0,c(params.nlambda, length(params.alpha), dim(xdata)[2]))
-  #
-  # for each alpha and lambda, determine the glmnet
-  for (mm in 1:length(params.alpha)) {
-    # set the alpha value
-    alpha_v = params.alpha[mm]
-    # get local results
-    temp_results = glmnet( xdata, ydata, family='cox', alpha=alpha_v, nlambda=params.nlambda, standardize=FALSE )
-    # save results
-    for (nn in 1:length(temp_results$lambda)) {
-      results[nn,mm,] <- temp_results$beta[,nn]
-    }
-  }
-  lambda_vec <- temp_results$lambda
-  alpha_vec  <- params.alpha
-
-  write.csv(results,"results.csv")
-  write.csv(lambda_vec,"lambda.csv")
-  write.csv(alpha_vec,"alpha.csv")
-
