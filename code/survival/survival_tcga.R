@@ -26,6 +26,7 @@ TIMES   <- timings(benchmark_name = BENCHMARK)
 #### functions
 
 do.load <- function(INPUT){
+  print('Loading all necessary data...')
   ### import data
   # read data into data.frames
   temp_dat <- read.csv(INPUT)
@@ -44,8 +45,9 @@ do.load <- function(INPUT){
 }
 
 do.calc <- function(surv_data){
+  print('Starting calculation...')
   # parameters for survival analysis
-  params.nlambda <- 5
+  params.nlambda <- 1000
   params.lam_max <- 1e-7
   params.lam_rat <- 0.001
   params.lambda  <- seq(params.lam_max, params.lam_rat * params.lam_max, length.out=params.nlambda)
