@@ -25,12 +25,14 @@ TIMES   <- timings(benchmark_name = BENCHMARK)
 
 # parameters for survival analysis
 params = list();
-params$nlambda <- 2
-params$lam_max <- 1e-7
-params$lam_rat <- 0.001
-params$lambda  <- seq(params$lam_max, params$lam_rat * params$lam_max, length.out=params$nlambda)
+params$nlambda <- 10000 # number of diferent lambdas to be tested
+#
+# commented out as they are not being used
+#params$lam_max <- 1e-7
+#params$lam_rat <- 0.001
+#params$lambda  <- seq(params$lam_max, params$lam_rat * params$lam_max, length.out=params$nlambda)
+#
 params$alpha   <- seq(0,1,0.1)
-params$alpha   <- c(0.1, 0.5)
 params$nalpha  <- length(params$alpha)
 
 source("survival_functions.R")
