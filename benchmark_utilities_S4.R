@@ -1,4 +1,4 @@
-library(parallel) 
+library(parallel)
 
 setClass("GenBench",
          slots = c(
@@ -8,7 +8,7 @@ setClass("GenBench",
            benchmark_group = "character",
            env = character()
          ),
-         
+
          prototype = list(
            data = list(),
            benchmark_name = "NOT_SET",
@@ -109,7 +109,7 @@ setMethod(f="addRecord",
             record_names <- append(names(obj$data), record_name)
             obj$data <- append(obj$data, list(record))
             names(obj$data) <- record_names
-            
+
             return(obj)
           }
 )
@@ -156,7 +156,7 @@ setMethod(f="getOutputFile",
           definition=function(obj)
           {
             return(
-              file.path("..", "..", "generated", 
+              file.path("..", "..", "generated",
                         paste(benchmarkGroup(obj),benchmarkName(obj), "tsv", sep = '.')
               ))
           }
@@ -183,7 +183,7 @@ setMethod(f="checkOutputFile",
               } else {
                 return(FALSE)
               }
-              
+
             }
           }
 )
@@ -193,21 +193,21 @@ setMethod(f="getOutputFile",
           definition=function(obj)
           {
             makeOutputFileStamped <- function(obj){
-              file.path("..", "..", "generated", "timings", 
-                        benchmarkGroup(obj), 
-                        paste(benchmarkName(obj), 
+              file.path("..", "..", "generated", "timings",
+                        benchmarkGroup(obj),
+                        paste(benchmarkName(obj),
                               format(Sys.time(), "%Y%m%d%H%M%S"), # datestamped to the second
                               "tsv", sep = '.')
               )
             }
-            
+
             out <-  makeOutputFileStamped(obj)
-            
+
             while(file.exists(out)){
               # make sure file does not already exist
               out <-  makeOutputFileStamped(obj)
             }
-            
+
             return( out )
           }
 )
@@ -217,8 +217,8 @@ setMethod(f="getOutputFile",
           definition=function(obj)
           {
             return(
-              file.path("..", "..", "generated", "results", 
-                        benchmarkGroup(obj), 
+              file.path("..", "..", "generated", "results",
+                        benchmarkGroup(obj),
                         paste(benchmarkName(obj), "results", "tsv", sep = '.')
               )
             )
@@ -241,8 +241,8 @@ setMethod(f="reportRecords",
             lapply(getRecords(obj), function(rec){
               # append each record to output file
               write.table(x = rec, file = getOutputFile(obj), append = TRUE,
-                          sep = "\t", row.names = TRUE, col.names=TRUE      
-              )    
+                          sep = "\t", row.names = TRUE, col.names=TRUE
+              )
             })
           }
 )
@@ -252,7 +252,7 @@ setMethod(f="reportRecords",
           definition=function(obj)
           {
             # replace RJSONIO with jsonlite
-            require(jsonlite)
+            require(RJSONIO)
             checkOutputFile(obj, create = TRUE)
             out <- getOutputFile(obj)
             # add 1 line JSON serialized header containing environment info
@@ -260,7 +260,7 @@ setMethod(f="reportRecords",
             write.table(file=out, append = TRUE,
                         quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
                         format(do.call("rbind", getRecords(obj)), digits=5)
-                        
+
             )
           }
 )
@@ -270,7 +270,7 @@ setMethod(f="reportRecords",
           definition=function(obj)
           {
             # replace RJSONIO with jsonlite
-            require(jsonlite)
+            require(RJSONIO)
             # check output file and collect results
             checkOutputFile(obj, create = TRUE)
             RESULTS <- getRecords(obj)
@@ -284,7 +284,7 @@ setMethod(f="reportRecords",
             #writeLines(toJSON(getEnv(obj)), con = getOutputFile(obj))
             write.table(file=getOutputFile(obj), append = TRUE,
                         quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE,
-                        do.call("rbind", 
+                        do.call("rbind",
                                 lapply(names(RESULTS), function(x){
                                   names(RESULTS[[x]]) <- c(1:ncol(RESULTS[[x]])) # standardise col names
                                   cbind(RESULTS[[x]], data.frame(res=x))

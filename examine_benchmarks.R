@@ -29,25 +29,25 @@ if ("--use-db" %in% args){
   # separate into key:value named list for ease of access
   names(conn_info) <- lapply(conn_info, function(x) x[[1]])
   conn_info <- lapply(conn_info, function(x) x[[2]])
-  
+
 #   if(!"--driver" %in% names(conn_info)){
 #     # default: use mysql driver
 #     conn_info$`--driver` <- file.path(getwd(), dir("db", pattern = "mysql-connector-java-5.1.35.jar", full.names = TRUE))
 #   }
-  
+
   if(all(c("--usr","--pwd","--conn") %in% names(conn_info))){
     # all parameters are provided, so proceed with using database
     # todo: more thorough testing of connection
-    
+
     CONN_INFO <<- conn_info
     USE_DB <<- TRUE
-    
+
     cat("Working database credentials supplied, using database for examine_benchmarks.R")
-    
+
   } else {
-    
+
     cat("Working database credentials NOT supplied, using local files for examine_benchmarks.R")
-    
+
   }
 }
 
@@ -56,25 +56,25 @@ collect_reports <- function(USE_DB=FALSE, usr="foo", pwd="bar", conn_string="baz
   if(USE_DB){
     res <- collect_reports.mysql(usr, pwd, conn_string)
   } else {
-    
+
     # use locally cached files instead
     res <- collect_reports.local()
-    
+
   }
-  
+
   return(res)
 }
 collect_reports.mysql <- function(usr="foo", pwd="bar", conn_string="baz"){
-  
+
   source(file.path("db", "sql_utilities.R"))
-  
-  conn <- getConnection(usr=CONN_INFO$`--usr`, 
-                        pwd=CONN_INFO$`--pwd`, 
-                        conn_string=CONN_INFO$`--conn`) 
-  
-  res <- dbGetQuery(conn, 
+
+  conn <- getConnection(usr=CONN_INFO$`--usr`,
+                        pwd=CONN_INFO$`--pwd`,
+                        conn_string=CONN_INFO$`--conn`)
+
+  res <- dbGetQuery(conn,
                     "
-                      SELECT 
+                      SELECT
                         t.block, t.variable, t.value,
                         CONCAT(m.benchmark, '.', m.timestamp) AS id,
                         m.benchmark_group, m.benchmark, m.timestamp,
@@ -89,14 +89,14 @@ collect_reports.mysql <- function(usr="foo", pwd="bar", conn_string="baz"){
                     "
                     )
   return(res)
-  
+
 }
 
 collect_reports.local <- function(){
   # read in all reported benchmarks
   # TODO: update to use genbench classes for collection and handling
   require(reshape)
-  require(jsonlite) # replace rjson with jsonlite
+  require(rjson) # replace rjson with jsonlite
   reports <- lapply(
     dir(path = file.path("generated", "timings"), pattern = ".tsv$",
         full.names = TRUE, recursive = TRUE),
@@ -112,7 +112,7 @@ collect_reports.local <- function(){
         names(meta) <- meta
         meta <- lapply(meta, function(x) "not set") # set all values to not set
       }
-      
+
       # read data and parse file names
       tmp <- NA
       try(tmp <- read.delim(path, comment.char = "{"), silent = TRUE)
@@ -122,20 +122,20 @@ collect_reports.local <- function(){
       tmp <- melt(tmp, id.vars = c("block"), na.rm = TRUE)
       suppressWarnings(tmp$value <- as.numeric(tmp$value))
       tmp <- tmp[!is.na(tmp$value),] # drop empty timings
-      
+
       # parse path to group benchmarks
       tmp$id <- strtrim(basename(path), nchar(basename(path)) - 4) # drop file extension
       tmp$benchmark_group <- basename(dirname(path))
       tmp$benchmark <- strsplit(tmp$id, '\\.')[[1]][[1]]
       tmp$timestamp <- strsplit(tmp$id, '\\.')[[1]][[2]]
-      
+
       # add meta data to results
       tmp$sys_name <- meta$sysname
       tmp$sys_release <- meta$release
       tmp$lang <- meta$language
       tmp$lang_major <- meta$major
       tmp$lang_minor <- meta$minor
-       
+
       return(tmp)
     }
     )
@@ -143,11 +143,11 @@ collect_reports.local <- function(){
   # reorder variable for what was timed so that
   # figures look nicer
   levels(reports$variable) <- rev(sort(levels(reports$variable)))
-  
-  
+
+
   return(reports)
-    
-  
+
+
 }
 
 ############
@@ -156,8 +156,8 @@ collect_reports.local <- function(){
 
 ### collect data
 if(USE_DB){
-  res <- collect_reports(USE_DB = USE_DB, usr=CONN_INFO$`--usr`, 
-                         pwd=CONN_INFO$`--pwd`, 
+  res <- collect_reports(USE_DB = USE_DB, usr=CONN_INFO$`--usr`,
+                         pwd=CONN_INFO$`--pwd`,
                          conn_string=CONN_INFO$`--conn`
                          )
 } else {
@@ -167,7 +167,7 @@ if(USE_DB){
 ### plot
 g <- ggplot(data = res)
 g +
-  geom_jitter(aes(y=value, x=block, colour=variable), 
+  geom_jitter(aes(y=value, x=block, colour=variable),
               position = position_jitter(width = .5)) +
   facet_grid(sys_name + sys_release + lang + lang_major + lang_minor ~ benchmark_group + benchmark, scales = "free_x") +
   scale_y_log10() +
@@ -182,7 +182,7 @@ ggsave(filename = "generated/timings/current.all.pdf", width = 20, height = 10)
 
 ### summarise
 ## total time per benchmark run (i.e. per ID)
-g <- ggplot(data = 
+g <- ggplot(data =
               res %>%
                 group_by(sys_name, sys_release, lang, lang_major, lang_minor, benchmark_group, benchmark, id, variable) %>%
                 summarise(
@@ -191,7 +191,7 @@ g <- ggplot(data =
                           )
 )
 g +
-  geom_jitter(aes(y=total_time, x=variable, colour=time_stamp), 
+  geom_jitter(aes(y=total_time, x=variable, colour=time_stamp),
               position = position_jitter(width = .5)) +
   facet_grid(sys_name+ sys_release+ lang+ lang_major+ lang_minor ~ benchmark_group + benchmark, scales = "free_x") +
   scale_y_log10() +
@@ -201,12 +201,12 @@ g +
   ylab("Time (seconds)") +
   xlab("Timing type")
 
-            
+
 # save results
 ggsave(filename = "generated/timings/current.summaryperrun.pdf", width = 20, height = 10)
 
 ## average time per benchmark file (i.e. per id)
-g <- ggplot(data = 
+g <- ggplot(data =
               res %>%
               group_by(sys_name, sys_release, lang, lang_major, lang_minor,benchmark_group, benchmark, id, variable) %>% # total time per run
               summarise(

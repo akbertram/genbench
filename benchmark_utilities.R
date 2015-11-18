@@ -18,22 +18,22 @@ genbench <- function(benchmark_name="NOT_SET", benchmark_group=basename(getwd())
     list(
       data=list(),
       # attributes
-      benchmark=benchmark_name, 
+      benchmark=benchmark_name,
       wd=getwd(),
       benchmark_group=benchmark_group,
       env=c(R.Version(), Sys.info()[c("sysname", "release", "version")], nphyscores=detectCores(logical = FALSE), nlogcores=detectCores(logical = TRUE))
       ),
-    class = "genbench") 
+    class = "genbench")
 }
 
 # timings S3 class
 timings <- function(benchmark_name="NOT_SET", benchmark_group=basename(getwd())){
   instance <- genbench(benchmark_name, benchmark_group)
   # inherits from genbench
-  # will search classpath left to right for methods 
-  # (i.e. will call child method first choice, 
+  # will search classpath left to right for methods
+  # (i.e. will call child method first choice,
   # and will only call parent method if no child method exists)
-  class(instance) <- append("timings", class(instance)) 
+  class(instance) <- append("timings", class(instance))
   return(instance)
 }
 
@@ -41,8 +41,8 @@ timings <- function(benchmark_name="NOT_SET", benchmark_group=basename(getwd()))
 results <- function(benchmark_name="NOT_SET", benchmark_group=basename(getwd())){
   instance <- genbench(benchmark_name, benchmark_group)
   # inherits from genbench
-  # will search classpath left to right for methods 
-  # (i.e. will call child method first choice, 
+  # will search classpath left to right for methods
+  # (i.e. will call child method first choice,
   # and will only call parent method if no child method exists)
   class(instance) <- append("results", class(instance))
   return(instance)
@@ -58,11 +58,11 @@ print.genbench <- function(obj){
 }
 # get/set group
 benchmarkGroup <- function(obj, group=NULL){
-  UseMethod("benchmarkGroup", obj)  
+  UseMethod("benchmarkGroup", obj)
 }
 benchmarkGroup.default <- function(obj, group=NULL){
   warning(sprintf("Instance class cannot be handled."))
-  return(obj) 
+  return(obj)
 }
 benchmarkGroup.genbench <- function(obj, group=NULL){
   if(is.null(group)){
@@ -76,11 +76,11 @@ benchmarkGroup.genbench <- function(obj, group=NULL){
 }
 # get/set benchmark name
 benchmarkName <- function(obj, benchmark=NULL){
-  UseMethod("benchmarkName", obj)  
+  UseMethod("benchmarkName", obj)
 }
 benchmarkName.default <- function(obj, benchmark=NULL){
   warning(sprintf("Instance class cannot be handled."))
-  return(obj) 
+  return(obj)
 }
 benchmarkName.genbench <- function(obj, benchmark=NULL){
   if(is.null(benchmark)){
@@ -95,11 +95,11 @@ benchmarkName.genbench <- function(obj, benchmark=NULL){
 
 # add data
 addRecord <- function(obj, record_name="not_set", record=NULL){
-  UseMethod("addRecord", obj)  
+  UseMethod("addRecord", obj)
 }
 addRecord.default <- function(obj, record_name="not_set", record=NULL){
   warning(sprintf("Instance class cannot be handled."))
-  return(obj) 
+  return(obj)
 }
 addRecord.genbench <- function(obj, record_name="not_set", record=NULL){
   if(is.null(record)){
@@ -114,17 +114,17 @@ addRecord.genbench <- function(obj, record_name="not_set", record=NULL){
   record_names <- append(names(obj$data), record_name)
   obj$data <- append(obj$data, list(record))
   names(obj$data) <- record_names
-  
+
   return(obj)
 }
 
 # get data
 getRecords <- function(obj){
-  UseMethod("getRecords", obj)  
+  UseMethod("getRecords", obj)
 }
 getRecords.default <- function(obj){
   warning(sprintf("Instance class cannot be handled."))
-  return(obj) 
+  return(obj)
 }
 getRecords.genbench <- function(obj){
   # return all records in data slot
@@ -133,11 +133,11 @@ getRecords.genbench <- function(obj){
 
 # get environment info
 getEnv <- function(obj){
-  UseMethod("getEnv", obj)  
+  UseMethod("getEnv", obj)
 }
 getEnv.default <- function(obj){
   warning(sprintf("Instance class cannot be handled."))
-  return(obj) 
+  return(obj)
 }
 getEnv.genbench <- function(obj){
   # return environment info captured at instatiation
@@ -146,7 +146,7 @@ getEnv.genbench <- function(obj){
 
 # get filename for writing captured results to
 getOutputFile <- function(obj){
-  UseMethod("getOutputFile", obj)  
+  UseMethod("getOutputFile", obj)
 }
 getOutputFile.default <- function(obj){
   warning(sprintf("Instance class cannot be handled."))
@@ -155,14 +155,14 @@ getOutputFile.default <- function(obj){
 getOutputFile.genbench <- function(obj){
   # return general file name for writing to
   return(
-    file.path("..", "..", "generated", 
+    file.path("..", "..", "generated",
                      paste(benchmarkGroup(obj),benchmarkName(obj), "tsv", sep = '.')
     )
   )
 }
 # check directory exists to write output files into
 checkOutputFile <- function(obj, create=FALSE){
-  UseMethod("checkOutputFile", obj)  
+  UseMethod("checkOutputFile", obj)
 }
 checkOutputFile.default <- function(obj, create=FALSE){
   warning(sprintf("Instance class cannot be handled."))
@@ -179,35 +179,35 @@ checkOutputFile.genbench <- function(obj, create=FALSE){
       } else {
         return(FALSE)
       }
-    
+
   }
-  
+
 }
 
 getOutputFile.timings <- function(obj){
-  
+
   makeOutputFileStamped <- function(obj){
-    file.path("..", "..", "generated", "timings", 
-              benchmarkGroup(obj), 
-              paste(benchmarkName(obj), 
+    file.path("..", "..", "generated", "timings",
+              benchmarkGroup(obj),
+              paste(benchmarkName(obj),
                     format(Sys.time(), "%Y%m%d%H%M%S"), # datestamped to the second
                     "tsv", sep = '.')
     )
   }
-  
+
   out <-  makeOutputFileStamped(obj)
-  
+
   while(file.exists(out)){
     # make sure file does not already exist
     out <-  makeOutputFileStamped(obj)
   }
-  
+
   return( out )
 }
 getOutputFile.results <- function(obj){
   return(
-    file.path("..", "..", "generated", "results", 
-                     benchmarkGroup(obj), 
+    file.path("..", "..", "generated", "results",
+                     benchmarkGroup(obj),
                      paste(benchmarkName(obj), "results", "tsv", sep = '.')
     )
   )
@@ -227,22 +227,22 @@ reportRecords.genbench <- function(obj){
   lapply(getRecords(obj), function(rec){
     # append each record to output file
     write.table(x = rec, file = getOutputFile(obj), append = TRUE,
-                sep = "\t", row.names = TRUE, col.names=TRUE      
-      )    
+                sep = "\t", row.names = TRUE, col.names=TRUE
+      )
   })
 }
 
 # reporting method for timings class
 reportRecords.timings <- function(obj){
-  #require(RJSONIO)
+  require(RJSONIO)
   checkOutputFile(obj, create = TRUE)
   out <- getOutputFile(obj)
   # add 1 line JSON serialized header containing environment info
-  #writeLines(toJSON(getEnv(obj)), con = out)
+  writeLines(toJSON(getEnv(obj)), con = out)
   write.table(file=out, append = TRUE,
               quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
               format(do.call("rbind", getRecords(obj)), digits=5)
-              
+
   )
 }
 
@@ -261,7 +261,7 @@ reportRecords.results <- function(obj){
   #writeLines(toJSON(getEnv(obj)), con = getOutputFile(obj))
   write.table(file=getOutputFile(obj), append = TRUE,
               quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE,
-              do.call("rbind", 
+              do.call("rbind",
                       lapply(names(RESULTS), function(x){
                         names(RESULTS[[x]]) <- c(1:ncol(RESULTS[[x]])) # standardise col names
                         cbind(RESULTS[[x]], data.frame(res=x))
@@ -270,4 +270,3 @@ reportRecords.results <- function(obj){
               )
   )
 }
-

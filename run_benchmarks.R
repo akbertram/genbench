@@ -110,7 +110,7 @@ cran <- c(
   # plotting
   "ggplot2", "dplyr", "ggvis", "googleVis", "pheatmap", "RColorBrewer",
   # db stuff and reporting
-  "RJDBC", "jsonlite", "RPostgreSQL", "rjson",# "RJSONIO"
+  "RJDBC", "jsonlite", "RPostgreSQL", "rjson", "RJSONIO",
   # others
   "PoiClaClu"
 )
