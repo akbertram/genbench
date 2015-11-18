@@ -37,30 +37,30 @@ INPUT <- "TODO"
 BENCHMARK <- "mass_spec"
 
 # holder for results
-RESULTS <- results(benchmark_name = BENCHMARK)
-TIMES <- timings(benchmark_name = BENCHMARK)
+RESULTS <- genbench_results(benchmark_name = BENCHMARK)
+TIMES <- genbench_timings(benchmark_name = BENCHMARK)
 
 
 #### functions
 
 do.download <- function(INPUT, DATA_DIR){
-  
+
   ## download files from [INPUT] to [DATA_DIR]
   # download and unpack data
-  
+
    # PRD000032
-  
-  
+
+
 }
 
 do.load <- function(){
-  
+
 #  MSnSet
-#  
+#
 #  40 x 1000 is typical size
-#  
+#
 #  qualitative, number of spectra / molecular weight of protein
-  
+
 }
 
 

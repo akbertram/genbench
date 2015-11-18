@@ -26,8 +26,8 @@ PDATA <- "http://bowtie-bio.sourceforge.net/recount/phenotypeTables/gilad_phenod
 source(file.path("..", "..","benchmark_utilities.R"))
 # holder for results
 BENCHMARK <- "edgeR_voom"
-RESULTS <- results(benchmark_name = BENCHMARK)
-TIMES <- timings(benchmark_name = BENCHMARK)
+RESULTS <- genbench_results(benchmark_name = BENCHMARK)
+TIMES <- genbench_timings(benchmark_name = BENCHMARK)
 
 #### functions
 
@@ -38,48 +38,48 @@ do.load <- function(INPUT){
   row.names(counts) <- counts$gene
   counts <- counts[,2:ncol(counts)]
   pd <- read.delim(PDATA, sep = " ", stringsAsFactors=FALSE)
-  
+
   # convert data to DGEList instance
   dge <- DGEList(counts=counts, group = pd$gender)
-  
+
   return(dge)
 }
 
 do.norm <- function(dge){
-  
+
   ## filter non-detected features
   ## carry out normalisation
   ## return "EList" instance (appropriate for limma)
-  
+
   # calculate normalisation factors
   dge <- calcNormFactors(dge)
-  
+
   ### filter non-detected features
-  filterfun <- function(dgelist, threshold=1, fraction=0.25, test_only=FALSE){ 
+  filterfun <- function(dgelist, threshold=1, fraction=0.25, test_only=FALSE){
     # returns a logical vector, per row
     # TRUE : row (feature) is expressed at or above [threshold]
     # in ([fraction] * 100)% of the samples
-    
+
     filter.vec <- apply(dgelist$counts, MARGIN = 1, # row-wise (probesets)
                         function(x) (sum(x >= threshold) / length(x)) >= fraction )
     if(test_only){
       # just test filter settings, return nothing
       cat(sprintf(
-        "Threshold : %i, Fraction ; %0.2f \n\t\t= %i features, (%0.2f percent), would be retained.\n", 
+        "Threshold : %i, Fraction ; %0.2f \n\t\t= %i features, (%0.2f percent), would be retained.\n",
         threshold, fraction, sum(filter.vec), (sum(filter.vec)/dim(dgelist$counts)[1])*100
       ))
       return(sum(filter.vec))
     } else{
-      return( 
+      return(
         filter.vec
-      )  
+      )
     }
   }
-  
+
   # for simplicity continue only with MAS5 expression values
   filterfun(dge, threshold = 1, fraction = 0.1, test_only = TRUE) # i.e. keep if any signal seen in any sample
   dge <- dge[filterfun(dge, threshold = 1, fraction = 0.1),]
-  
+
   ### normalise (TMM / skedacity compensation)
   design <- model.matrix(~0+dge$samples$group) # levels = F, M, i.e. female is reference
   colnames(design) <- levels(dge$samples$group)
@@ -94,7 +94,7 @@ do.limma <- function(vm){
   cont.matrix <- makeContrasts(MvF=M-F, levels=vm$design)
   fit2 <- contrasts.fit(fit, cont.matrix)
   fit2 <- eBayes(fit2)
-  
+
   ### export results
   return(topTable(fit2, adjust="BH"))
 }

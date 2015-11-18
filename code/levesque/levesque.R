@@ -44,8 +44,8 @@ DOWNLOAD <- FALSE # download fresh data?
 BENCHMARK <- "TCGAbrowser"
 DATA_DIR <- file.path("..","..", "data","levesque")
 files = list.files(path = DATA_DIR, pattern = "txt$")
-RESULTS <- results(benchmark_name = BENCHMARK)
-TIMES <- timings(benchmark_name = BENCHMARK)
+RESULTS <- genbench_results(benchmark_name = BENCHMARK)
+TIMES <- genbench_timings(benchmark_name = BENCHMARK)
 
 ##### Functions #####
 mgsub2 <- function(myrepl, mystring){

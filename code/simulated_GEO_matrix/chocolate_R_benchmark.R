@@ -15,8 +15,8 @@ library(irlba)
 
 # data collection
 BENCHMARK <- "chocolate_geo"
-RESULTS <- results(benchmark_name = BENCHMARK)
-TIMES <- timings(benchmark_name = BENCHMARK)
+RESULTS <- genbench_results(benchmark_name = BENCHMARK)
+TIMES <- genbench_timings(benchmark_name = BENCHMARK)
 
 
   PATH <- "../../data/simulated_GEO_matrix/"
@@ -33,7 +33,7 @@ PATIENTS <- file.path(PATH, paste('PatientMetaData-', NGENES, '-', NPATIENTS, '.
 df2mxc <- function(df) {
   d1 <- factor(df[,1])
   d2 <- factor(df[,2])
-  m <- matrix(data=NA, nrow=length(levels(d1)), 
+  m <- matrix(data=NA, nrow=length(levels(d1)),
     ncol=length(levels(d2)), dimnames=list(levels(d1), levels(d2)))
   m[cbind(d1, d2)] <- df[,3]
   m
@@ -43,7 +43,7 @@ df2mxc <- function(df) {
 df2mxs <- function(df) {
   d1 <- df[,1]
   d2 <- df[,2]
-  m <- matrix(data=NA, nrow=max(d1), 
+  m <- matrix(data=NA, nrow=max(d1),
     ncol=max(d2))
   m[cbind(d1, d2)] <- df[,3]
   m
@@ -65,15 +65,15 @@ regression <- function() {
 
   # join
   A = merge(geo, sub_gmd)[,c("patientid", "geneid", "expression.value")]
-  
+
   # matrix cast
   A <- df2mxc(A)
 
   # run regression
-  res <- lm.fit(x=A, y=response) 
-  
+  res <- lm.fit(x=A, y=response)
+
   # report data.frame of coefficients
-  res <- data.frame(coeff=as.character(names(res$coefficients)), 
+  res <- data.frame(coeff=as.character(names(res$coefficients)),
                     p=res$coefficients)
   return(res)
 }
@@ -93,20 +93,20 @@ covariance <- function() {
 
   # join
   A <- merge(geo, sub_pmd)[,c("patientid", "geneid", "expression.value")]
-  
+
   # convert to matrix
-  A <- df2mxc(A) 
+  A <- df2mxc(A)
 
   # calculate covariance
   covar <- stats::cov(A)
 
   covar <- which(covar>0.75*(max(covar)), arr.ind=T)
-  
+
   # return 2 column data.frame
   res <- data.frame(covar)
   res[,1] <- as.character(res[,1])
   return(res[complete.cases(res),])
-  
+
 }
 
 biclustering<-function() {
@@ -119,14 +119,14 @@ biclustering<-function() {
   colnames(sub_pmd)[1] <- "patientid"
   A <- merge(geo, sub_pmd)[,c("patientid", "geneid", "expression.value")]
   A <- df2mxc(A)
-  
+
   # run biclustering
-  res <- biclust(A, method=BCssvd, K=5) 
+  res <- biclust(A, method=BCssvd, K=5)
   # report a data.frame
   res <- data.frame(id=as.character(rownames(A)), clust=biclust::writeclust(res))
   return(res[complete.cases(res),])
-  
-} 
+
+}
 
 svd_irlba <- function() {
   ### Data Management ops start ###
@@ -145,7 +145,7 @@ svd_irlba <- function() {
 
   # run svd
   res <- irlba(A, nu=50, nv=50) # compute largest singular values
-  
+
   # return dataframe
   res <- data.frame(id=as.character(1:length(res$d)), sv=res$d)
   return(res[complete.cases(res),])
@@ -168,7 +168,7 @@ stats <- function(percentage=1) {
   go[,1] <- go[,1] + 1
   go[,2] <- go[,2] + 1
   go <- df2mxs(go)
-  
+
   # run comparisons
   res <- lapply(1:as.integer((dim(go)[2]/100)*percentage), function(ii){
     lapply(1:as.integer((dim(A)[1]/100)*percentage), function(jj){
@@ -178,7 +178,7 @@ stats <- function(percentage=1) {
       data.frame(id=paste(ii, jj), p=wilcox.test(set1, set2, alternative="less")$p.value)
     })
   })
-  
+
   # combine and return results with low p vals
   res <- do.call("rbind",unlist(res, recursive = F))
   res <- subset(res, p < 1e-3)
@@ -233,5 +233,3 @@ reportRecords(TIMES)
 # final clean up
 rm(list=ls())
 gc()
-
-

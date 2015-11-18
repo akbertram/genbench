@@ -22,15 +22,15 @@ DOWNLOAD <- FALSE # download fresh data?
 BENCHMARK <- "mutation"
 
 # holder for results
-RESULTS <- results(benchmark_name = BENCHMARK)
-TIMES <- timings(benchmark_name = BENCHMARK)
+RESULTS <- genbench_results(benchmark_name = BENCHMARK)
+TIMES <- genbench_timings(benchmark_name = BENCHMARK)
 
 ### functions
 ## general
 do.download <- function(n=3){
   # pop data
   DATA_DIR <- file.path("..", "..", "data", "mutation")
-  
+
   # prepare for downloading
   if(!file.exists(file.path(DATA_DIR, "pop"))){
     # create directory for holding data
@@ -40,16 +40,16 @@ do.download <- function(n=3){
   # http://www.nejm.org/doi/suppl/10.1056/NEJMoa1301689/suppl_file/nejmoa1301689_appendix.pdf
   #  supp table S6: All somatic mutations with annotation and read counts from DNA and RNA sequencing
   download.file(destfile =file.path(DATA_DIR, "pop","laml.maf"), "http://tcga-data.nci.nih.gov/docs/publications/laml_2012/SupplementalTable06.tsv")
-  
-  download.file(destfile =file.path(DATA_DIR, "pop","laml.meta.tsv"), 
+
+  download.file(destfile =file.path(DATA_DIR, "pop","laml.meta.tsv"),
                 "http://tcga-data.nci.nih.gov/docs/publications/laml_2012/clinical_patient_laml.tsv")
-  
-  
+
+
   # 'family' data
-  
+
   ## download data for individuals from genomesunzipped.org
   # n : limit number of individuals loaded
-  
+
   # prepare for downloading
   if(!file.exists(file.path(DATA_DIR, "fam"))){
     # create directory for holding data
@@ -67,19 +67,19 @@ do.download <- function(n=3){
                                                                   Joe Pickrell | JKP001 | http://s3.amazonaws.com/gnz.genotypes/JKP001_genotypes.zip
                                                                   Don Conrad | DFC001 | http://s3.amazonaws.com/gnz.genotypes/JKP001_genotypes.zip
                                                                   Carl Anderson | CAA001 | http://s3.amazonaws.com/gnz.genotypes/CAA001_genotypes.zip
-                                                                  Ilana Fisher | IPF001 | http://s3.amazonaws.com/gnz.genotypes/IPF001_genotypes.zip")[[1]], 
+                                                                  Ilana Fisher | IPF001 | http://s3.amazonaws.com/gnz.genotypes/IPF001_genotypes.zip")[[1]],
   function(x) strsplit(x, " | ", fixed = TRUE)), recursive=FALSE)), stringsAsFactors=FALSE)
-  
+
   names(fam_files) <- c("member","dataset id","link")
   fam_files$target <- file.path(DATA_DIR, "fam", basename(fam_files$link))
-  
+
   # only take n files: could expand later if needed
   if(n > nrow(fam_files)){ n <- nrow(fam_files)  }
   fam_files <- fam_files[1:n,]
-  
+
   # download and unzip target files
   lapply(1:nrow(fam_files), function(x){
-    download.file(fam_files[x,"link"], 
+    download.file(fam_files[x,"link"],
                   destfile = fam_files[x,"target"])
     unzip(fam_files[x,"target"], exdir = file.path(DATA_DIR, "fam"))
     try(file.remove(fam_files[x,"target"]))
@@ -91,14 +91,14 @@ do.download <- function(n=3){
 
 do.pop.load <- function(){
   DATA_DIR <- file.path("..", "..", "data", "mutation")
-  
+
   readLines(file.path(DATA_DIR, "pop","laml.maf"), 3) # no header info other than col names
-  
+
   maf <- read.delim(file.path(DATA_DIR, "pop","laml.maf"), blank.lines.skip = TRUE, , stringsAsFactors = FALSE)
-  
+
   ## sample data
   meta <- read.delim(file.path(DATA_DIR, "pop","laml.meta.tsv"), blank.lines.skip = TRUE, stringsAsFactors = FALSE)
-  
+
   stopifnot(length(intersect(unique(maf$TCGA_id), unique(meta$bcr_patient_barcode))) == 197)
 
   return(list(maf=maf, meta=meta))
@@ -107,49 +107,49 @@ do.pop.load <- function(){
 do.pop.fig1a <- function(pop){
   ## figure 1A: mutations per sample, split by mutation tier and disease status
   # split-apply-combine
-  fig_1a <- do.call("rbind", 
+  fig_1a <- do.call("rbind",
                     lapply(
-                      split(pop$maf, 
-                            f = pop$maf$TCGA_id), 
+                      split(pop$maf,
+                            f = pop$maf$TCGA_id),
                       function(df){
                         tmp <- data.frame(table(df$tier))
                         names(tmp) <- c("tier", "mut_count")
                         tmp$TCGA_id <- df[1,"TCGA_id"]
                         return(tmp)})
                     )
-  
+
   # merge metadata
-  fig_1a <- merge(x=fig_1a, y=pop$meta, 
-                  by.x = "TCGA_id", by.y = "bcr_patient_barcode", 
+  fig_1a <- merge(x=fig_1a, y=pop$meta,
+                  by.x = "TCGA_id", by.y = "bcr_patient_barcode",
                   all.x = TRUE)
   # subset data
   fig_1a <- subset(fig_1a, tier=="tier1")
   # plot
-  plot(y=fig_1a$mut_count, 
+  plot(y=fig_1a$mut_count,
        x = factor(fig_1a$acute_myeloid_leukemia_calgb_cytogenetics_risk_category)
        )
-  
+
   # return
   return(fig_1a[,c("TCGA_id", "tier", "mut_count")])
 }
 
 do.pop.fig1b <- function(pop){
   ## figure 1B: samples per mutated gene
-  fig_1b <- do.call("rbind", 
+  fig_1b <- do.call("rbind",
                     lapply(
-                      split(pop$maf, 
-                            f = pop$maf$gene_name), 
+                      split(pop$maf,
+                            f = pop$maf$gene_name),
                       function(df){
                         tmp <- data.frame(table(df$tier))
                         names(tmp) <- c("tier", "sample_count")
                         tmp$gene_name <- df[1,"gene_name"]
                         return(tmp)})
   )
-  
+
   # reorder
   fig_1b <- fig_1b[ order(fig_1b$sample_count, decreasing = TRUE) ,]
   fig_1b <- head(subset(fig_1b, tier == "tier1"), n = 100) # top 100 tier 1 genes by count
-  
+
   # return
   return(fig_1b[,c("gene_name", "tier", "sample_count")])
 }
@@ -159,10 +159,10 @@ do.pop.fig1b <- function(pop){
 wapply <- function(x, width, by = NULL, FUN = NULL, ...){
   FUN <- match.fun(FUN)
   if (is.null(by)) by <- width
-  
+
   starts <- seq(1, length(x) - width + 1, by = by)
   indices <- lapply(starts, function(x) x:(x + width - 1))
-  
+
   windows <- base:::simplify2array(
     lapply(indices, function(a) FUN(x[a], ...)),
     higher = TRUE)
@@ -172,21 +172,21 @@ wapply <- function(x, width, by = NULL, FUN = NULL, ...){
 
 ## familial data
 do.fam.load <- function(chromosomes=c(10)){
-  
+
   DATA_DIR <- file.path("..", "..", "data", "mutation")
-  
+
   ## load data for individuals from genomesunzipped.org
   # chromosomes : limit chromosomes loaded
-  
+
   # read in each file, and strip down to chromosome 1 (again, could exapnd later if needed)
-  fam <- lapply(lapply(dir(file.path(DATA_DIR, "fam"), full.names = TRUE), 
-             function(x) read.delim(x, skip= 14, 
+  fam <- lapply(lapply(dir(file.path(DATA_DIR, "fam"), full.names = TRUE),
+             function(x) read.delim(x, skip= 14,
                                     blank.lines.skip=TRUE, stringsAsFactors=FALSE)
              ),
              function(x) subset(x, chromosome %in% chromosomes)
              )
   names(fam) <- dir(file.path(DATA_DIR, "fam"), full.names = FALSE)
-  
+
   # return
   return(fam)
 }
@@ -201,18 +201,18 @@ do.fam.prepare <- function(fam){
   # function for calculating number of alleles
   # allowing for ordering and homozygosity
   do.matching.alleles <- function(i,j){
-    
+
     ## returns number of matching alleles for two allele pairs
     # expects i and j to be 2 character strings, i.e. i="AA", j="GT"
-    
-    # returns sum of non-zero row sums, 
+
+    # returns sum of non-zero row sums,
     # when each character in i is compared to each character in j,
-    # such that:  
+    # such that:
     # in case of both pairs being heterozygous:
-    # - return 2 if both match, 
-    # - 1 if one allele matches, 
+    # - return 2 if both match,
+    # - 1 if one allele matches,
     # - 0 otherwise
-    
+
     #   > sapply(c("A", "B"), function(x) x == c("A", "B"))
     #           A     B
     #   [A]  TRUE FALSE  -> TRUE
@@ -223,17 +223,17 @@ do.fam.prepare <- function(fam){
     #   [A] FALSE  TRUE  -> TRUE
     #   [B]  TRUE FALSE  -> TRUE
     #                       sum = 2
-    #   
+    #
     #   > sapply(c("A", "B"), function(x) x == c("B", "C"))
     #         A     B
     #   [B] FALSE  TRUE  -> TRUE
     #   [C] FALSE FALSE  -> FALSE
     #                       sum = 1
-    #   
+    #
     # in case of both pairs being homozygous:
     # - return 2 if identical,
     # - 0 otherwise
-    
+
     #   > sapply(c("B", "B"), function(x) x == c("B", "B"))
     #         B    B
     #   [1,] TRUE TRUE  -> TRUE
@@ -244,11 +244,11 @@ do.fam.prepare <- function(fam){
     #   [C] FALSE FALSE  -> FALSE
     #   [C] FALSE FALSE  -> FALSE
     #                     sum = 0
-    #   
+    #
     # in case of one pair being homozygous, the other heterozygous:
     # - return 1 if a heterozygous allele matches the homozygous pair
     # - 0 otherwise
-    
+
     #   > sapply(c("A", "A"), function(x) x == c("A", "B"))
     #           A     A
     #   [A]  TRUE  TRUE  -> TRUE
@@ -264,20 +264,20 @@ do.fam.prepare <- function(fam){
     #   [C] FALSE FALSE  -> FALSE
     #   [B] FALSE FALSE  -> FALSE
     #                       sum = 0
-    #   
+    #
     #   > sapply(c("A", "B"), function(x) x == c("B", "B"))
     #         A    B
     #   [B] FALSE TRUE     -> TRUE
     #   [B] FALSE TRUE     -> TRUE
-    #                         rowsum = 2 
+    #                         rowsum = 2
     #                       ***SHOULD EQUAL 1!!***
-    #                           take colsum if second match is homozygous   
+    #                           take colsum if second match is homozygous
     #                           colsum = 1
-    
+
     if(nchar(i) == 2 && nchar(j) == 2){
-      
+
       return(
-        
+
         sum(
           apply(
             sapply(strsplit(i, '')[[1]], # for each character in i
@@ -285,14 +285,14 @@ do.fam.prepare <- function(fam){
             ( length(unique(strsplit(j, '')[[1]])) == 1 ) +1, #colsum if homozygous
                function(x) sum(x) > 0) # sum of matches > 0 ?
           )
-          
+
         )
     }
     else { return(0)}
-      
+
   }
-  
-  # fill score matrix with precalculated match scores 
+
+  # fill score matrix with precalculated match scores
   # for all possible allele pair comparisons
   lapply(rownames(scores), function(i){
     lapply(colnames(scores), function(j){
@@ -305,7 +305,7 @@ do.fam.prepare <- function(fam){
     )
   } )
   round(scores, 3)
-  
+
   # return
   return(scores)
 }
@@ -313,16 +313,16 @@ do.fam.prepare <- function(fam){
 do.fam.check <- function(fam){
   ## check that all SNPs match
   checks <- c()
-  
+
   # all sets have the same number of SNPs
   if(length(unique(lapply(fam, nrow))) == 1){
     checks <- append(checks, TRUE)
   } else { checks <- append(checks, FALSE)  }
-  
+
   # all SNP rsids the same
   if(
     all(
-      sapply(fam, 
+      sapply(fam,
              # check that the list of SNPs matches the first list of SNPs
              # i.e. intersection length is equal to unintersected
              function(x) length(intersect(fam[[1]]$X..rsid, x$X..rsid)) == length(fam[[1]]$X..rsid)
@@ -331,11 +331,11 @@ do.fam.check <- function(fam){
     ){
     checks <- append(checks, TRUE)
   } else { checks <- append(checks, FALSE)  }
-  
+
   # all SNPs in the same order
   if(
     all(
-      sapply(fam, 
+      sapply(fam,
              # check that the list of SNPs matches the first list of SNPs
              # i.e. intersection length is equal to unintersected
              function(x) all(order(fam[[1]]$X..rsid) == order(x$X..rsid))
@@ -344,32 +344,32 @@ do.fam.check <- function(fam){
   ){
     checks <- append(checks, TRUE)
   } else { checks <- append(checks, FALSE)  }
-  
+
   # all checks good?
   return(all(checks))
 }
 
 do.ibd.vector <- function(fam, scores){
   do.ibd <- function(maf1, maf2, scores){
-    
+
     ### IBD
     # http://en.wikipedia.org/wiki/Identity_by_descent
     # (browning and browning, 2007)[http://www.sciencedirect.com/science/article/pii/S0002929707638828]
     # (rapid calculation of IBD matrices)[http://www.biomedcentral.com/content/pdf/1297-9686-33-5-453.pdf]
-        
+
     # combine to 'vector' of paired alleles
     genotype.vec <- cbind(maf1$genotype, maf2$genotype)
-    
+
     # score each pair
     genotype.score <- apply(genotype.vec, 1, function(x) scores[x[1], x[2]])
-    
+
     # return as annotated df for further analysis
     return(
-      
+
       cbind(maf1[,names(maf1) != "genotype"], data.frame(score=genotype.score))
-      
+
       )
-    
+
   }
 
   fam.scores <- lapply(combn(1:length(fam),2, simplify = FALSE), # all pairwise combinations
@@ -386,17 +386,17 @@ do.ibd.vector <- function(fam, scores){
 do.ibd.window <- function(fam.scores, window.sizes=seq(5, 50, 5)){
 
   ## calculate some sliding windows summing the scores
-  
-  # calculate sliding window over each comparison, 
+
+  # calculate sliding window over each comparison,
   # calculating average score per SNP in that window
-  
+
   do.call("rbind",
-          unlist(recursive = FALSE, 
+          unlist(recursive = FALSE,
                  # for a range of window sizes
-                 lapply(window.sizes, function(win){ 
+                 lapply(window.sizes, function(win){
                     # run sliding window, summing for each and dividing by number of markers
-                    lapply(fam.scores, 
-                           function(x) data.frame(width=win, pair=x$pair, q3=summary(wapply(x$df$score, width=win, by=as.integer(win/2), 
+                    lapply(fam.scores,
+                           function(x) data.frame(width=win, pair=x$pair, q3=summary(wapply(x$df$score, width=win, by=as.integer(win/2),
                                                   FUN=sum) / win)["3rd Qu."]))
   })))
 
@@ -432,13 +432,13 @@ TIMES <- addRecord(TIMES, record_name = "pop.fig1b",
 ))
 # todo: something more advanced once packages are implemented in renjin
 # maybe something from: http://cran.r-project.org/web/views/Genetics.html
-# for example something from package "gap", like gcontrol() 
+# for example something from package "gap", like gcontrol()
 # http://www.inside-r.org/packages/cran/gap/docs/gcontrol
 
 
 # clean up
 TIMES <- addRecord(TIMES, record_name = "pop.clean",
-                   record = system.time(gcFirst = T, 
+                   record = system.time(gcFirst = T,
                                expr = {
                                                     rm(pop);
                                                     gc()}
@@ -489,4 +489,3 @@ reportRecords(TIMES)
 # final clean up
 rm(list=ls())
 gc()
-

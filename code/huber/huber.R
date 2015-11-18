@@ -32,7 +32,7 @@ BENCHMARK <- "RNAseq_WH"
 DATA_DIR <- file.path("..","..", "data","huber")
 files = list.files(path = DATA_DIR, pattern = "txt$")
 RESULTS <- results(benchmark_name = BENCHMARK)
-TIMES <- timings(benchmark_name = BENCHMARK)
+TIMES <- genbench_timings(benchmark_name = BENCHMARK)
 
 ##### Functions #####
 
@@ -342,21 +342,21 @@ TIMES <- addRecord(TIMES, record_name = "DESeq2_wh",
 )
 
 cat("\nTIMES   record=do.deseq2.explr(DATA).....\n") #DEBUG
-TIMES <- addRecord(TIMES, record_name = "DESeq2.explr_wh",
+TIMES <- addRecord(TIMES, record_name = "explr_wh",
                    record = system.time(gcFirst = T,
                                         DATA <- do.deseq2.explr(DATA)
                   )
 )
 
 cat("\nTIMES   record=do.deseq2.diffexp(DATA).....\n") #DEBUG
-TIMES <- addRecord(TIMES, record_name = "DESeq2.diffexp_wh",
+TIMES <- addRecord(TIMES, record_name = "diffexp_wh",
                    record = system.time(gcFirst = T,
                                         DATA <- do.deseq2.diffexp(DATA)
                   )
 )
 
 cat("\nTIMES   record=do.deseq2.timecrs(DATA).....\n") #DEBUG
-TIMES <- addRecord(TIMES, record_name = "DESeq2.timecrs_wh",
+TIMES <- addRecord(TIMES, record_name = "timecrs_wh",
                    record = system.time(gcFirst = T,
                                         DATA <- do.deseq2.timecrs(DATA)
                   )

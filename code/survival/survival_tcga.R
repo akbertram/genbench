@@ -20,7 +20,7 @@ INPUT <- "../../data/survival/tcga_ov.csv"
 source(file.path("..", "..","benchmark_utilities.R"))
 # holder for results
 BENCHMARK <- "survival"
-RESULTS <- results(benchmark_name = BENCHMARK)
+RESULTS <- genbench_results(benchmark_name = BENCHMARK)
 TIMES   <- timings(benchmark_name = BENCHMARK)
 
 # parameters for survival analysis
@@ -65,7 +65,7 @@ do.calc <- function(surv_data){
   ydata <- surv_data$ydata
   #
   # create results structure, as it was not possible to determine before the first loop
-  results = list()
+  my_results = list()
   # for each alpha and lambda, determine the glmnet
   for (mm in 1:length(params$alpha)) {
     # set the alpha value
@@ -76,10 +76,10 @@ do.calc <- function(surv_data){
     item = list()
     item$lambda = temp_results$lambda
     item$beta   = temp_results$beta
-    results[[mm]] <- item
+    my_results[[mm]] <- item
   }
   alpha_vec  <- params$alpha
-  return( list( results=results, alphas=alpha_vec))
+  return( list( my_results=my_results, alphas=alpha_vec))
 }
 
 ############################################################################

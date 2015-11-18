@@ -27,24 +27,24 @@ genbench <- function(benchmark_name="NOT_SET", benchmark_group=basename(getwd())
 }
 
 # timings S3 class
-timings <- function(benchmark_name="NOT_SET", benchmark_group=basename(getwd())){
+genbench_timings <- function(benchmark_name="NOT_SET", benchmark_group=basename(getwd())){
   instance <- genbench(benchmark_name, benchmark_group)
   # inherits from genbench
   # will search classpath left to right for methods
   # (i.e. will call child method first choice,
   # and will only call parent method if no child method exists)
-  class(instance) <- append("timings", class(instance))
+  class(instance) <- append("genbench_timings", class(instance))
   return(instance)
 }
 
 # results S3 class
-results <- function(benchmark_name="NOT_SET", benchmark_group=basename(getwd())){
+genbench_results <- function(benchmark_name="NOT_SET", benchmark_group=basename(getwd())){
   instance <- genbench(benchmark_name, benchmark_group)
   # inherits from genbench
   # will search classpath left to right for methods
   # (i.e. will call child method first choice,
   # and will only call parent method if no child method exists)
-  class(instance) <- append("results", class(instance))
+  class(instance) <- append("genbench_results", class(instance))
   return(instance)
 }
 
@@ -184,10 +184,10 @@ checkOutputFile.genbench <- function(obj, create=FALSE){
 
 }
 
-getOutputFile.timings <- function(obj){
+getOutputFile.genbench_timings <- function(obj){
 
   makeOutputFileStamped <- function(obj){
-    file.path("..", "..", "generated", "timings",
+    file.path("..", "..", "generated", "genbench_timings",
               benchmarkGroup(obj),
               paste(benchmarkName(obj),
                     format(Sys.time(), "%Y%m%d%H%M%S"), # datestamped to the second
@@ -204,11 +204,11 @@ getOutputFile.timings <- function(obj){
 
   return( out )
 }
-getOutputFile.results <- function(obj){
+getOutputFile.genbench_results <- function(obj){
   return(
-    file.path("..", "..", "generated", "results",
+    file.path("..", "..", "generated", "genbench_results",
                      benchmarkGroup(obj),
-                     paste(benchmarkName(obj), "results", "tsv", sep = '.')
+                     paste(benchmarkName(obj), "genbench_results", "tsv", sep = '.')
     )
   )
 }
@@ -233,7 +233,7 @@ reportRecords.genbench <- function(obj){
 }
 
 # reporting method for timings class
-reportRecords.timings <- function(obj){
+reportRecords.genbench_timings <- function(obj){
   require(RJSONIO)
   checkOutputFile(obj, create = TRUE)
   out <- getOutputFile(obj)
@@ -246,7 +246,7 @@ reportRecords.timings <- function(obj){
   )
 }
 
-reportRecords.results <- function(obj){
+reportRecords.genbench_results <- function(obj){
   #require(RJSONIO)
   # check output file and collect results
   checkOutputFile(obj, create = TRUE)
