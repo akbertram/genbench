@@ -60,16 +60,17 @@ do.load <-function(DATA_DIR){
                           singleEnd=FALSE,
                           ignore.strand=TRUE,
                           fragments=TRUE )
-  se
-  dim(se)
-  assayNames(se)
-  head(assay(se), 3)
-  colSums(assay(se))
-  rowRanges(se)
-  str(metadata(rowRanges(se)))
-  colData(se)
+  # Extrapolatory analysis of data
+  #dim(se)
+  #assayNames(se)
+  #head(assay(se), 3)
+  #colSums(assay(se))
+  #rowRanges(se)
+  #str(metadata(rowRanges(se)))
+  #colData(se)
 
   # Add meta information to summary
+  # Print forces Renjin to compute
   (colData(se) <- DataFrame(sampleTable))
 
   return(se)
@@ -87,6 +88,7 @@ do.deseq2 <- function(DATA){
   countdata <- assay(se)
   head(countdata, 3)
   coldata <- colData(se)
+  # () print forces Renjin to compute
   (ddsMat <- DESeqDataSetFromMatrix(countData = countdata,
                                   colData = coldata,
                                   design = ~ cell + dex))
@@ -97,7 +99,7 @@ do.deseq2 <- function(DATA){
 do.deseq2.explr <- function(DATA){
   dds <- DATA
    # Performs exploratory analysis using deseq2 output
-   nrow(dds)
+   #nrow(dds)
    dds <- dds[ rowSums(counts(dds)) > 1, ] nrow(dds)
    rld <- rlog(dds, blind=FALSE)
    head(assay(rld), 3)
@@ -109,7 +111,7 @@ do.deseq2.explr <- function(DATA){
    plot(assay(rld)[,1:2], pch=16, cex=0.3)
 
    # Calculate sample distances
-   (sampleDists <- dist( t( assay(rld) ) ) )
+   sampleDists <- dist( t( assay(rld) ) )
    sampleDistMatrix <- as.matrix( sampleDists )
    rownames(sampleDistMatrix) <- paste( rld$dex, rld$cell, sep="-" )
    colnames(sampleDistMatrix) <- NULL
