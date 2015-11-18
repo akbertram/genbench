@@ -112,7 +112,7 @@ cran <- c(
   # db stuff and reporting
   "RJDBC", "jsonlite", "RPostgreSQL", "rjson", "RJSONIO",
   # others
-  "PoiClaClu", "rJava"
+  "PoiClaClu", "rJava", "sva"
 )
 
 bioc <- c('Biobase', 'XVector', 'GenomicRanges', 'affy', 'hgu133plus2cdf',

@@ -24,6 +24,8 @@ library("org.Hs.eg.db")
 library("ReportingTools")
 library("Gviz")
 library("fission")
+library("sva")
+library("fission")
 
 ##### Set global vars #####
 VERBOSE <- TRUE # print progress?
@@ -31,7 +33,7 @@ DOWNLOAD <- FALSE # download fresh data?
 BENCHMARK <- "RNAseq_WH"
 DATA_DIR <- file.path("..","..", "data","huber")
 files = list.files(path = DATA_DIR, pattern = "txt$")
-RESULTS <- results(benchmark_name = BENCHMARK)
+RESULTS <- genbench_results(benchmark_name = BENCHMARK)
 TIMES <- genbench_timings(benchmark_name = BENCHMARK)
 
 ##### Functions #####
@@ -51,8 +53,8 @@ do.load <-function(DATA_DIR){
 
   # Make annotation database summerized at gene level
   gtffile <- file.path(DATA_DIR,"Homo_sapiens.GRCh37.75_subset.gtf")
-  (txdb    <- makeTxDbFromGFF(gtffile, format="gtf", circ_seqs=character()))
-  (ebg <- exonsBy(txdb, by="gene"))
+  txdb    <- makeTxDbFromGFF(gtffile, format="gtf", circ_seqs=character())
+  ebg <- exonsBy(txdb, by="gene")
 
   # Compute fragment counts per gene per sample
   register(SerialParam())
@@ -72,33 +74,35 @@ do.load <-function(DATA_DIR){
 
   # Add meta information to summary
   # Print forces Renjin to compute
-  (colData(se) <- DataFrame(sampleTable))
+  colData(se) <- DataFrame(sampleTable)
 
   return(se)
 }
 
 do.deseq2 <- function(DATA){
   se <- DATA
-  se$cell
-  se$dex
+  #se$cell
+  #se$dex
   se$dex <- relevel(se$dex, "untrt")
-  se$dex
-  round( colSums(assay(se)) / 1e6, 1 )
-  colData(se)
+  #se$dex
+  #round( colSums(assay(se)) / 1e6, 1 )
+  #colData(se)
   dds <- DESeqDataSet(se, design = ~ cell + dex)
   countdata <- assay(se)
-  head(countdata, 3)
+  #head(countdata, 3)
   coldata <- colData(se)
   # () print forces Renjin to compute
-  (ddsMat <- DESeqDataSetFromMatrix(countData = countdata,
+  ddsMat <- DESeqDataSetFromMatrix(countData = countdata,
                                   colData = coldata,
-                                  design = ~ cell + dex))
+                                  design = ~ cell + dex)
 
-  return(ddsMat)
+  return(list(se,dds,ddsMat))
 }
 
 do.deseq2.explr <- function(DATA){
-  dds <- DATA
+  se <- DATA[[1]]
+  dds <- DATA[[2]]
+  ddsMat <- DATA[[3]]
    # Performs exploratory analysis using deseq2 output
    #nrow(dds)
    dds <- dds[ rowSums(counts(dds)) > 1, ]
@@ -136,7 +140,7 @@ do.deseq2.explr <- function(DATA){
    plotPCA(rld, intgroup = c("dex", "cell"))
 
    # PCA plot using the rlog-transformed values
-   (data <- plotPCA(rld, intgroup = c( "dex", "cell"), returnData=TRUE))
+   data <- plotPCA(rld, intgroup = c( "dex", "cell"), returnData=TRUE)
    percentVar <- round(100 * attr(data, "percentVar"))
 
    ggplot(data, aes(PC1, PC2, color=dex, shape=cell)) +
@@ -153,13 +157,14 @@ do.deseq2.explr <- function(DATA){
   mdsPoisData <- data.frame(cmdscale(samplePoisDistMatrix))
   mdsPois <- cbind(mdsPoisData, as.data.frame(colData(dds)))
   ggplot(mdsPois, aes(X1,X2,color=dex,shape=cell)) + geom_point(size=3)
-  return(dds)
+  return(list(dds,rld))
  }
 
 do.deseq2.diffexp <- function(DATA){
    # Running the differential expression pipeline
    #
-   dds <- DATA
+   dds <- DATA[[1]]
+   rld <- DATA[[2]]
    dds <- DESeq(dds)
    res <- results(dds)
    mcols(res, use.names=TRUE)
@@ -198,7 +203,7 @@ do.deseq2.diffexp <- function(DATA){
   plotMA(res, ylim=c(-5,5))
 
   # An MA-plot of changes induced by treatment.
-  plotMA(resLFC1, ylim=c(-5,5))
+  #plotMA(resLFC1, ylim=c(-5,5))
   topGene <- rownames(resLFC1)[which.min(resLFC1$padj)]
   with(resLFC1[topGene, ], {
     points(baseMean, log2FoldChange, col="dodgerblue", cex=2, lwd=2)
@@ -249,7 +254,7 @@ do.deseq2.diffexp <- function(DATA){
   url <- finish(htmlRep)
   browseURL(url)
   # Plotting fold changes in genomic space
-  (resGR <- results(dds, lfcThreshold=1, format="GRanges"))
+  resGR <- results(dds, lfcThreshold=1, format="GRanges")
   resGR$symbol <- mapIds(org.Hs.eg.db, names(resGR), "SYMBOL", "ENSEMBL")
   window <- resGR[topGene] + 1e6
   strand(window) <- "*"
@@ -264,7 +269,6 @@ do.deseq2.diffexp <- function(DATA){
 
 
   # Removing hidden batch effects
-  library("sva")
   dat <- counts(dds, normalized=TRUE)
   idx <- rowMeans(dat) > 1
   dat <- dat[idx,]
@@ -288,9 +292,8 @@ do.deseq2.diffexp <- function(DATA){
   return(ddssva)
  }
 
-do.deseq2.timecrs <- function(DATA){
+do.deseq2.timecrs <- function(){
    ## Time course experiments
-   library("fission")
    data("fission")
    ddsTC <- DESeqDataSet(fission, ~ strain + minute + strain:minute)
 
@@ -358,7 +361,7 @@ TIMES <- addRecord(TIMES, record_name = "diffexp_wh",
 cat("\nTIMES   record=do.deseq2.timecrs(DATA).....\n") #DEBUG
 TIMES <- addRecord(TIMES, record_name = "timecrs_wh",
                    record = system.time(gcFirst = T,
-                                        DATA <- do.deseq2.timecrs(DATA)
+                                        do.deseq2.timecrs()
                   )
 )
 

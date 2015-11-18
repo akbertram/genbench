@@ -21,7 +21,7 @@ source(file.path("..", "..","benchmark_utilities.R"))
 # holder for results
 BENCHMARK <- "survival"
 RESULTS <- genbench_results(benchmark_name = BENCHMARK)
-TIMES   <- timings(benchmark_name = BENCHMARK)
+TIMES   <- genbench_timings(benchmark_name = BENCHMARK)
 
 # parameters for survival analysis
 params = list();
