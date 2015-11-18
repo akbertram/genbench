@@ -23,11 +23,12 @@ library("AnnotationDbi")
 library("org.Hs.eg.db")
 library("ReportingTools")
 library("Gviz")
+library("fission")
 
 ##### Set global vars #####
 VERBOSE <- TRUE # print progress?
 DOWNLOAD <- FALSE # download fresh data?
-BENCHMARK <- "TCGAbrowser"
+BENCHMARK <- "RNAseq_WH"
 DATA_DIR <- file.path("..","..", "data","huber")
 files = list.files(path = DATA_DIR, pattern = "txt$")
 RESULTS <- results(benchmark_name = BENCHMARK)
@@ -100,7 +101,7 @@ do.deseq2.explr <- function(DATA){
   dds <- DATA
    # Performs exploratory analysis using deseq2 output
    #nrow(dds)
-   dds <- dds[ rowSums(counts(dds)) > 1, ] nrow(dds)
+   dds <- dds[ rowSums(counts(dds)) > 1, ]
    rld <- rlog(dds, blind=FALSE)
    head(assay(rld), 3)
 
@@ -160,20 +161,20 @@ do.deseq2.diffexp <- function(DATA){
    #
    dds <- DATA
    dds <- DESeq(dds)
-   (res <- results(dds))
+   res <- results(dds)
    mcols(res, use.names=TRUE)
-   summary(res)
+   #summary(res)
    res.05 <- results(dds, alpha=.05)
    table(res.05$padj < .05)
    resLFC1 <- results(dds, lfcThreshold=1)
-   table(resLFC1$padj < 0.1)
-   results(dds, contrast=c("cell", "N061011", "N61311"))
-   sum(res$pvalue < 0.05, na.rm=TRUE)
-   sum(!is.na(res$pvalue))
-   sum(res$padj < 0.1, na.rm=TRUE)
+   #table(resLFC1$padj < 0.1)
+   #results(dds, contrast=c("cell", "N061011", "N61311"))
+   #sum(res$pvalue < 0.05, na.rm=TRUE)
+   #sum(!is.na(res$pvalue))
+   #sum(res$padj < 0.1, na.rm=TRUE)
    resSig <- subset(res, padj < 0.1)
-   head(resSig[ order(resSig$log2FoldChange), ])
-   head(resSig[ order(resSig$log2FoldChange, decreasing=TRUE), ])
+   #head(resSig[ order(resSig$log2FoldChange), ])
+   #head(resSig[ order(resSig$log2FoldChange, decreasing=TRUE), ])
 
    ## Plotting results
    topGene <- rownames(res)[which.min(res$padj)]
@@ -198,11 +199,11 @@ do.deseq2.diffexp <- function(DATA){
 
   # An MA-plot of changes induced by treatment.
   plotMA(resLFC1, ylim=c(-5,5))
-topGene <- rownames(resLFC1)[which.min(resLFC1$padj)]
-with(resLFC1[topGene, ], {
-  points(baseMean, log2FoldChange, col="dodgerblue", cex=2, lwd=2)
-  text(baseMean, log2FoldChange, topGene, pos=2, col="dodgerblue")
-})
+  topGene <- rownames(resLFC1)[which.min(resLFC1$padj)]
+  with(resLFC1[topGene, ], {
+    points(baseMean, log2FoldChange, col="dodgerblue", cex=2, lwd=2)
+    text(baseMean, log2FoldChange, topGene, pos=2, col="dodgerblue")
+  })
 
   # An MA-plot of a test for large log2 fold changes.
   hist(res$pvalue[res$baseMean > 1], breaks=0:20/20, col="grey50", border="white")
@@ -319,18 +320,46 @@ do.deseq2.timecrs <- function(DATA){
 
  }
 
-do.edger <- function(DATA){}
-do.bayseq <- function(DATA){}
+#do.edger <- function(DATA){}
+#do.bayseq <- function(DATA){}
 
 ############################################################################
 ################### TIMING AND REPORTING ###################################
 ############################################################################
 
-TIMES <- addRecord(TIMES, record_name = "wh_load",
+cat("\nTIMES   record=do.load(DATA_DIR).....\n") #DEBUG
+TIMES <- addRecord(TIMES, record_name = "load_wh",
                    record = system.time(gcFirst = T,
-                                        RESULTS <- addRecord(RESULTS, record_name="wh_load",
-                                                             record=do.load()
-                   ))
+                                        DATA <- do.load(DATA_DIR)
+                  )
+)
+
+cat("\nTIMES   record=do.deseq2(DATA).....\n") #DEBUG
+TIMES <- addRecord(TIMES, record_name = "DESeq2_wh",
+                   record = system.time(gcFirst = T,
+                                        DATA <- do.deseq2(DATA)
+                  )
+)
+
+cat("\nTIMES   record=do.deseq2.explr(DATA).....\n") #DEBUG
+TIMES <- addRecord(TIMES, record_name = "DESeq2.explr_wh",
+                   record = system.time(gcFirst = T,
+                                        DATA <- do.deseq2.explr(DATA)
+                  )
+)
+
+cat("\nTIMES   record=do.deseq2.diffexp(DATA).....\n") #DEBUG
+TIMES <- addRecord(TIMES, record_name = "DESeq2.diffexp_wh",
+                   record = system.time(gcFirst = T,
+                                        DATA <- do.deseq2.diffexp(DATA)
+                  )
+)
+
+cat("\nTIMES   record=do.deseq2.timecrs(DATA).....\n") #DEBUG
+TIMES <- addRecord(TIMES, record_name = "DESeq2.timecrs_wh",
+                   record = system.time(gcFirst = T,
+                                        DATA <- do.deseq2.timecrs(DATA)
+                  )
 )
 
 ##### output results for comparison #####

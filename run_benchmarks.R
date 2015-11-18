@@ -112,14 +112,14 @@ cran <- c(
   # db stuff and reporting
   "RJDBC", "jsonlite", "RPostgreSQL", "rjson", "RJSONIO",
   # others
-  "PoiClaClu"
+  "PoiClaClu", "rJava"
 )
 
 bioc <- c('Biobase', 'XVector', 'GenomicRanges', 'affy', 'hgu133plus2cdf',
           'limma', 'edgeR', 'gage', 'STRINGdb', 'dplyr', 'Rcpp', 'Rsamtools',
           'GenomicFeatures', 'GenomicAlignments', 'BiocParallel', 'DESeq2',
           'genefilter', 'AnnotationDbi', 'org.Hs.eg.db', 'ReportingTools',
-          'Gviz'
+          'Gviz', 'fission'
           )
 install.dependencies(bioc=bioc, cran=cran)
 
