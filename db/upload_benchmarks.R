@@ -49,9 +49,10 @@ if(all(c("--usr","--pwd","--conn") %in% names(conn_info))){
 source("sql_utilities.R")
 
 ### connect to DB
-conn <- getConnection(usr=CONN_INFO$`--usr`,
+(conn <- getConnection(usr=CONN_INFO$`--usr`,
                       pwd=CONN_INFO$`--pwd`,
                       conn_string=CONN_INFO$`--conn`)
+)
 #dbListTables(conn)
 
 ### create tables:
