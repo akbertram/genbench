@@ -21,7 +21,7 @@ library("ggplot2")
 library("genefilter")
 library("AnnotationDbi")
 library("org.Hs.eg.db")
-library("ReportingTools")
+#library("ReportingTools")
 library("Gviz")
 library("fission")
 library("sva")
@@ -246,13 +246,13 @@ do.deseq2.diffexp <- function(DATA){
   resOrdered <- res[order(res$padj),]
   head(resOrdered)
   resOrderedDF <- as.data.frame(resOrdered)[1:100,]
-  write.csv(resOrderedDF, file="results.csv")
+  #write.csv(resOrderedDF, file="results.csv")
 
 
-  htmlRep <- HTMLReport(shortName="report", title="My report", reportDirectory="./report")
-  publish(resOrderedDF, htmlRep)
-  url <- finish(htmlRep)
-  browseURL(url)
+  #htmlRep <- HTMLReport(shortName="report", title="My report", reportDirectory="./report")
+  #publish(resOrderedDF, htmlRep)
+  #url <- finish(htmlRep)
+  #browseURL(url)
   # Plotting fold changes in genomic space
   resGR <- results(dds, lfcThreshold=1, format="GRanges")
   resGR$symbol <- mapIds(org.Hs.eg.db, names(resGR), "SYMBOL", "ENSEMBL")
