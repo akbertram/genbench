@@ -139,10 +139,10 @@ do.deseq2.explr <- function(DATA){
    (data <- plotPCA(rld, intgroup = c( "dex", "cell"), returnData=TRUE))
    percentVar <- round(100 * attr(data, "percentVar"))
 
-   ggplot(data, aes(PC1, PC2, color=dex, shape=cell))
-        + geom_point(size=3)
-        + xlab(paste0("PC1: ",percentVar[1],"% variance"))
-        + ylab(paste0("PC2: ",percentVar[2],"% variance"))
+   ggplot(data, aes(PC1, PC2, color=dex, shape=cell)) +
+        geom_point(size=3) +
+        xlab(paste0("PC1: ",percentVar[1],"% variance")) +
+        ylab(paste0("PC2: ",percentVar[2],"% variance"))
 
   # MDS plot
   mdsData <- data.frame(cmdscale(sampleDistMatrix))
@@ -182,14 +182,14 @@ do.deseq2.diffexp <- function(DATA){
    data <- plotCounts(dds, gene=topGene, intgroup=c("dex","cell"), returnData=TRUE)
 
    # Normalized counts for a single gene over treatment group.
-   ggplot(data, aes(x=dex, y=count, color=cell))
-        + scale_y_log10()
-        + geom_point(position=position_jitter(width=.1,height=0), size=3)
+   ggplot(data, aes(x=dex, y=count, color=cell)) +
+        scale_y_log10() +
+        geom_point(position=position_jitter(width=.1,height=0), size=3)
 
    # Normalized counts indicating cell line with color.
-   ggplot(data, aes(x=dex, y=count, fill=dex))
-        + scale_y_log10()
-        + geom_dotplot(binaxis="y", stackdir="center")
+   ggplot(data, aes(x=dex, y=count, fill=dex)) +
+        scale_y_log10() +
+        geom_dotplot(binaxis="y", stackdir="center")
 
    # Normalized counts using a more structural arrangement.
    ggplot(data, aes(x=dex, y=count, color=cell, group=cell)) +
@@ -301,10 +301,10 @@ do.deseq2.timecrs <- function(DATA){
    head(resTC[order(resTC$padj),],4)
 
    data <- plotCounts(ddsTC, which.min(resTC$padj), intgroup=c("minute","strain"), returnData=TRUE)
-   ggplot(data, aes(x=minute, y=count, color=strain, group=strain))
-         + geom_point()
-         + stat_smooth(se=FALSE,method="loess")
-         + scale_y_log10()
+   ggplot(data, aes(x=minute, y=count, color=strain, group=strain)) +
+         geom_point() +
+         stat_smooth(se=FALSE,method="loess") +
+         scale_y_log10()
 
   resultsNames(ddsTC)
 

@@ -28,7 +28,6 @@ library(gage)
 library(plyr)
 library(reshape2)
 library(STRINGdb)
-library(ggplot2)
 library(grid)
 #library(rCharts)
 library(d3heatmap)
@@ -415,37 +414,37 @@ do.analyse <- function(DATA,TARGET){
     g1 <- DATA[[2]]
     mut3 <- DATA[[3]]
 
-    gg1 <- ggplot(mut3_gg1,aes(bcr_patient_barcode,variable,fill=as.factor(value)))
-                + geom_tile(colour=c("white"))
-                + labs(x = "Patient", y="Gene")
-                + scale_x_discrete(expand=c(0,0))
-                + scale_y_discrete(expand=c(0,0))
-                + scale_fill_brewer(type="qual",name="Legend", palette=6, labels=c("Wild-type", "1 SNV", "2 SNVs", "3 SNVs") )
-                + theme(  title=element_text(size=28),
+    gg1 <- ggplot(mut3_gg1,aes(bcr_patient_barcode,variable,fill=as.factor(value))) +
+                geom_tile(colour=c("white")) +
+                labs(x = "Patient", y="Gene") +
+                scale_x_discrete(expand=c(0,0)) +
+                scale_y_discrete(expand=c(0,0)) +
+                scale_fill_brewer(type="qual",name="Legend", palette=6, labels=c("Wild-type", "1 SNV", "2 SNVs", "3 SNVs") ) +
+                theme(  title=element_text(size=28),
                           axis.ticks=element_blank(),
                           axis.text.x=element_blank(),
                           axis.text.y=element_text(size=24),
                           axis.text.x=element_text(size=28),
                           axis.text.y=element_text(size=28),
                           legend.text=element_text(size=18)
-                        )
-                + ggtitle(paste(g1, "high"))
+                      ) +
+                ggtitle(paste(g1, "high"))
     gg1
-    gg2 <- ggplot(mut3,aes(bcr_patient_barcode,variable,fill=as.factor(value)))
-                + geom_tile(colour=c("white"))
-                + labs(x = "Patient", y="Gene")
-                + scale_x_discrete(expand=c(0,0))
-                + scale_y_discrete(expand=c(0,0))
-                + scale_fill_brewer(type="qual",name="Legend", palette=6, labels=c("Wild-type", "1 SNV", "2 SNVs", "3 SNVs") )
-                + theme(title=element_text(size=28),
+    gg2 <- ggplot(mut3,aes(bcr_patient_barcode,variable,fill=as.factor(value))) +
+                geom_tile(colour=c("white")) +
+                labs(x = "Patient", y="Gene") +
+                scale_x_discrete(expand=c(0,0)) +
+                scale_y_discrete(expand=c(0,0)) +
+                scale_fill_brewer(type="qual",name="Legend", palette=6, labels=c("Wild-type", "1 SNV", "2 SNVs", "3 SNVs") ) +
+                theme(title=element_text(size=28),
                         axis.ticks=element_blank(),
                         axis.text.x=element_blank(),
                         axis.text.y=element_text(size=24),
                         axis.text.x=element_text(size=28),
                         axis.text.y=element_text(size=28),
                         legend.text=element_text(size=18)
-                      )
-                + ggtitle(paste(g1, "low"))
+                      ) +
+                ggtitle(paste(g1, "low"))
     gg2
   }
   return(DATA)
