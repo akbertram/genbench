@@ -88,6 +88,8 @@ collect_reports.mysql <- function(usr="foo", pwd="bar", conn_string="baz"){
                       ;
                     "
                     )
+  cat("Finished importing data from database. Closing database connection...")
+  dbDisconnect(conn)
   return(res)
 
 }
@@ -167,8 +169,7 @@ if(USE_DB){
 ### plot
 g <- ggplot(data = res)
 g +
-  geom_jitter(aes(y=value, x=block, colour=variable),
-              position = position_jitter(width = .5)) +
+  geom_jitter(aes(y=value, x=block, colour=variable), position = position_jitter(width = .5)) +
   facet_grid(sys_name + sys_release + lang + lang_major + lang_minor ~ benchmark_group + benchmark, scales = "free_x") +
   scale_y_log10() +
   theme_bw() +
@@ -191,8 +192,7 @@ g <- ggplot(data =
                           )
 )
 g +
-  geom_jitter(aes(y=total_time, x=variable, colour=time_stamp),
-              position = position_jitter(width = .5)) +
+  geom_jitter(aes(y=total_time, x=variable, colour=time_stamp), position = position_jitter(width = .5)) +
   facet_grid(sys_name+ sys_release+ lang+ lang_major+ lang_minor ~ benchmark_group + benchmark, scales = "free_x") +
   scale_y_log10() +
   theme_bw() +
@@ -243,6 +243,6 @@ ggsave(filename = "generated/timings/current.summaryperbenchmark.pdf", width = 2
 # todo
 
 ## clean up and get ou
-dbDisconnect(conn)
+
 rm(list = ls())
 gc()
