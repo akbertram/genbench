@@ -3,7 +3,7 @@
 # started: may 2015
 
 ### utility functions, classes and methods for running and reporting benchmarks
-.libPaths(file.path("~","R","libs"))
+#.libPaths(file.path("~","R","libs"))
 library(parallel) # for examining machine
 
 ## class definitions
