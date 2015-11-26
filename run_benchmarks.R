@@ -112,14 +112,16 @@ cran <- c(
   # db stuff and reporting
   "RJDBC", "jsonlite", "RPostgreSQL", "rjson", "RJSONIO",
   # others
-  "PoiClaClu", "rJava", "sva"
+  "PoiClaClu", "rJava", "sva", "gdata", "gplots"
 )
 
 bioc <- c('Biobase', 'XVector', 'GenomicRanges', 'affy', 'hgu133plus2cdf',
           'limma', 'edgeR', 'gage', 'STRINGdb', 'dplyr', 'Rcpp', 'Rsamtools',
           'GenomicFeatures', 'GenomicAlignments', 'BiocParallel', 'DESeq2',
           'genefilter', 'AnnotationDbi', 'org.Hs.eg.db', 'ReportingTools',
-          'Gviz', 'fission'
+          'Gviz', 'fission', 'ArrayTools', 'affy', 'affycomp', 'affyPLM',
+          'affypdnn', 'bioDist', 'simpleaffy', 'affyQCReport', 'plier',
+          'yaqcaffy'
           )
 install.dependencies(bioc=bioc, cran=cran)
 
