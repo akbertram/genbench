@@ -19,7 +19,7 @@ cat("\nLoaded all libraries.....\n") #DEBUG
 ##### Set global vars #####
 VERBOSE <- TRUE # print progress?
 DOWNLOAD <- FALSE # download fresh data?
-BENCHMARK <- "TCGAbrowser"
+BENCHMARK <- "simple_survival"
 DATA_DIR <- file.path("..","..", "data","simple_survival")
 files = list.files(path = DATA_DIR, pattern = "txt$")
 RESULTS <- genbench_results(benchmark_name = BENCHMARK)
