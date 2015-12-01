@@ -10,7 +10,7 @@ ENGINE <- "Renjin"
 ##### To be excluded workflows due to crashing the benchmark process:
 allWorkflows <- dir(file.path(getwd(), "code"), full.names = TRUE, recursive = TRUE, pattern = "\\.R$", ignore.case = TRUE)
 includeWorkflows <- allWorkflows[!is.element(allWorkflows,allWorkflows[grep('lev',allWorkflows,ignore.case=T)])]
-excludedWorkflows <- allWorkflows[grep('lev',files,ignore.case=T)]
+excludedWorkflows <- allWorkflows[grep('lev',allWorkflows,ignore.case=T)]
 #####
 if (length(args) > 0) {
   NRUNS <- as.integer(args[1])
