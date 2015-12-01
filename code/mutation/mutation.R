@@ -22,8 +22,8 @@ DOWNLOAD <- FALSE # download fresh data?
 BENCHMARK <- "mutation"
 
 # holder for results
-RESULTS <- genbench_results(benchmark_name = BENCHMARK)
-TIMES <- genbench_timings(benchmark_name = BENCHMARK)
+RESULTS <- genbench_results(benchmark_name = BENCHMARK, engine_name = ENGINE)
+TIMES <- genbench_timings(benchmark_name = BENCHMARK, engine_name = ENGINE)
 
 ### functions
 ## general

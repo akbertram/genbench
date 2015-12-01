@@ -26,8 +26,8 @@ PDATA <- "http://bowtie-bio.sourceforge.net/recount/phenotypeTables/gilad_phenod
 source(file.path("..", "..","benchmark_utilities.R"))
 # holder for results
 BENCHMARK <- "edgeR_voom"
-RESULTS <- genbench_results(benchmark_name = BENCHMARK)
-TIMES <- genbench_timings(benchmark_name = BENCHMARK)
+RESULTS <- genbench_results(benchmark_name = BENCHMARK, engine_name = ENGINE)
+TIMES <- genbench_timings(benchmark_name = BENCHMARK, engine_name = ENGINE)
 
 #### functions
 

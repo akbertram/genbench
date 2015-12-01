@@ -29,8 +29,8 @@ VERBOSE <- TRUE # print progress?
 DOWNLOAD <- FALSE # download fresh data?
 BENCHMARK <- "affy"
 DATA_DIR <- file.path("..","..", "data","affy")
-RESULTS <- genbench_results(benchmark_name = BENCHMARK)
-TIMES <- genbench_timings(benchmark_name = BENCHMARK)
+RESULTS <- genbench_results(benchmark_name = BENCHMARK, engine_name = ENGINE)
+TIMES <- genbench_timings(benchmark_name = BENCHMARK, engine_name = ENGINE)
 
 affyPARAM = list()
 affyPARAM$arrayGroup <- "" #see comments below

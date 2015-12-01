@@ -22,8 +22,8 @@ DOWNLOAD <- FALSE # download fresh data?
 BENCHMARK <- "simple_survival"
 DATA_DIR <- file.path("..","..", "data","simple_survival")
 files = list.files(path = DATA_DIR, pattern = "txt$")
-RESULTS <- genbench_results(benchmark_name = BENCHMARK)
-TIMES <- genbench_timings(benchmark_name = BENCHMARK)
+RESULTS <- genbench_results(benchmark_name = BENCHMARK, engine_name = ENGINE)
+TIMES <- genbench_timings(benchmark_name = BENCHMARK, engine_name = ENGINE)
 
 ##### Functions #####
 

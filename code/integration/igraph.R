@@ -36,8 +36,8 @@ INPUT <- "ftp://ftp.ncbi.nih.gov/gene/GeneRIF/generifs_basic.gz"
 
 # holder for results
 BENCHMARK <- "igraph"
-RESULTS <- genbench_results(benchmark_name = BENCHMARK)
-TIMES <- genbench_timings(benchmark_name = BENCHMARK)
+RESULTS <- genbench_results(benchmark_name = BENCHMARK, engine_name = ENGINE)
+TIMES <- genbench_timings(benchmark_name = BENCHMARK, engine_name = ENGINE)
 
 #### functions
 

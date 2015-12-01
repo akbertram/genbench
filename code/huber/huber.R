@@ -33,8 +33,8 @@ DOWNLOAD <- FALSE # download fresh data?
 BENCHMARK <- "RNAseq_WH"
 DATA_DIR <- file.path("..","..", "data","huber")
 files = list.files(path = DATA_DIR, pattern = "txt$")
-RESULTS <- genbench_results(benchmark_name = BENCHMARK)
-TIMES <- genbench_timings(benchmark_name = BENCHMARK)
+RESULTS <- genbench_results(benchmark_name = BENCHMARK, engine_name = ENGINE)
+TIMES <- genbench_timings(benchmark_name = BENCHMARK, engine_name = ENGINE)
 
 ##### Functions #####
 

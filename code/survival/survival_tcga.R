@@ -20,8 +20,8 @@ INPUT <- "../../data/survival/tcga_ov.csv"
 source(file.path("..", "..","benchmark_utilities.R"))
 # holder for results
 BENCHMARK <- "survival"
-RESULTS <- genbench_results(benchmark_name = BENCHMARK)
-TIMES   <- genbench_timings(benchmark_name = BENCHMARK)
+RESULTS <- genbench_results(benchmark_name = BENCHMARK, engine_name = ENGINE)
+TIMES <- genbench_timings(benchmark_name = BENCHMARK, engine_name = ENGINE)
 
 # parameters for survival analysis
 params = list();
