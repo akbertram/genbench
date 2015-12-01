@@ -7,6 +7,11 @@
 # needs info about path and what size of data to run on
 args <- commandArgs(trailingOnly = TRUE)
 ENGINE <- "Renjin"
+##### To be excluded workflows due to crashing the benchmark process:
+allWorkflows <- dir(file.path(getwd(), "code"), full.names = TRUE, recursive = TRUE, pattern = "\\.R$", ignore.case = TRUE)
+includeWorkflows <- allWorkflows[!is.element(allWorkflows,allWorkflows[grep('lev',allWorkflows,ignore.case=T)])]
+excludedWorkflows <- allWorkflows[grep('lev',files,ignore.case=T)]
+#####
 if (length(args) > 0) {
   NRUNS <- as.integer(args[1])
   cat(sprintf("Using %i runs per benchmark\n", NRUNS))
@@ -17,7 +22,7 @@ if (length(args) > 0) {
 }
 
 # find and run all benchmark scripts
-for (SCRIPT in dir(file.path(getwd(), "code"), full.names = TRUE, recursive = TRUE, pattern = "\\.R$", ignore.case = TRUE)){
+for (SCRIPT in includeWorkflows){
   # run benchmark script
   cat(timestamp(quiet = TRUE), "Running benchmark at ", SCRIPT,"\n")
   for (x in 1:NRUNS){
