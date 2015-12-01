@@ -6,19 +6,18 @@
 ### run all benchmarks in genbench
 # needs info about path and what size of data to run on
 args <- commandArgs(trailingOnly = TRUE)
+ENGINE <- "Renjin"
 if (length(args) > 0) {
   NRUNS <- as.integer(args[1])
   cat(sprintf("Using %i runs per benchmark\n", NRUNS))
-  
+
 } else {
   NRUNS <- 1
   cat(sprintf("Using default number of runs (%i)\n", as.integer(NRUNS)))
 }
 
 # find and run all benchmark scripts
-for (SCRIPT in rev(dir(file.path(getwd(), "code"), 
-                       full.names = TRUE, recursive = TRUE, pattern = "\\.R$", 
-                       ignore.case = TRUE))){
+for (SCRIPT in dir(file.path(getwd(), "code"), full.names = TRUE, recursive = TRUE, pattern = "\\.R$", ignore.case = TRUE)){
   # run benchmark script
   cat(timestamp(quiet = TRUE), "Running benchmark at ", SCRIPT,"\n")
   for (x in 1:NRUNS){
@@ -27,5 +26,5 @@ for (SCRIPT in rev(dir(file.path(getwd(), "code"),
     # each script run in a fresh local environment
     try({source(SCRIPT, chdir = TRUE, local=new.env())})
   }
+  cat(timestamp(quiet = TRUE), "Finished running benchmark at ", SCRIPT,"\n")
 }
-

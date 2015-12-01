@@ -7,7 +7,7 @@
 # packages
 library(RJDBC)
 # Use jsonlite instead of RJSONIO
-library(RJSONIO)
+library(rjson)
 library(reshape)
 
 # Options

@@ -14,7 +14,7 @@ source(file.path("..", "..","benchmark_utilities.R"))
 
 ## packages
 library(stats)
-
+library(rjson)
 ## global vars
 # https://tcga-data.nci.nih.gov/docs/publications/TCGApancan_2014/
 INPUT <- "http://tcga-data.nci.nih.gov/docs/publications/TCGApancan_2014/RPPA_input.csv"
@@ -24,8 +24,9 @@ BENCHMARK <- "rppa" # name of benchmark
 DOWNLOAD <- FALSE
 
 # holder for results
-RESULTS <- genbench_results(benchmark_name = BENCHMARK)
-TIMES <- genbench_timings(benchmark_name = BENCHMARK)
+#ENGINE <- get("ENGINE", envir=.GlobalEnv)
+RESULTS <- genbench_results(benchmark_name = BENCHMARK, engine_name = ENGINE)
+TIMES <- genbench_timings(benchmark_name = BENCHMARK, engine_name = ENGINE)
 
 ### functions
 do.download <- function(csv){
@@ -33,13 +34,13 @@ do.download <- function(csv){
   if (VERBOSE){print("Loading Data")}
 
   # samples x features matrix, including some sample metadata
-  try(download.file(csv, destfile = file.path("..","..","data","protein","rppa.csv"), method="internal"))
+  try(download.file(csv, destfile = file.path("..","..", "data","protein","rppa.csv"), method="internal"))
 
   return(TRUE)
 }
 do.load <- function(){
   #try(rppa <- read.csv(csv, header=T, stringsAsFactors=F))
-  rppa <- read.csv(file.path("..","..","data","protein","rppa.csv"),
+  rppa <- read.csv(file.path("..","..", "data","protein","rppa.csv"),
                    header=T, stringsAsFactors=F,
                    sep=",", row.names=NULL,
                    blank.lines.skip = TRUE

@@ -5,6 +5,7 @@
 ### run all benchmarks in genbench
 # set loca libs for installing any packages
 .libPaths(file.path("~","R","libs"))
+ENGINE <- "gnuR"
 # needs info about path and what size of data to run on
 args <- commandArgs(trailingOnly = TRUE)
 # reset timings?

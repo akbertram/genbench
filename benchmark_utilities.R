@@ -10,15 +10,17 @@ library(parallel) # for examining machine
 # generic "genbase" class with common aspects of results and timings
 # benchmark_name must be a character string, by default "NOT_SET"
 # benchmark_group is by default the dir holding the benchmark script
-genbench <- function(benchmark_name="NOT_SET", benchmark_group=basename(getwd())){
+genbench <- function(benchmark_name="NOT_SET", benchmark_group=basename(getwd()), engine_name = "NOT_SET"){
   # check args
   if (!is.character(benchmark_name)) stop("benchmark_name must be character string")
+  if (!is.character(engine_name)) stop("engine_name must be character string")
   structure(
     # basic data structure is just a (named) list
     list(
       data=list(),
       # attributes
       benchmark=benchmark_name,
+      engine=engine_name,
       wd=getwd(),
       benchmark_group=benchmark_group,
       env=c(R.Version(), Sys.info()[c("sysname", "release", "version")], nphyscores=detectCores(logical = FALSE), nlogcores=detectCores(logical = TRUE))
@@ -27,8 +29,8 @@ genbench <- function(benchmark_name="NOT_SET", benchmark_group=basename(getwd())
 }
 
 # timings S3 class
-genbench_timings <- function(benchmark_name="NOT_SET", benchmark_group=basename(getwd())){
-  instance <- genbench(benchmark_name, benchmark_group)
+genbench_timings <- function(benchmark_name="NOT_SET", benchmark_group=basename(getwd()), engine_name = "NOT_SET"){
+  instance <- genbench(benchmark_name, benchmark_group, engine_name)
   # inherits from genbench
   # will search classpath left to right for methods
   # (i.e. will call child method first choice,
@@ -38,8 +40,8 @@ genbench_timings <- function(benchmark_name="NOT_SET", benchmark_group=basename(
 }
 
 # results S3 class
-genbench_results <- function(benchmark_name="NOT_SET", benchmark_group=basename(getwd())){
-  instance <- genbench(benchmark_name, benchmark_group)
+genbench_results <- function(benchmark_name="NOT_SET", benchmark_group=basename(getwd()), engine_name = "NOT_SET"){
+  instance <- genbench(benchmark_name, benchmark_group, engine_name)
   # inherits from genbench
   # will search classpath left to right for methods
   # (i.e. will call child method first choice,
@@ -89,6 +91,25 @@ benchmarkName.genbench <- function(obj, benchmark=NULL){
   } else {
     # set
     obj$benchmark <- benchmark
+    return(obj)
+  }
+}
+
+# get/set engine name
+engineName <- function(obj, engine=NULL){
+  UseMethod("engineName", obj)
+}
+engineName.default <- function(obj, engine=NULL){
+  warning(sprintf("Instance class cannot be handled."))
+  return(obj)
+}
+engineName.genbench <- function(obj, engine=NULL){
+  if(is.null(engine)){
+    # get
+    return(obj$engine)
+  } else {
+    # set
+    obj$engine <- engine
     return(obj)
   }
 }
@@ -156,7 +177,7 @@ getOutputFile.genbench <- function(obj){
   # return general file name for writing to
   return(
     file.path("..", "..", "generated",
-                     paste(benchmarkGroup(obj),benchmarkName(obj), "tsv", sep = '.')
+                     paste(benchmarkGroup(obj),benchmarkName(obj),engineName(obj), "tsv", sep = '.')
     )
   )
 }
@@ -189,7 +210,7 @@ getOutputFile.genbench_timings <- function(obj){
   makeOutputFileStamped <- function(obj){
     file.path("..", "..", "generated", "genbench_timings",
               benchmarkGroup(obj),
-              paste(benchmarkName(obj),
+              paste(benchmarkName(obj),engineName(obj),
                     format(Sys.time(), "%Y%m%d%H%M%S"), # datestamped to the second
                     "tsv", sep = '.')
     )
@@ -208,7 +229,7 @@ getOutputFile.genbench_results <- function(obj){
   return(
     file.path("..", "..", "generated", "genbench_results",
                      benchmarkGroup(obj),
-                     paste(benchmarkName(obj), "genbench_results", "tsv", sep = '.')
+                     paste(benchmarkName(obj), engineName(obj), "genbench_results", "tsv", sep = '.')
     )
   )
 }
@@ -234,7 +255,7 @@ reportRecords.genbench <- function(obj){
 
 # reporting method for timings class
 reportRecords.genbench_timings <- function(obj){
-  require(RJSONIO)
+  require(rjson)
   checkOutputFile(obj, create = TRUE)
   out <- getOutputFile(obj)
   # add 1 line JSON serialized header containing environment info
@@ -247,7 +268,7 @@ reportRecords.genbench_timings <- function(obj){
 }
 
 reportRecords.genbench_results <- function(obj){
-  #require(RJSONIO)
+  require(rjson)
   # check output file and collect results
   checkOutputFile(obj, create = TRUE)
   RESULTS <- getRecords(obj)
