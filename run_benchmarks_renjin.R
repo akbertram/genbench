@@ -8,7 +8,7 @@
 args <- commandArgs(trailingOnly = TRUE)
 ENGINE <- "Renjin"
 ##### To be excluded workflows due to crashing the benchmark process:
-PATTERN <- 'affy|clinical|huber|integration|levensque|microarray|mrna_seq|mutation|simple_survival|simulated_GEO_matrix|survival'
+PATTERN <- "affy|clinical|huber|integration|levensque|microarray|mrna_seq|mutation|simple_survival|simulated_GEO_matrix|survival"
 allWorkflows <- dir(file.path(getwd(), "code"), full.names = TRUE, recursive = TRUE, pattern = "\\.R$", ignore.case = TRUE)
 includeWorkflows <- allWorkflows[!is.element(allWorkflows,allWorkflows[grep(PATTERN,allWorkflows,ignore.case=T)])]
 excludedWorkflows <- allWorkflows[grep(PATTERN,allWorkflows,ignore.case=T)]
@@ -23,6 +23,10 @@ if (length(args) > 0) {
 }
 
 # find and run all benchmark scripts
+cat("\nThe following scripts will be runned: \n")
+sprintf(includeWorkflows)
+cat("\nThe following scripts will be excluded: \n")
+sprintf(excludedWorkflows)
 for (SCRIPT in includeWorkflows){
   # run benchmark script
   cat(timestamp(quiet = TRUE), "Running benchmark at ", SCRIPT,"\n")
