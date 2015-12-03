@@ -179,7 +179,7 @@ g +
   xlab("Benchmark section")
 
 # save results
-ggsave(filename = "generated/timings/current.all.pdf", width = 20, height = 10)
+ggsave(filename = "generated/genbench_timings/current.all.pdf", width = 30, height = 15)
 
 ### summarise
 ## total time per benchmark run (i.e. per ID)
@@ -203,7 +203,7 @@ g +
 
 
 # save results
-ggsave(filename = "generated/timings/current.summaryperrun.pdf", width = 20, height = 10)
+ggsave(filename = "generated/genbench_timings/current.summaryperrun.pdf", width = 30, height = 15)
 
 ## average time per benchmark file (i.e. per id)
 g <- ggplot(data =
@@ -234,7 +234,7 @@ g +
 
 
 ## save results
-ggsave(filename = "generated/timings/current.summaryperbenchmark.pdf", width = 20, height = 10)
+ggsave(filename = "generated/genbench_timings/current.summaryperbenchmark.pdf", width = 30, height = 15)
 
 ### compare to expected results
 # todo
