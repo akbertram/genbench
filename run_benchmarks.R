@@ -6,6 +6,12 @@
 # set loca libs for installing any packages
 .libPaths(file.path("~","R","libs"))
 ENGINE <- "gnuR"
+##### To be excluded workflows due to crashing the benchmark process:
+PATTERN <- 'affy|clinical|huber|integration|levensque|microarray|mrna_seq|mutation|simple_survival|simulated_GEO_matrix|survival|mass_spec'
+allWorkflows <- dir(file.path(getwd(), "code"), full.names = TRUE, recursive = TRUE, pattern = "\\.R$", ignore.case = TRUE)
+includeWorkflows <- allWorkflows[!is.element(allWorkflows,allWorkflows[grep(PATTERN,allWorkflows,ignore.case=T)])]
+excludedWorkflows <- allWorkflows[grep(PATTERN,allWorkflows,ignore.case=T)]
+#####
 # needs info about path and what size of data to run on
 args <- commandArgs(trailingOnly = TRUE)
 # reset timings?

@@ -237,12 +237,12 @@ TIMES <- addRecord(TIMES, record_name = "hc",
                                     )
 ))
 # kmeans
-TIMES <- addRecord(TIMES, record_name = "km",
-                   record = system.time(gcFirst = T,
-                                        RESULTS <- addRecord(RESULTS, record_name="km",
-                                                             record=do.km(dist_mat=dist_mat)
-                                        )
-))
+#TIMES <- addRecord(TIMES, record_name = "km",
+#                   record = system.time(gcFirst = T,
+#                                        RESULTS <- addRecord(RESULTS, record_name="km",
+#                                                             record=do.km(dist_mat=dist_mat)
+#                                        )
+#))
 
 # random forrest
 
