@@ -70,7 +70,7 @@ if(CREATE_NEW){
 
 ### collect data from existing reports
 reports <- lapply(
-  dir(path = file.path("..", "generated", "timings"), pattern = ".tsv$",
+  dir(path = file.path("..", "generated", "genbench_timings"), pattern = ".tsv$",
       full.names = TRUE, recursive = TRUE),
   function(path){
     # holder for data
@@ -151,7 +151,7 @@ loaded <- lapply(reports[!is.na(reports)],
          # insert timings (row by row for report)
          lapply(1:nrow(report$df), function(i){
               dbSendUpdate(conn,
-                  # print(
+                  #print(
                           sprintf(
                             "
                               INSERT INTO timings (meta_id, block, variable, value)
@@ -161,7 +161,7 @@ loaded <- lapply(reports[!is.na(reports)],
                             report$df[i,"variable"], report$df[i,"value"]
 
                             )
-
+                  #)
                )}
          )
          # insert additional meta data from header (row by row for report)
@@ -170,7 +170,7 @@ loaded <- lapply(reports[!is.na(reports)],
                         id.vars = "meta_id")
          lapply(1:nrow(report$meta), function(i){
            dbSendUpdate(conn,
-                        # print(
+                      #print(
                         sprintf(
                           "
                               INSERT INTO extra_meta (meta_id, variable, value)
@@ -181,7 +181,7 @@ loaded <- lapply(reports[!is.na(reports)],
                           as.character(report$meta[i,"value"])
 
                         )
-
+                      #)
            )}
          )
 

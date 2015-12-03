@@ -1,4 +1,5 @@
 
+.libPaths(file.path("~","R","libs"))
 require(RJDBC)
 
 # whitespace stripper
@@ -17,7 +18,7 @@ readSQL <- function(path){
 
 ### connect to mysql instance and check connection
 # http://mvnrepository.com/artifact/mysql/mysql-connector-java/5.1.35
-getConnection <- function(usr="foo", pwd="bar", 
+getConnection <- function(usr="foo", pwd="bar",
                           conn_string="jdbc:mysql://173.194.246.104/Rbenchmarks",
                           driver=NULL){
   if(is.null(driver)){
@@ -26,9 +27,9 @@ getConnection <- function(usr="foo", pwd="bar",
     # will still correctly load the driver, without having to specify it each time
     # NB: if the user specifies a custom driver, they must pass the full path!
     tryCatch(driver <- file.path(
-                          getwd(), 
-                          dir(pattern = "mysql-connector-java.*.jar", 
-                                     full.names = TRUE, recursive = TRUE, 
+                          getwd(),
+                          dir(pattern = "mysql-connector-java.*.jar",
+                                     full.names = TRUE, recursive = TRUE,
                                      include.dirs = FALSE, no.. = TRUE)[[1]]
                         ),
              error = function(e) cat(sprintf("Driver could not be found: %s\n", e)))
