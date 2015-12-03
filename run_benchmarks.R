@@ -134,9 +134,7 @@ install.dependencies(bioc=bioc, cran=cran)
 
 
 # find and run all benchmark scripts
-for (SCRIPT in rev(dir(file.path(getwd(), "code"),
-                  full.names = TRUE, recursive = TRUE, pattern = "\\.R$",
-                  ignore.case = TRUE))){
+for (SCRIPT in includeWorkflows){
 
   if(NRUNS >= 1){
     # run benchmark script
