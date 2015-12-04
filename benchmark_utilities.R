@@ -260,10 +260,14 @@ reportRecords.genbench_timings <- function(obj){
   out <- getOutputFile(obj)
   # add 1 line JSON serialized header containing environment info
   writeLines(toJSON(getEnv(obj)), con = out)
+
+  collected_data <- getRecords(obj)
+  merged_data <- t(sapply(collected_data,rbind))
+  colnames(merged_data) <- names(collected_data[[1]])
+
   write.table(file=out, append = TRUE,
               quote = FALSE, sep = "\t", row.names = TRUE, col.names = TRUE,
-              format(do.call("rbind", getRecords(obj)), digits=5)
-
+              merged_data
   )
 }
 
